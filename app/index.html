@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tienda — Catálogo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html"><i class="bi bi-bag-heart-fill me-1"></i>MiTienda</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link active" href="index.html">Catálogo</a></li>
+      </ul>
+      <ul class="navbar-nav align-items-center gap-1">
+        <!-- Carrito -->
+        <li class="nav-item nav-auth" style="display:none">
+          <a class="nav-link position-relative" href="carrito.html">
+            <i class="bi bi-cart3 fs-5"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge" style="display:none">0</span>
+          </a>
+        </li>
+        <!-- Mis pedidos -->
+        <li class="nav-item nav-auth" style="display:none">
+          <a class="nav-link" href="pedidos.html"><i class="bi bi-bag me-1"></i>Mis pedidos</a>
+        </li>
+        <!-- Admin -->
+        <li class="nav-item nav-admin" style="display:none">
+          <a class="nav-link text-danger" href="admin/"><i class="bi bi-shield-lock me-1"></i>Admin</a>
+        </li>
+        <!-- Nombre usuario -->
+        <li class="nav-item dropdown nav-auth" style="display:none">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-1"></i><span class="nav-username"></span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" id="logout-btn"><i class="bi bi-box-arrow-right me-1"></i>Cerrar sesión</a></li>
+          </ul>
+        </li>
+        <!-- Guest links -->
+        <li class="nav-item nav-guest">
+          <a class="nav-link" href="login.html">Iniciar sesión</a>
+        </li>
+        <li class="nav-item nav-guest">
+          <a class="btn btn-primary btn-sm" href="registro.html">Registrarse</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero py-4 mb-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-7">
+        <h1 class="fw-bold mb-1">Descubre nuestro catálogo</h1>
+        <p class="mb-3 opacity-75">Los mejores productos al mejor precio.</p>
+        <div class="input-group" style="max-width:480px">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="search-input" class="form-control border-start-0 ps-0"
+                 placeholder="Buscar productos…">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros + Catálogo -->
+<div class="container pb-5">
+  <div class="row g-3 mb-3 align-items-end">
+    <div class="col-6 col-md-3">
+      <label class="form-label small fw-semibold">Categoría</label>
+      <select id="filter-categoria" class="form-select form-select-sm">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small fw-semibold">Precio mín.</label>
+      <input type="number" id="filter-min" class="form-control form-control-sm" placeholder="$0">
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small fw-semibold">Precio máx.</label>
+      <input type="number" id="filter-max" class="form-control form-control-sm" placeholder="Sin límite">
+    </div>
+    <div class="col-6 col-md-2">
+      <label class="form-label small fw-semibold">Ordenar por</label>
+      <select id="filter-orden" class="form-select form-select-sm">
+        <option value="nombre">Nombre</option>
+        <option value="precio_asc">Precio ↑</option>
+        <option value="precio_desc">Precio ↓</option>
+        <option value="creado_en">Más recientes</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <button id="btn-filter" class="btn btn-outline-primary btn-sm w-100">
+        <i class="bi bi-funnel me-1"></i>Aplicar filtros
+      </button>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <small class="text-muted" id="results-count"></small>
+  </div>
+
+  <div class="row g-3" id="products-grid">
+    <div class="col-12 text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+  </div>
+
+  <div class="mt-4" id="pagination"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<footer class="bg-white border-top py-3 text-center text-muted small">
+  © 2024 MiTienda — Beta
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/catalogo.js"></script>
+</body>
+</html>
