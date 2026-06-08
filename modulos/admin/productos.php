@@ -1,0 +1,23 @@
+<?php require_once '../../config/database.php'; if(!isAdmin()) redirect('/ecommerce/modulos/auth/login.php');
+$db=getDB();$msg='';
+if($_SERVER['REQUEST_METHOD']==='POST'){
+    $a=$_POST['accion']??'';
+    if($a==='crear'){$db->query("INSERT INTO productos(nombre,descripcion,precio,stock,categoria_id,destacado) VALUES('".$db->real_escape_string($_POST['nombre'])."','".$db->real_escape_string($_POST['descripcion'])."',{$_POST['precio']},{$_POST['stock']},".intval($_POST['categoria_id']??0).",".intval($_POST['destacado']??0).")");$msg='Creado.';}
+    elseif($a==='editar'){$did=intval($_POST['id']);$db->query("UPDATE productos SET nombre='".$db->real_escape_string($_POST['nombre'])."',descripcion='".$db->real_escape_string($_POST['descripcion'])."',precio={$_POST['precio']},stock={$_POST['stock']},categoria_id=".intval($_POST['categoria_id']??0).",destacado=".intval($_POST['destacado']??0).",activo=".intval($_POST['activo']??1)." WHERE id=$did");$msg='Actualizado.';}
+    elseif($a==='eliminar'){$did=intval($_POST['id']);$db->query("DELETE FROM productos WHERE id=$did");$msg='Eliminado.';}
+}
+$ps=$db->query("SELECT p.*,c.nombre as cn FROM productos p LEFT JOIN categorias c ON p.categoria_id=c.id ORDER BY p.id DESC");
+$cs=$db->query("SELECT * FROM categorias ORDER BY nombre");
+$ed=isset($_GET['edit'])?$db->query("SELECT * FROM productos WHERE id=".intval($_GET['edit']))->fetch_assoc():null;
+?><!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Productos</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><style>.s{background:#1a1a2e;min-height:100vh;color:white;position:fixed;width:220px}.s a{color:rgba(255,255,255,.7);padding:10px 15px;display:block;text-decoration:none}.s a:hover,.s a.ac{background:rgba(255,255,255,.1);color:white}.m{margin-left:220px;padding:20px}</style></head><body>
+<div class="s p-3"><h5 class="text-white mb-3">Admin</h5><a href="dashboard.php">📊 Dashboard</a><a href="productos.php" class="ac">📦 Productos</a><a href="pedidos.php">🧾 Pedidos</a><a href="inventario.php">📋 Inventario</a><a href="/ecommerce/">← Sitio</a></div>
+<div class="m"><h2>Productos</h2><?php if($msg):?><div class="alert alert-success"><?=$msg?></div><?php endif;?>
+<div class="card p-3 mb-4"><h5><?=$ed?'Editar':'Nuevo'?> Producto</h5><form method="post"><input type="hidden" name="accion" value="<?=$ed?'editar':'crear'?>"><?php if($ed):?><input type="hidden" name="id" value="<?=$ed['id']?>"><?php endif;?>
+<div class="row"><div class="col-md-8 mb-2"><input name="nombre" class="form-control" placeholder="Nombre" value="<?=htmlspecialchars($ed['nombre']??'')?>" required></div><div class="col-md-4 mb-2"><input name="precio" type="number" class="form-control" placeholder="Precio" value="<?=$ed['precio']??''?>" required></div></div>
+<div class="row"><div class="col-md-8 mb-2"><textarea name="descripcion" class="form-control" rows="2" placeholder="Descripción"><?=htmlspecialchars($ed['descripcion']??'')?></textarea></div><div class="col-md-4 mb-2"><input name="stock" type="number" class="form-control" placeholder="Stock" value="<?=$ed['stock']??'0'?>" required>
+<select name="categoria_id" class="form-control mt-1"><?php while($c=$cs->fetch_assoc()):?><option value="<?=$c['id']?>" <?=($ed['categoria_id']??'')==$c['id']?'selected':''?>><?=htmlspecialchars($c['nombre'])?></option><?php endwhile;?></select></div></div>
+<label class="form-check mb-2"><input class="form-check-input" type="checkbox" name="destacado" value="1" <?=($ed['destacado']??0)?'checked':''?>> Destacado</label>
+<?php if($ed):?><label class="form-check mb-2"><input class="form-check-input" type="checkbox" name="activo" value="1" <?=($ed['activo']??1)?'checked':''?>> Activo</label><?php endif;?>
+<button class="btn btn-primary"><?=$ed?'Actualizar':'Crear'?></button><?php if($ed):?><a href="productos.php" class="btn btn-outline-secondary">Cancelar</a><?php endif;?></form></div>
+<table class="table table-sm"><thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Activo</th><th></th></tr></thead><tbody>
+<?php while($p=$ps->fetch_assoc()):?><tr><td><?=$p['id']?></td><td><?=htmlspecialchars($p['nombre'])?></td><td>$<?=number_format($p['precio'],0)?></td><td><?=$p['stock']?></td><td><?=$p['activo']?'✅':'❌'?></td><td><a href="?edit=<?=$p['id']?>" class="btn btn-sm btn-outline-primary">Edit</a><form method="post" style="display:inline"><input type="hidden" name="accion" value="eliminar"><input type="hidden" name="id" value="<?=$p['id']?>"><button class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar?')">×</button></form></td></tr><?php endwhile;?></tbody></table></div></body></html>

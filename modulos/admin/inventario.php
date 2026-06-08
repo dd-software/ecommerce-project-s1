@@ -1,0 +1,14 @@
+<?php require_once '../../config/database.php'; if(!isAdmin()) redirect('/ecommerce/modulos/auth/login.php');
+$db=getDB();$msg='';
+if($_SERVER['REQUEST_METHOD']==='POST'){$pid=intval($_POST['producto_id']);$t=$_POST['tipo'];$c=intval($_POST['cantidad']);$m=$_POST['motivo'];
+if($t==='entrada')$db->query("UPDATE productos SET stock=stock+$c WHERE id=$pid");
+else $db->query("UPDATE productos SET stock=stock-$c WHERE id=$pid AND stock>=$c");
+$db->query("INSERT INTO movimientos_inventario(producto_id,tipo,cantidad,motivo) VALUES($pid,'$t',$c,'".$db->real_escape_string($m)."')");
+$msg='Registrado.';}
+$pr=$db->query("SELECT * FROM productos ORDER BY nombre");
+$mv=$db->query("SELECT m.*,p.nombre FROM movimientos_inventario m JOIN productos p ON m.producto_id=p.id ORDER BY m.created_at DESC LIMIT 50");
+?><!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Inventario</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><style>.s{background:#1a1a2e;min-height:100vh;color:white;position:fixed;width:220px}.s a{color:rgba(255,255,255,.7);padding:10px 15px;display:block;text-decoration:none}.s a:hover,.s a.ac{background:rgba(255,255,255,.1);color:white}.m{margin-left:220px;padding:20px}</style></head><body>
+<div class="s p-3"><h5>Admin</h5><a href="dashboard.php">📊 Dashboard</a><a href="productos.php">📦 Productos</a><a href="pedidos.php">🧾 Pedidos</a><a href="inventario.php" class="ac">📋 Inventario</a><a href="/ecommerce/">← Sitio</a></div>
+<div class="m"><h2>Inventario</h2><?php if($msg):?><div class="alert alert-success"><?=$msg?></div><?php endif;?>
+<h5>Movimiento</h5><form method="post" class="card p-3 mb-4"><div class="row"><div class="col-md-4 mb-2"><select name="producto_id" class="form-control" required><?php while($p=$pr->fetch_assoc()):?><option value="<?=$p['id']?>"><?=htmlspecialchars($p['nombre'])?> (<?=$p['stock']?>)</option><?php endwhile;?></select></div><div class="col-md-2 mb-2"><select name="tipo" class="form-control"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></div><div class="col-md-2 mb-2"><input name="cantidad" type="number" class="form-control" placeholder="Cant" required></div><div class="col-md-4 mb-2"><input name="motivo" class="form-control" placeholder="Motivo"></div></div><button class="btn btn-primary">Registrar</button></form>
+<h5>Últimos movimientos</h5><table class="table table-sm"><thead><tr><th>Producto</th><th>Tipo</th><th>Cant</th><th>Motivo</th><th>Fecha</th></tr></thead><tbody><?php while($m=$mv->fetch_assoc()):?><tr><td><?=htmlspecialchars($m['nombre'])?></td><td><span class="badge bg-<?=$m['tipo']=='entrada'?'success':'warning'?>"><?=$m['tipo']?></span></td><td><?=$m['cantidad']?></td><td><?=htmlspecialchars($m['motivo'])?></td><td><?=date('d/m/Y H:i',strtotime($m['created_at']))?></td></tr><?php endwhile;?></tbody></table></div></body></html>

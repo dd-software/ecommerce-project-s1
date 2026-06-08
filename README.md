@@ -1,12 +1,22 @@
-# Ecommerce UCT - SDD Academic Edition v1.0
+# Ecommerce UCT — Plataforma de Comercio Electrónico
 
-Repositorio documental maestro para el proyecto integrador de Diseño y Desarrollo de Software + IA.
+Proyecto integrador — Desarrollo y Diseño de Software + IA
 
-## Metodología
-- Specification Driven Development (SDD)
-- Scrum
-- GitHub Flow
-- Arquitectura modular A-H
+## Stack
+- **Backend:** PHP 8 + MySQL
+- **Frontend:** HTML5 + Bootstrap 5.3.8 + JavaScript vanilla
+- **Metodología:** Spec-Driven Development (SDD)
 
-## Objetivo
-Construir un ecommerce completo mediante equipos especializados.
+## Módulos (A-H)
+| A | Catálogo | B | Carrito | C | Autenticación | D | Checkout |
+| E | Pasarela Pago | F | Inventario | G | Admin | H | Integración |
+
+## Credenciales Admin
+- Email: admin@ecommerce.cl
+- Password: password
+
+## Instalación
+1. XAMPP con PHP 8 + MySQL
+2. Ejecutar sql/schema.sql en phpMyAdmin
+3. Configurar config/database.php
+4. Acceder: http://localhost/ecommerce
