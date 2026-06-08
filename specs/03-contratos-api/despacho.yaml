@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  title: API Despacho y Logística
+  description: Contrato para la gestión de envíos, asignación de transporte y seguimiento de paquetes.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8088
+    description: Microservicio de Despacho
+paths:
+  /api/despacho:
+    post:
+      summary: Crear una orden de despacho (envío) para una compra realizada
+      tags:
+        - Despacho
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ordenId
+                - empresaTransporte
+              properties:
+                ordenId:
+                  type: string
+                  example: "ord-555"
+                empresaTransporte:
+                  type: string
+                  example: "DHL"
+                instruccionesEntrega:
+                  type: string
+                  example: "Tocar timbre 2B, rejas negras."
+      responses:
+        '201':
+          description: Despacho programado y guía generada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuiaDespacho'
+        '400':
+          description: La orden ya fue despachada o los datos son inválidos.
+
+  /api/despacho/seguimiento/{trackingId}:
+    get:
+      summary: Consultar el estado en tiempo real de un envío
+      tags:
+        - Despacho
+      parameters:
+        - name: trackingId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "TRK-992811A"
+      responses:
+        '200':
+          description: Estado del envío localizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trackingId:
+                    type: string
+                    example: "TRK-992811A"
+                  estadoEnvio:
+                    type: string
+                    example: "EN_CAMINO"
+                    enum: [PROCESANDO, EN_PREPARACION, EN_CAMINO, ENTREGADO, RECHAZADO]
+                  fechaEstimadaEntrega:
+                    type: string
+                    format: date
+                    example: "2026-06-12"
+
+components:
+  schemas:
+    GuiaDespacho:
+      type: object
+      properties:
+        despachoId:
+          type: string
+          example: "desp-441"
+        ordenId:
+          type: string
+          example: "ord-555"
+        trackingId:
+          type: string
+          example: "TRK-992811A"
+        empresaTransporte:
+          type: string
+          example: "DHL"
+        estadoEnvio:
+          type: string
+          example: "EN_PREPARACION"
