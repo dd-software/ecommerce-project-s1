@@ -1,11 +1,10 @@
+# Historias de Usuario - Pasarela de Pago
 
-# Historias de Usuario
+### US-E-001: Realizar el pago de mi pedido mediante una interfaz interactiva
+- **Como** cliente
+- **Quiero** realizar el pago de mi pedido mediante una interfaz interactiva
+- **Para** completar mi compra de forma rápida y segura
+- **Criterios de Aceptación**:
+  - Debe haber alertas visuales claras indicando si el pago fue aprobado o rechazado.
+  - En caso de éxito, debe redirigirse al usuario a la página de confirmación con el resumen de su pedido.
 
-US-E-001
-Como usuario
-Quiero utilizar Pasarela de Pago
-Para completar una tarea de negocio.
-
-Criterios de aceptación:
-- Funciona correctamente.
-- Cumple contratos.
