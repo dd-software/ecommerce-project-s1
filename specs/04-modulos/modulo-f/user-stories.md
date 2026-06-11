@@ -1,11 +1,10 @@
+# Historias de Usuario - Inventario
 
-# Historias de Usuario
+### US-F-001: Registrar un ingreso de stock manual
+- **Como** vendedor/supervisor
+- **Quiero** registrar un ingreso de stock manual
+- **Para** reflejar la llegada de nuevos productos y habilitar su venta
+- **Criterios de Aceptación**:
+  - Se debe ingresar obligatoriamente una descripción justificando el movimiento.
+  - El stock disponible debe actualizarse de inmediato en la tienda.
 
-US-F-001
-Como usuario
-Quiero utilizar Inventario
-Para completar una tarea de negocio.
-
-Criterios de aceptación:
-- Funciona correctamente.
-- Cumple contratos.

@@ -1,3 +1,8 @@
-# Testing
+# Plan de Pruebas - Carrito
 
-Pruebas unitarias, integración y aceptación.
+## Pruebas Unitarias e Integración (PHP 8)
+- **Escenario**: testAgregarItemExcediendoStockDevuelveBadRequest
+- **Escenario**: testCalcularTotalesConMultiplesItems
+
+## Pruebas Manuales e Interfaz (Frontend)
+- **Escenario**: Validar que al hacer clic en el ícono de tachito el elemento desaparezca de la tabla.

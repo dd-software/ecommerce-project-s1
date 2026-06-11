@@ -1,10 +1,53 @@
 openapi: 3.0.0
 info:
-  title: API admin
+  title: API Administración
+  description: Contrato para operaciones de administración y gestión del catálogo.
   version: 1.0.0
+servers:
+  - url: http://localhost:8087
+    description: Microservicio de Administración
 paths:
   /api/admin:
-    get:
+    post:
+      summary: Crear o dar de alta un nuevo producto en el sistema
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nombre
+                - precio
+                - stockInicial
+              properties:
+                nombre:
+                  type: string
+                  example: "Teclado Mecánico Gamer"
+                descripcion:
+                  type: string
+                  example: "Teclado RGB con switches mecánicos red."
+                precio:
+                  type: number
+                  format: float
+                  example: 59.99
+                stockInicial:
+                  type: integer
+                  example: 100
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Producto creado exitosamente en el panel administrador.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "prod-789"
+                  creadoEn:
+                    type: string
+                    format: date-time
+                    example: "2026-06-08T12:00:00Z"

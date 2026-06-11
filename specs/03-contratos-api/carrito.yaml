@@ -1,10 +1,89 @@
 openapi: 3.0.0
 info:
-  title: API carrito
+  title: API Carrito
+  description: Contrato para la gestión del carrito de compras activo del usuario.
   version: 1.0.0
+servers:
+  - url: http://localhost:8083
+    description: Microservicio de Carrito
 paths:
   /api/carrito:
     get:
+      summary: Obtener los productos actuales en el carrito
+      tags:
+        - Carrito
       responses:
         '200':
-          description: OK
+          description: Detalle del carrito devuelto correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Carrito'
+
+    post:
+      summary: Agregar un producto al carrito
+      tags:
+        - Carrito
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - productoId
+                - cantidad
+              properties:
+                productoId:
+                  type: string
+                  example: "prod-123"
+                cantidad:
+                  type: integer
+                  example: 2
+      responses:
+        '201':
+          description: Producto agregado con éxito.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Carrito'
+        '400':
+          description: Petición inválida (ej. cantidad menor a 1 o producto inexistente).
+
+components:
+  schemas:
+    ItemCarrito:
+      type: object
+      properties:
+        productoId:
+          type: string
+          example: "prod-123"
+        nombre:
+          type: string
+          example: "Zapatillas Running Pro"
+        precioUnitario:
+          type: number
+          format: float
+          example: 89.99
+        cantidad:
+          type: integer
+          example: 2
+        subtotal:
+          type: number
+          format: float
+          example: 179.98
+
+    Carrito:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "cart-999"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemCarrito'
+        total:
+          type: number
+          format: float
+          example: 179.98
