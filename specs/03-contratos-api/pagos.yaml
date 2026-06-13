@@ -1,15 +1,135 @@
 openapi: 3.0.0
 info:
   title: API Pagos
-  description: Contrato para el procesamiento de transacciones financieras.
+  description: Contrato para el procesamiento de pagos y notificaciones vía webhook.
   version: 1.0.0
 servers:
-  - url: http://localhost:8085
-    description: Microservicio de Pagos
+  - url: http://localhost:8080
+    description: API monolítica (módulo Pagos)
 paths:
-  /api/pagos:
+  /api/pagos/procesar:
     post:
-      summary: Procesar el pago de una orden de compra
+      summary: Procesar el pago de un pedido (simulación Webpay)
+      tags:
+        - Pagos
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pedido_id
+                - metodo_pago
+              properties:
+                pedido_id:
+                  type: integer
+                  example: 1
+                  description: ID del pedido a pagar
+                metodo_pago:
+                  type: string
+                  example: "TARJETA_CREDITO"
+                  description: Método de pago (débito, crédito, etc.)
+                token_tarjeta:
+                  type: string
+                  example: "tok_visa_12345"
+                  description: "Token simulado de tarjeta. Usar 'fail_' para simular rechazo."
+      responses:
+        '200':
+          description: Transacción procesada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      transaccion_id:
+                        type: string
+                        example: "TX-AB12CD34EF56"
+                      estado:
+                        $ref: '#/components/schemas/EstadoPago'
+                      mensaje:
+                        type: string
+                        example: "Pago aprobado exitosamente."
+                      pedido_id:
+                        type: integer
+                        example: 1
+                      monto:
+                        type: integer
+                        example: 21417
+                        description: Monto en centavos
+                      monto_formateado:
+                        type: string
+                        example: "$21.417"
+        '401':
+          description: Autenticación requerida.
+        '402':
+          description: Pago rechazado.
+        '422':
+          description: Validación fallida.
+  /api/pagos/estado/{pedidoId}:
+    get:
+      summary: Consultar el estado del pago de un pedido
+      tags:
+        - Pagos
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pedidoId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+          example: 1
+      responses:
+        '200':
+          description: Estado del pago.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      id_pedido:
+                        type: integer
+                      metodo_pago:
+                        type: string
+                      monto:
+                        type: integer
+                      estado:
+                        $ref: '#/components/schemas/EstadoPago'
+                      referencia_externa:
+                        type: string
+                      monto_formateado:
+                        type: string
+                      fecha_pago:
+                        type: string
+                        format: date-time
+                      created_at:
+                        type: string
+                        format: date-time
+        '401':
+          description: Autenticación requerida.
+        '404':
+          description: No se encontró pago para este pedido.
+  /api/pagos/webhook:
+    post:
+      summary: Webhook de confirmación de pasarela de pago
       tags:
         - Pagos
       requestBody:
@@ -19,35 +139,49 @@ paths:
             schema:
               type: object
               required:
-                - ordenId
-                - metodoPago
-                - tokenTarjeta
+                - pedido_id
               properties:
-                ordenId:
+                pedido_id:
+                  type: integer
+                  example: 1
+                estado:
                   type: string
-                  example: "ord-555"
-                metodoPago:
+                  example: "aprobado"
+                  description: "Estado: approved/aprobado, rejected/rechazado, refunded/reembolsado"
+                transaccion_id:
                   type: string
-                  example: "TARJETA_CREDITO"
-                tokenTarjeta:
-                  type: string
-                  example: "tok_visa_12345"
+                  example: "TX-AB12CD34EF56"
       responses:
         '200':
-          description: Transacción procesada correctamente.
+          description: Webhook procesado exitosamente.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  transaccionId:
-                    type: string
-                    example: "tx-7777"
-                  estado:
-                    type: string
-                    example: "APROBADO"
-                  mensaje:
-                    type: string
-                    example: "Pago capturado exitosamente."
-        '402':
-          description: Pago requerido / Tarjeta rechazada o fondos insuficientes.
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      mensaje:
+                        type: string
+                        example: "Webhook procesado exitosamente."
+        '422':
+          description: pedido_id requerido.
+components:
+  schemas:
+    EstadoPago:
+      type: string
+      description: "Estados de una transacción de pago."
+      enum:
+        - aprobado
+        - rechazado
+        - reembolsado
+        - pendiente
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

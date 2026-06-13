@@ -1,13 +1,81 @@
 openapi: 3.0.0
 info:
   title: API Autenticación
-  description: Contrato para el inicio de sesión y gestión de sesiones mediante JWT.
+  description: Contrato para registro, inicio de sesión y gestión de perfil mediante JWT.
   version: 1.0.0
 servers:
-  - url: http://localhost:8081
-    description: Microservicio de Autenticación
+  - url: http://localhost:8080
+    description: API monolítica (módulo Auth)
 paths:
-  /api/auth:
+  /api/auth/registro:
+    post:
+      summary: Registrar un nuevo usuario cliente
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nombre
+                - apellido
+                - email
+                - password
+              properties:
+                nombre:
+                  type: string
+                  example: "Juan"
+                apellido:
+                  type: string
+                  example: "Pérez"
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@email.com"
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: "Segura123!"
+      responses:
+        '201':
+          description: Usuario registrado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbG...VCJ9..."
+                      usuario:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          nombre:
+                            type: string
+                            example: "Juan Pérez"
+                          email:
+                            type: string
+                            example: "usuario@email.com"
+                          rol:
+                            type: string
+                            example: "cliente"
+        '409':
+          description: El email ya está registrado.
+        '422':
+          description: Validación fallida (email inválido, contraseña débil, campos requeridos faltantes).
+  /api/auth/login:
     post:
       summary: Iniciar sesión de usuario
       tags:
@@ -38,20 +106,140 @@ paths:
               schema:
                 type: object
                 properties:
-                  token:
-                    type: string
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                  usuario:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: "eyJhbG...VCJ9..."
+                      usuario:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          nombre:
+                            type: string
+                            example: "Juan Pérez"
+                          email:
+                            type: string
+                            example: "usuario@email.com"
+                          rol:
+                            type: string
+                            example: "cliente"
+        '401':
+          description: Credenciales incorrectas o cuenta suspendida.
+        '422':
+          description: Validación fallida (campos requeridos faltantes).
+  /api/auth/logout:
+    post:
+      summary: Cerrar sesión
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Sesión cerrada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      mensaje:
+                        type: string
+                        example: "Sesión cerrada exitosamente."
+  /api/auth/perfil:
+    get:
+      summary: Obtener perfil del usuario autenticado
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Perfil del usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
                     type: object
                     properties:
                       id:
-                        type: string
-                        example: "usr-888"
+                        type: integer
+                        example: 1
                       nombre:
                         type: string
-                        example: "Juan Pérez"
+                        example: "Juan"
+                      apellido:
+                        type: string
+                        example: "Pérez"
+                      email:
+                        type: string
+                        example: "usuario@email.com"
                       rol:
                         type: string
-                        example: "CLIENTE"
+                        example: "cliente"
+                      activo:
+                        type: integer
+                        example: 1
+                      created_at:
+                        type: string
+                        format: date-time
+                      ultimo_login:
+                        type: string
+                        format: date-time
         '401':
-          description: Credenciales incorrectas o usuario no encontrado.
+          description: Token requerido o inválido.
+    patch:
+      summary: Actualizar datos del perfil
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                  example: "Juan Carlos"
+                apellido:
+                  type: string
+                  example: "Pérez García"
+                telefono:
+                  type: string
+                  example: "+56912345678"
+      responses:
+        '200':
+          description: Perfil actualizado exitosamente.
+        '401':
+          description: Token requerido o inválido.
+components:
+  schemas:
+    UsuarioEstado:
+      type: string
+      enum: [activo, inactivo]
+      description: "Estado del usuario. activo=1, inactivo=0 en DB."
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

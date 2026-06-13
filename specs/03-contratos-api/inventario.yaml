@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
   title: API Inventario
-  description: Contrato para verificar y actualizar el stock de productos.
+  description: Contrato para verificar disponibilidad de stock, consultar movimientos y ajustar inventario.
   version: 1.0.0
 servers:
-  - url: http://localhost:8086
-    description: Microservicio de Inventario
+  - url: http://localhost:8080
+    description: API monolítica (módulo Inventario)
 paths:
   /api/inventario:
     get:
@@ -13,29 +13,239 @@ paths:
       tags:
         - Inventario
       parameters:
-        - name: productoIds
+        - name: producto_ids
           in: query
           required: true
           schema:
             type: string
-          example: "prod-123,prod-456"
-          description: Lista de IDs de productos separados por coma.
+          description: IDs de productos separados por coma
+          example: "1,2,3"
       responses:
         '200':
           description: Disponibilidad consultada.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    productoId:
-                      type: string
-                      example: "prod-123"
-                    disponible:
-                      type: boolean
-                      example: true
-                    stockActual:
-                      type: integer
-                      example: 45
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        producto_id:
+                          type: integer
+                          example: 1
+                        disponible:
+                          type: boolean
+                          example: true
+                        stock_actual:
+                          type: integer
+                          example: 45
+        '422':
+          description: Debe especificar al menos un producto_id.
+  /api/inventario/movimientos:
+    get:
+      summary: Listar movimientos de inventario (admin/supervisor/vendedor)
+      tags:
+        - Inventario
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: producto_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filtrar por producto específico
+          example: 1
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          example: 1
+        - name: por_pagina
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+            minimum: 1
+          example: 20
+      responses:
+        '200':
+          description: Listado paginado de movimientos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Movimiento'
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          per_page:
+                            type: integer
+                          total:
+                            type: integer
+                          total_pages:
+                            type: integer
+        '403':
+          description: Acceso denegado.
+  /api/inventario/alertas:
+    get:
+      summary: Obtener productos con stock bajo (admin/supervisor/vendedor)
+      tags:
+        - Inventario
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Productos con stock bajo el mínimo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        nombre:
+                          type: string
+                        slug:
+                          type: string
+                        stock:
+                          type: integer
+                        stock_minimo:
+                          type: integer
+                        imagen_url:
+                          type: string
+                        id_categoria:
+                          type: integer
+        '403':
+          description: Acceso denegado.
+  /api/inventario/ajustar:
+    post:
+      summary: Ajustar stock de un producto manualmente
+      tags:
+        - Inventario
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - producto_id
+                - cantidad
+                - tipo
+                - motivo
+              properties:
+                producto_id:
+                  type: integer
+                  example: 1
+                cantidad:
+                  type: integer
+                  example: 50
+                  description: "Para entrada=cantidad a sumar. Para ajuste=nuevo stock absoluto."
+                tipo:
+                  $ref: '#/components/schemas/TipoMovimiento'
+                motivo:
+                  type: string
+                  example: "Reabastecimiento de proveedor"
+      responses:
+        '200':
+          description: Stock ajustado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      mensaje:
+                        type: string
+                        example: "Stock ajustado exitosamente."
+        '403':
+          description: Acceso denegado.
+        '409':
+          description: Error de stock (stock negativo, etc.).
+        '422':
+          description: Validación fallida (tipo inválido, campos requeridos faltantes).
+components:
+  schemas:
+    TipoMovimiento:
+      type: string
+      description: "Tipo de movimiento de inventario."
+      enum:
+        - entrada
+        - ajuste
+        - egreso
+    Movimiento:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_producto:
+          type: integer
+        id_pedido:
+          type: integer
+          nullable: true
+        cantidad:
+          type: integer
+          description: "Cantidad del movimiento. Positiva para entradas/ajustes, negativa para egresos."
+        tipo:
+          $ref: '#/components/schemas/TipoMovimiento'
+        motivo:
+          type: string
+        stock_anterior:
+          type: integer
+        stock_nuevo:
+          type: integer
+        id_usuario:
+          type: integer
+          nullable: true
+        usuario_nombre:
+          type: string
+          nullable: true
+        producto_nombre:
+          type: string
+        producto_slug:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

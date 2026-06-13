@@ -1,29 +1,50 @@
 openapi: 3.0.0
 info:
   title: API Carrito
-  description: Contrato para la gestión del carrito de compras activo del usuario.
+  description: Contrato para la gestión del carrito de compras activo del usuario o visitante.
   version: 1.0.0
 servers:
-  - url: http://localhost:8083
-    description: Microservicio de Carrito
+  - url: http://localhost:8080
+    description: API monolítica (módulo Carrito)
 paths:
   /api/carrito:
     get:
-      summary: Obtener los productos actuales en el carrito
+      summary: Obtener el carrito actual (autenticado o por sesión de visitante)
       tags:
         - Carrito
+      parameters:
+        - name: X-Session-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Identificador de sesión para visitantes no autenticados
+          example: "sess_abc123def456"
       responses:
         '200':
-          description: Detalle del carrito devuelto correctamente.
+          description: Carrito obtenido con éxito.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Carrito'
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Carrito'
     post:
       summary: Agregar un producto al carrito
       tags:
         - Carrito
+      parameters:
+        - name: X-Session-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Identificador de sesión para visitantes no autenticados
+          example: "sess_abc123def456"
       requestBody:
         required: true
         content:
@@ -31,59 +52,242 @@ paths:
             schema:
               type: object
               required:
-                - productoId
+                - producto_id
                 - cantidad
               properties:
-                productoId:
-                  type: string
-                  example: "prod-123"
+                producto_id:
+                  type: integer
+                  example: 1
+                  description: ID del producto a agregar
                 cantidad:
                   type: integer
+                  minimum: 1
+                  maximum: 999
                   example: 2
+                session_id:
+                  type: string
+                  example: "sess_abc123def456"
+                  description: "Opcional. Session ID para visitantes (alternativa al header X-Session-Id)"
       responses:
         '201':
-          description: Producto agregado con éxito.
+          description: Producto agregado al carrito.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Carrito'
-        '400':
-          description: Petición inválida (ej. cantidad menor a 1 o producto inexistente).
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Carrito'
+        '409':
+          description: Stock insuficiente.
+        '422':
+          description: Validación fallida (cantidad inválida, producto inexistente).
+    delete:
+      summary: Vaciar el carrito completo
+      tags:
+        - Carrito
+      parameters:
+        - name: X-Session-Id
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Identificador de sesión para visitantes no autenticados
+      responses:
+        '200':
+          description: Carrito vaciado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      mensaje:
+                        type: string
+                        example: "Carrito vaciado exitosamente."
+  /api/carrito/sincronizar:
+    post:
+      summary: Sincronizar carrito de visitante con usuario autenticado
+      tags:
+        - Carrito
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                  example: "sess_abc123def456"
+                  description: Session ID del carrito visitante a fusionar
+      responses:
+        '200':
+          description: Carrito sincronizado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Carrito'
+        '401':
+          description: Autenticación requerida.
+  /api/carrito/{id}:
+    patch:
+      summary: Actualizar la cantidad de un item en el carrito
+      tags:
+        - Carrito
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del item en el carrito
+          example: 5
+        - name: X-Session-Id
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cantidad
+              properties:
+                cantidad:
+                  type: integer
+                  minimum: 0
+                  example: 3
+                  description: "Nueva cantidad (0 elimina el item)"
+      responses:
+        '200':
+          description: Cantidad actualizada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Carrito'
+        '409':
+          description: Stock insuficiente para la cantidad solicitada.
+        '422':
+          description: Validación fallida.
+    delete:
+      summary: Eliminar un item específico del carrito
+      tags:
+        - Carrito
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del item a eliminar
+          example: 5
+        - name: X-Session-Id
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Item eliminado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Carrito'
 components:
   schemas:
     ItemCarrito:
       type: object
       properties:
-        productoId:
-          type: string
-          example: "prod-123"
+        id:
+          type: integer
+          example: 5
+        id_producto:
+          type: integer
+          example: 1
         nombre:
           type: string
           example: "Zapatillas Running Pro"
-        precioUnitario:
-          type: number
-          format: float
-          example: 89.99
+        imagen_url:
+          type: string
+          example: "https://mi-ecommerce.com/imagenes/zap-123.jpg"
+        precio_unitario:
+          type: integer
+          example: 8999
+          description: Precio en centavos.
         cantidad:
           type: integer
           example: 2
         subtotal:
-          type: number
-          format: float
-          example: 179.98
-
+          type: integer
+          example: 17998
+          description: Subtotal en centavos.
     Carrito:
       type: object
       properties:
         id:
+          type: integer
+          example: 42
+        id_usuario:
+          type: integer
+          nullable: true
+          example: null
+        session_id:
           type: string
-          example: "cart-999"
+          nullable: true
+          example: "sess_abc123def456"
         items:
           type: array
           items:
             $ref: '#/components/schemas/ItemCarrito'
+        subtotal:
+          type: integer
+          example: 17998
+          description: Subtotal en centavos.
+        iva:
+          type: integer
+          example: 3419
+          description: IVA (19%) en centavos.
         total:
-          type: number
-          format: float
-          example: 179.98
+          type: integer
+          example: 21417
+          description: Total en centavos.
+        total_items:
+          type: integer
+          example: 1
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

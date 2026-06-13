@@ -1,17 +1,19 @@
 openapi: 3.0.0
 info:
-  title: API Checkout
-  description: Contrato para la creación y procesamiento de órdenes de compra.
+  title: API Checkout y Pedidos
+  description: Contrato para la creación de pedidos y consulta de órdenes de compra.
   version: 1.0.0
 servers:
-  - url: http://localhost:8084
-    description: Microservicio de Checkout
+  - url: http://localhost:8080
+    description: API monolítica (módulo Checkout)
 paths:
   /api/checkout:
     post:
-      summary: Crear una nueva orden de compra a partir del carrito
+      summary: Crear un nuevo pedido a partir del carrito
       tags:
         - Checkout
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -19,43 +21,251 @@ paths:
             schema:
               type: object
               required:
-                - carritoId
-                - direccionEnvio
+                - carrito_id
+                - direccion_envio
               properties:
-                carritoId:
-                  type: string
-                  example: "cart-999"
-                direccionEnvio:
+                carrito_id:
+                  type: integer
+                  example: 42
+                  description: ID del carrito a convertir en pedido
+                direccion_envio:
                   type: string
                   example: "Av. Siempreviva 742, Springfield"
-                notasEspeciales:
+                telefono:
+                  type: string
+                  example: "+56912345678"
+                notas:
                   type: string
                   example: "Dejar en recepción si no estoy."
+                cupon:
+                  type: string
+                  example: "DESCUENTO10"
+                  description: Código de cupón de descuento (opcional)
       responses:
         '201':
-          description: Orden creada con éxito, lista para pagar.
+          description: Pedido creado exitosamente.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Orden'
-        '400':
-          description: Carrito vacío o datos de envío inválidos.
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Pedido'
+        '401':
+          description: Debe iniciar sesión para realizar un pedido.
+        '422':
+          description: Validación fallida (carrito vacío, stock insuficiente, datos inválidos).
+  /api/pedidos:
+    get:
+      summary: Obtener lista de pedidos del usuario autenticado
+      tags:
+        - Checkout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de pedidos del usuario.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PedidoResumen'
+        '401':
+          description: Autenticación requerida.
+  /api/pedidos/{id}:
+    get:
+      summary: Obtener detalle completo de un pedido
+      tags:
+        - Checkout
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+          example: 1
+      responses:
+        '200':
+          description: Detalle del pedido.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Pedido'
+        '401':
+          description: Autenticación requerida.
+        '403':
+          description: No tienes permiso para ver este pedido.
+        '404':
+          description: Pedido no encontrado.
 components:
   schemas:
-    Orden:
+    EstadoPedido:
+      type: string
+      description: "Estados del ciclo de vida de un pedido."
+      enum:
+        - pendiente
+        - pagado
+        - en_preparacion
+        - enviado
+        - entregado
+        - cancelado
+    PedidoResumen:
       type: object
       properties:
-        ordenId:
-          type: string
-          example: "ord-555"
-        carritoId:
-          type: string
-          example: "cart-999"
+        id:
+          type: integer
+          example: 1
+        estado:
+          $ref: '#/components/schemas/EstadoPedido'
         total:
-          type: number
-          format: float
-          example: 179.98
+          type: integer
+          example: 21417
+          description: Total en centavos.
+        total_formateado:
+          type: string
+          example: "$21.417"
+        subtotal:
+          type: integer
+          example: 17998
+        iva:
+          type: integer
+          example: 3419
+        total_items:
+          type: integer
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+    Pedido:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        id_usuario:
+          type: integer
+          example: 1
+        estado:
+          $ref: '#/components/schemas/EstadoPedido'
+        subtotal:
+          type: integer
+          example: 17998
+        iva:
+          type: integer
+          example: 3419
+        total:
+          type: integer
+          example: 21417
+        subtotal_formateado:
+          type: string
+          example: "$17.998"
+        iva_formateado:
+          type: string
+          example: "$3.419"
+        total_formateado:
+          type: string
+          example: "$21.417"
+        direccion_envio:
+          type: string
+          example: "Av. Siempreviva 742, Springfield"
+        telefono_contacto:
+          type: string
+          example: "+56912345678"
+        notas:
+          type: string
+          example: "Dejar en recepción si no estoy."
+        mensaje:
+          type: string
+          example: "Pedido creado exitosamente. Proceda al pago."
+        cliente_nombre:
+          type: string
+          example: "Juan Pérez"
+        cliente_email:
+          type: string
+          example: "usuario@email.com"
+        detalle:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetallePedido'
+        historial_estados:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistorialEstado'
+        pago:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            metodo_pago:
+              type: string
+            monto:
+              type: integer
+            estado:
+              type: string
+            referencia_externa:
+              type: string
+            fecha_pago:
+              type: string
+              format: date-time
+        created_at:
+          type: string
+          format: date-time
+    DetallePedido:
+      type: object
+      properties:
+        id:
+          type: integer
+        id_producto:
+          type: integer
+        nombre_producto:
+          type: string
+          example: "Zapatillas Running Pro"
+        cantidad:
+          type: integer
+          example: 2
+        precio_unitario:
+          type: integer
+          example: 8999
+    HistorialEstado:
+      type: object
+      properties:
+        id:
+          type: integer
         estado:
           type: string
-          example: "PENDIENTE_PAGO"
+        usuario_responsable:
+          type: integer
+          nullable: true
+        usuario_nombre:
+          type: string
+          nullable: true
+        comentario:
+          type: string
+        fecha_cambio:
+          type: string
+          format: date-time
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

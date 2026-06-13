@@ -4,53 +4,264 @@ info:
   description: Contrato para la navegación de productos, categorías y búsquedas.
   version: 1.0.0
 servers:
-  - url: http://localhost:8082
-    description: Microservicio de Catálogo
+  - url: http://localhost:8080
+    description: API monolítica (módulo Catálogo)
 paths:
   /api/catalogo:
     get:
-      summary: Obtener el listado de productos disponibles
+      summary: Listar productos con filtros, búsqueda y paginación
+      tags:
+        - Catálogo
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Término de búsqueda
+          example: "zapatillas"
+        - name: categoria
+          in: query
+          schema:
+            type: integer
+          description: ID de categoría para filtrar
+          example: 3
+        - name: precio_min
+          in: query
+          schema:
+            type: integer
+          description: Precio mínimo en centavos
+          example: 10000
+        - name: precio_max
+          in: query
+          schema:
+            type: integer
+          description: Precio máximo en centavos
+          example: 50000
+        - name: en_stock
+          in: query
+          schema:
+            type: boolean
+          description: Filtrar solo productos con stock disponible
+          example: true
+        - name: ordenar
+          in: query
+          schema:
+            type: string
+            enum: [relevancia, precio_asc, precio_desc, nombre]
+          description: Criterio de ordenamiento
+          example: "precio_asc"
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Número de página
+          example: 1
+        - name: por_pagina
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+            minimum: 1
+          description: Productos por página
+          example: 20
+      responses:
+        '200':
+          description: Listado de productos obtenido con éxito (respuesta paginada).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Producto'
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                            example: 1
+                          per_page:
+                            type: integer
+                            example: 20
+                          total:
+                            type: integer
+                            example: 150
+                          total_pages:
+                            type: integer
+                            example: 8
+        '500':
+          description: Error interno del servidor.
+  /api/catalogo/categorias:
+    get:
+      summary: Obtener listado de categorías activas
       tags:
         - Catálogo
       responses:
         '200':
-          description: Listado de productos obtenido con éxito.
+          description: Categorías obtenidas con éxito.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Producto'
-        '500':
-          description: Error interno del servidor.
-
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Categoria'
+  /api/catalogo/destacados:
+    get:
+      summary: Obtener productos destacados (más vendidos)
+      tags:
+        - Catálogo
+      responses:
+        '200':
+          description: Productos destacados.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Producto'
+  /api/catalogo/{id}:
+    get:
+      summary: Obtener detalle de un producto por ID
+      tags:
+        - Catálogo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del producto
+          example: 1
+      responses:
+        '200':
+          description: Detalle del producto.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProductoDetalle'
+        '404':
+          description: Producto no encontrado.
 components:
   schemas:
     Producto:
       type: object
-      required:
-        - id
-        - nombre
-        - precio
-        - stock
       properties:
         id:
-          type: string
-          example: "prod-123"
-          description: Identificador único del producto.
+          type: integer
+          example: 1
+          description: ID numérico auto-incremental.
         nombre:
           type: string
           example: "Zapatillas Running Pro"
-        descripcion:
+        slug:
           type: string
-          example: "Zapatillas ideales para maratones con amortiguación premium."
+          example: "zapatillas-running-pro"
+        descripcion_corta:
+          type: string
+          example: "Zapatillas ideales para maratones"
         precio:
-          type: number
-          format: float
-          example: 89.99
-        imagenUrl:
+          type: integer
+          example: 8999
+          description: Precio en centavos.
+        imagen_url:
           type: string
           example: "https://mi-ecommerce.com/imagenes/zap-123.jpg"
         stock:
+          type: integer
+          example: 45
+        id_categoria:
+          type: integer
+          example: 3
+        categoria_nombre:
+          type: string
+          example: "Calzado"
+    ProductoDetalle:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Zapatillas Running Pro"
+        slug:
+          type: string
+          example: "zapatillas-running-pro"
+        descripcion:
+          type: string
+          example: "Zapatillas ideales para maratones con amortiguación premium."
+        descripcion_corta:
+          type: string
+          example: "Zapatillas ideales para maratones"
+        precio:
+          type: integer
+          example: 8999
+          description: Precio en centavos.
+        precio_formateado:
+          type: string
+          example: "$8.999"
+        imagen_url:
+          type: string
+          example: "https://mi-ecommerce.com/imagenes/zap-123.jpg"
+        stock:
+          type: integer
+          example: 45
+        id_categoria:
+          type: integer
+          example: 3
+        categoria_nombre:
+          type: string
+          example: "Calzado"
+        activo:
+          type: integer
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+    Categoria:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Calzado"
+        slug:
+          type: string
+          example: "calzado"
+        descripcion:
+          type: string
+          example: "Todo tipo de calzado deportivo y casual"
+        total_productos:
           type: integer
           example: 45

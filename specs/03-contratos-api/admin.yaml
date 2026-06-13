@@ -1,17 +1,100 @@
 openapi: 3.0.0
 info:
   title: API Administración
-  description: Contrato para operaciones de administración y gestión del catálogo.
+  description: Contrato para operaciones de administración, gestión de productos, pedidos, usuarios y reportes.
   version: 1.0.0
 servers:
-  - url: http://localhost:8087
-    description: Microservicio de Administración
+  - url: http://localhost:8080
+    description: API monolítica (módulo Admin)
 paths:
-  /api/admin:
-    post:
-      summary: Crear o dar de alta un nuevo producto en el sistema
+  /api/admin/dashboard:
+    get:
+      summary: Obtener métricas y KPIs del dashboard
       tags:
         - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      responses:
+        '200':
+          description: Métricas del dashboard.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Dashboard'
+        '403':
+          description: Acceso denegado (se requiere rol admin).
+  /api/admin/productos:
+    get:
+      summary: Listar todos los productos (incluye inactivos)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Término de búsqueda
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          example: 1
+        - name: por_pagina
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+            minimum: 1
+          example: 20
+      responses:
+        '200':
+          description: Listado paginado de productos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductoAdmin'
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          per_page:
+                            type: integer
+                          total:
+                            type: integer
+                          total_pages:
+                            type: integer
+    post:
+      summary: Crear un nuevo producto
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
       requestBody:
         required: true
         content:
@@ -21,7 +104,7 @@ paths:
               required:
                 - nombre
                 - precio
-                - stockInicial
+                - id_categoria
               properties:
                 nombre:
                   type: string
@@ -29,25 +112,388 @@ paths:
                 descripcion:
                   type: string
                   example: "Teclado RGB con switches mecánicos red."
+                descripcion_corta:
+                  type: string
+                  example: "Teclado mecánico RGB"
                 precio:
-                  type: number
-                  format: float
-                  example: 59.99
-                stockInicial:
+                  type: integer
+                  example: 5999
+                  description: Precio en centavos
+                stock:
                   type: integer
                   example: 100
+                stock_minimo:
+                  type: integer
+                  example: 10
+                id_categoria:
+                  type: integer
+                  example: 5
+                imagen_url:
+                  type: string
+                  example: "https://mi-ecommerce.com/imagenes/teclado.jpg"
       responses:
         '201':
-          description: Producto creado exitosamente en el panel administrador.
+          description: Producto creado exitosamente.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: string
-                    example: "prod-789"
-                  creadoEn:
-                    type: string
-                    format: date-time
-                    example: "2026-06-08T12:00:00Z"
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ProductoAdmin'
+        '422':
+          description: Validación fallida.
+  /api/admin/productos/{id}:
+    put:
+      summary: Actualizar un producto existente
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del producto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                descripcion:
+                  type: string
+                descripcion_corta:
+                  type: string
+                precio:
+                  type: integer
+                stock:
+                  type: integer
+                stock_minimo:
+                  type: integer
+                id_categoria:
+                  type: integer
+                imagen_url:
+                  type: string
+                activo:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Producto actualizado.
+        '404':
+          description: Producto no encontrado.
+        '422':
+          description: Validación fallida.
+    delete:
+      summary: Soft-delete de un producto
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Producto eliminado exitosamente.
+  /api/admin/pedidos:
+    get:
+      summary: Listar todos los pedidos (admin)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: estado
+          in: query
+          schema:
+            $ref: '#/components/schemas/EstadoPedido'
+          description: Filtrar por estado
+          example: "pendiente"
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: por_pagina
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: Listado paginado de pedidos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PedidoAdmin'
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          per_page:
+                            type: integer
+                          total:
+                            type: integer
+                          total_pages:
+                            type: integer
+  /api/admin/pedidos/{id}/estado:
+    patch:
+      summary: Cambiar el estado de un pedido
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - estado
+              properties:
+                estado:
+                  $ref: '#/components/schemas/EstadoPedido'
+                comentario:
+                  type: string
+                  example: "Envío preparado"
+      responses:
+        '200':
+          description: Estado actualizado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      mensaje:
+                        type: string
+                        example: "Estado actualizado exitosamente."
+        '422':
+          description: Transición de estado inválida.
+  /api/admin/usuarios:
+    get:
+      summary: Listar usuarios registrados
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: pagina
+          in: query
+          schema:
+            type: integer
+            default: 1
+          example: 1
+        - name: por_pagina
+          in: query
+          schema:
+            type: integer
+            default: 20
+          example: 20
+      responses:
+        '200':
+          description: Listado paginado de usuarios.
+  /api/admin/usuarios/{id}/estado:
+    patch:
+      summary: Activar o desactivar un usuario
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activo:
+                  type: integer
+                  example: 0
+                  description: "1=activar, 0=desactivar"
+      responses:
+        '200':
+          description: Estado de usuario actualizado.
+  /api/admin/reportes/ventas:
+    get:
+      summary: Reporte de ventas
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      parameters:
+        - name: periodo
+          in: query
+          schema:
+            type: string
+            enum: [mes, semana, año]
+            default: mes
+          example: "mes"
+      responses:
+        '200':
+          description: Reporte de ventas.
+  /api/admin/reportes/productos-mas-vendidos:
+    get:
+      summary: Reporte de productos más vendidos
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+        - AdminRole: []
+      responses:
+        '200':
+          description: Productos más vendidos.
+components:
+  schemas:
+    EstadoPedido:
+      type: string
+      description: "Ciclo de vida de un pedido."
+      enum:
+        - pendiente
+        - pagado
+        - en_preparacion
+        - enviado
+        - entregado
+        - cancelado
+    Dashboard:
+      type: object
+      properties:
+        total_productos:
+          type: integer
+          example: 250
+        total_pedidos_pendientes:
+          type: integer
+          example: 12
+        total_ingresos_mes:
+          type: integer
+          example: 12500000
+          description: Ingresos del mes en centavos
+        total_ingresos_mes_formateado:
+          type: string
+          example: "$12.500.000"
+        pedidos_activos:
+          type: integer
+          example: 45
+        productos_stock_bajo:
+          type: integer
+          example: 5
+        ventas_hoy:
+          type: integer
+          example: 350000
+        clientes_nuevos_mes:
+          type: integer
+          example: 28
+    ProductoAdmin:
+      type: object
+      properties:
+        id:
+          type: integer
+        nombre:
+          type: string
+        slug:
+          type: string
+        descripcion:
+          type: string
+        descripcion_corta:
+          type: string
+        precio:
+          type: integer
+          description: Precio en centavos
+        precio_formateado:
+          type: string
+        stock:
+          type: integer
+        stock_minimo:
+          type: integer
+        imagen_url:
+          type: string
+        id_categoria:
+          type: integer
+        categoria_nombre:
+          type: string
+        activo:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    PedidoAdmin:
+      type: object
+      properties:
+        id:
+          type: integer
+        estado:
+          $ref: '#/components/schemas/EstadoPedido'
+        total:
+          type: integer
+        total_formateado:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        cliente_nombre:
+          type: string
+        cliente_apellido:
+          type: string
+        total_items:
+          type: integer
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
