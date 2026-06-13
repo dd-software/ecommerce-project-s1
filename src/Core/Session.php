@@ -19,9 +19,11 @@ class Session
     {
         if (!self::$iniciada && session_status() === PHP_SESSION_NONE) {
             // Configuración segura de cookies de sesión
+            $isHttps = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
             session_set_cookie_params([
                 'httponly' => true,
-                'secure'   => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                'secure'   => $isHttps,
                 'samesite' => 'Strict',
             ]);
             session_start();

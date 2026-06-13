@@ -28,7 +28,7 @@ class AuthService
         }
 
         // Hashear contraseña con bcrypt
-        $hash = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
+        $hash = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 10]);
 
         $usuarioData = [
             'nombre'        => trim($data['nombre']),

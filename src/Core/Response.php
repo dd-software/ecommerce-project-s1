@@ -110,7 +110,11 @@ class Response
             echo json_encode($this->body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
 
-        exit;
+        // No usar exit para no matar el proceso en pruebas/middleware
+        // En producción, PHP finaliza naturalmente tras el dispatch
+        if (PHP_SAPI !== 'cli') {
+            fastcgi_finish_request();
+        }
     }
 
     /**
@@ -120,7 +124,9 @@ class Response
     {
         http_response_code($statusCode);
         header("Location: {$url}");
-        exit;
+        if (PHP_SAPI !== 'cli') {
+            fastcgi_finish_request();
+        }
     }
 
     /**
@@ -135,6 +141,8 @@ class Response
             header("{$name}: {$value}");
         }
         echo $html;
-        exit;
+        if (PHP_SAPI !== 'cli') {
+            fastcgi_finish_request();
+        }
     }
 }

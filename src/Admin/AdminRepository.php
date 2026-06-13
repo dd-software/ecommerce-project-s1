@@ -108,6 +108,7 @@ class AdminRepository
         foreach ($pedidos as &$p) {
             $p['total_formateado'] = '$' . number_format($p['total'] / 100, 0, ',', '.');
         }
+        unset($p);
 
         return $pedidos;
     }
@@ -148,6 +149,7 @@ class AdminRepository
         foreach ($productos as &$p) {
             $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
         }
+        unset($p);
 
         return ['productos' => $productos, 'total' => $total];
     }
@@ -260,6 +262,7 @@ class AdminRepository
         foreach ($pedidos as &$p) {
             $p['total_formateado'] = '$' . number_format($p['total'] / 100, 0, ',', '.');
         }
+        unset($p);
 
         return ['pedidos' => $pedidos, 'total' => $total];
     }
@@ -346,6 +349,7 @@ class AdminRepository
         foreach ($ventas as &$v) {
             $v['total_ventas_formateado'] = '$' . number_format($v['total_ventas'] / 100, 0, ',', '.');
         }
+        unset($v);
 
         return $ventas;
     }

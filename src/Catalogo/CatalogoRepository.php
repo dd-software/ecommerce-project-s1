@@ -100,6 +100,7 @@ class CatalogoRepository
             $p['nombre'] = htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8');
             $p['descripcion'] = htmlspecialchars($p['descripcion'] ?? '', ENT_QUOTES, 'UTF-8');
         }
+        unset($p); // Romper referencia para evitar efectos secundarios
 
         return [
             'productos' => $productos,
@@ -192,6 +193,7 @@ class CatalogoRepository
             $p['nombre'] = htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8');
             $p['descripcion'] = htmlspecialchars($p['descripcion'] ?? '', ENT_QUOTES, 'UTF-8');
         }
+        unset($p);
 
         return $productos;
     }
