@@ -1,4 +1,9 @@
-# Redirigir todo al public/
+# Redirigir todo al public/ excepto archivos existentes
 RewriteEngine On
+
+# Permitir acceso directo a archivos reales en la raíz
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
 RewriteRule ^$ public/ [L]
 RewriteRule (.*) public/$1 [L]

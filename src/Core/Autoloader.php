@@ -10,7 +10,7 @@ declare(strict_types=1);
 spl_autoload_register(function (string $class): void {
     // Namespace base del proyecto
     $prefix = 'App\\';
-    $baseDir = __DIR__ . '/';
+    $baseDir = dirname(__DIR__) . '/';
 
     // Verificar si la clase usa el namespace base
     if (!str_starts_with($class, $prefix)) {

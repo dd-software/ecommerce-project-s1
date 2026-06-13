@@ -4,7 +4,7 @@
  */
 
 const App = {
-    apiBase: '/api',
+    apiBase: window.location.pathname.replace(/\/+$/, '') + '/api',
     token: null,
     user: null,
     cartCount: 0,
@@ -19,6 +19,7 @@ const App = {
         this.updateNavbar();
         this.initEventListeners();
         this.loadCartCount();
+        if (typeof Auth !== 'undefined') Auth.init();
     },
 
     /**
@@ -71,7 +72,7 @@ const App = {
                 e.preventDefault();
                 const query = document.getElementById('search-input').value.trim();
                 if (query) {
-                    window.location.href = `/catalogo.html?q=${encodeURIComponent(query)}`;
+                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?search=' + encodeURIComponent(query);
                 }
             });
         }
