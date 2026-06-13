@@ -82,9 +82,11 @@ class CatalogoRepository
                 LEFT JOIN categorias c ON p.id_categoria = c.id
                 WHERE {$whereSQL}
                 ORDER BY {$orderSQL}
-                LIMIT {$porPagina} OFFSET {$offset}";
+                LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute($params);
         $productos = $stmt->fetchAll();
 
@@ -94,6 +96,9 @@ class CatalogoRepository
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = $p['stock'] <= 0; // RN-A02
+            // XSS: sanitizar datos de usuario para salida HTML
+            $p['nombre'] = htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8');
+            $p['descripcion'] = htmlspecialchars($p['descripcion'] ?? '', ENT_QUOTES, 'UTF-8');
         }
 
         return [
@@ -121,6 +126,9 @@ class CatalogoRepository
             $producto['precio'] = (int)$producto['precio'];
             $producto['stock'] = (int)$producto['stock'];
             $producto['sin_stock'] = (int)$producto['stock'] <= 0;
+            // XSS: sanitizar datos de usuario para salida HTML
+            $producto['nombre'] = htmlspecialchars($producto['nombre'], ENT_QUOTES, 'UTF-8');
+            $producto['descripcion'] = htmlspecialchars($producto['descripcion'] ?? '', ENT_QUOTES, 'UTF-8');
         }
 
         return $producto ?: null;
@@ -180,6 +188,9 @@ class CatalogoRepository
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = (int)$p['stock'] <= 0;
+            // XSS: sanitizar datos de usuario para salida HTML
+            $p['nombre'] = htmlspecialchars($p['nombre'], ENT_QUOTES, 'UTF-8');
+            $p['descripcion'] = htmlspecialchars($p['descripcion'] ?? '', ENT_QUOTES, 'UTF-8');
         }
 
         return $productos;

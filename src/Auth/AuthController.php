@@ -74,6 +74,12 @@ class AuthController
             $data = $request->getBody();
             $request->validateRequired(['email', 'password']);
 
+            // Sanitizar redirect si existe (XSS)
+            $redirect = $request->getQuery('redirect');
+            if ($redirect !== null) {
+                $redirect = htmlspecialchars($redirect, ENT_QUOTES, 'UTF-8');
+            }
+
             $usuario = $this->service->autenticar($data['email'], $data['password']);
 
             // Regenerar sesión para prevenir session fixation

@@ -97,10 +97,42 @@ class CarritoService
     }
 
     /**
+     * Verifica que un item del carrito pertenezca al usuario/sesión actual
+     * Previene IDOR (Insecure Direct Object Reference)
+     */
+    private function verificarPertenenciaItem(int $itemId, ?int $userId, ?string $sessionId): void
+    {
+        $item = $this->repository->buscarItemPorId($itemId);
+        if (!$item) {
+            throw new \InvalidArgumentException('Item no encontrado en el carrito.');
+        }
+
+        $carrito = $this->repository->obtenerCarritoPorId((int)$item['id_carrito']);
+        if (!$carrito) {
+            throw new \InvalidArgumentException('Carrito no encontrado.');
+        }
+
+        if ($userId !== null) {
+            if ((int)$carrito['id_usuario'] !== $userId) {
+                throw new \InvalidArgumentException('El item no pertenece al usuario actual.');
+            }
+        } elseif ($sessionId !== null) {
+            if ($carrito['session_id'] !== $sessionId) {
+                throw new \InvalidArgumentException('El item no pertenece a la sesión actual.');
+            }
+        } else {
+            throw new \InvalidArgumentException('Debe especificar usuario o sesión.');
+        }
+    }
+
+    /**
      * Actualiza la cantidad de un item
      */
-    public function actualizarCantidad(int $itemId, int $cantidad): void
+    public function actualizarCantidad(int $itemId, int $cantidad, ?int $userId = null, ?string $sessionId = null): void
     {
+        // Verificar que el item pertenece al usuario/sesión actual (IDOR protection)
+        $this->verificarPertenenciaItem($itemId, $userId, $sessionId);
+
         if ($cantidad < 1 || $cantidad > 999) {
             throw new \InvalidArgumentException('La cantidad debe estar entre 1 y 999.');
         }
@@ -121,8 +153,11 @@ class CarritoService
     /**
      * Elimina un item del carrito
      */
-    public function eliminarItem(int $itemId): void
+    public function eliminarItem(int $itemId, ?int $userId = null, ?string $sessionId = null): void
     {
+        // Verificar que el item pertenece al usuario/sesión actual (IDOR protection)
+        $this->verificarPertenenciaItem($itemId, $userId, $sessionId);
+
         $this->repository->eliminarItem($itemId);
     }
 

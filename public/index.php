@@ -33,6 +33,14 @@ $response = new Response();
 // Aplicar middleware JWT (adjunta usuario autenticado si hay token válido)
 JwtMiddleware::procesar($request);
 
+// Aplicar middleware CSRF en peticiones mutantes (POST, PUT, PATCH, DELETE)
+if (in_array($request->getMethod(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
+    $csrfToken = $request->getHeader('X-CSRF-Token') ?? $request->getBody('_csrf_token');
+    if ($csrfToken !== null && !CsrfMiddleware::validar($csrfToken)) {
+        $response->error('CSRF_INVALID', 'Token CSRF inválido o expirado.', 403);
+    }
+}
+
 // Configurar CORS para requests cross-origin
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
 if (APP_ENV === 'development') {

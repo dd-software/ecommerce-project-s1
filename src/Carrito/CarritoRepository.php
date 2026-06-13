@@ -65,6 +65,19 @@ class CarritoRepository
     }
 
     /**
+     * Obtiene un carrito por su ID
+     */
+    public function obtenerCarritoPorId(int $carritoId): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, id_usuario, session_id, activo, created_at
+             FROM carritos WHERE id = :id"
+        );
+        $stmt->execute([':id' => $carritoId]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
      * Obtiene los items de un carrito con datos del producto
      */
     public function obtenerItems(int $carritoId): array

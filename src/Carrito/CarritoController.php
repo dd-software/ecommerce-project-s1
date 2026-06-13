@@ -110,9 +110,9 @@ class CarritoController
             $sessionId = $request->getHeader('X-Session-Id') ?? null;
 
             if ($cantidad === 0) {
-                $this->service->eliminarItem($itemId);
+                $this->service->eliminarItem($itemId, $user ? (int)$user['id'] : null, $sessionId);
             } else {
-                $this->service->actualizarCantidad($itemId, $cantidad);
+                $this->service->actualizarCantidad($itemId, $cantidad, $user ? (int)$user['id'] : null, $sessionId);
             }
 
             $carrito = $this->service->obtenerCarrito(
@@ -139,7 +139,9 @@ class CarritoController
     {
         try {
             $itemId = (int)$params['id'];
-            $this->service->eliminarItem($itemId);
+            $user = $request->getAttribute('authenticated_user');
+            $sessionId = $request->getHeader('X-Session-Id') ?? null;
+            $this->service->eliminarItem($itemId, $user ? (int)$user['id'] : null, $sessionId);
 
             $user = $request->getAttribute('authenticated_user');
             $sessionId = $request->getHeader('X-Session-Id') ?? null;

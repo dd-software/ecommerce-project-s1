@@ -138,8 +138,10 @@ class AdminRepository
              LEFT JOIN categorias c ON p.id_categoria = c.id
              WHERE {$whereSQL}
              ORDER BY p.created_at DESC
-             LIMIT {$porPagina} OFFSET {$offset}"
+             LIMIT :limit OFFSET :offset"
         );
+        $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute($params);
         $productos = $stmt->fetchAll();
 
@@ -248,8 +250,10 @@ class AdminRepository
              {$whereSQL}
              GROUP BY p.id
              ORDER BY p.created_at DESC
-             LIMIT {$porPagina} OFFSET {$offset}"
+             LIMIT :limit OFFSET :offset"
         );
+        $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute($params);
         $pedidos = $stmt->fetchAll();
 
