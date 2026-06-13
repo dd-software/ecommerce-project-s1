@@ -58,7 +58,7 @@ const Carrito = {
         container.innerHTML = this.cart.items.map(item => `
             <div class="cart-item row align-items-center" data-item-id="${item.id}">
                 <div class="col-md-2 col-3">
-                    <img src="${item.imagen_url || 'https://via.placeholder.com/80?text=N/A'}"
+                    <img src="${this.safeUrl(item.imagen_url, 'https://via.placeholder.com/80?text=N/A')}"
                          class="cart-item-img" alt="${this.escapeHtml(item.nombre)}"
                          onerror="this.src='https://via.placeholder.com/80?text=N/A'">
                 </div>
@@ -253,8 +253,24 @@ const Carrito = {
     },
 
     escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str || '';
-        return div.innerHTML;
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+
+    /**
+     * Devuelve una URL segura para usar en src/href.
+     * Solo permite http(s) o rutas relativas; bloquea javascript:, data:, etc.
+     */
+    safeUrl(url, fallback) {
+        if (typeof url !== 'string' || url.trim() === '') return fallback;
+        const u = url.trim();
+        if (/^https?:\/\//i.test(u) || u.startsWith('/')) {
+            return this.escapeHtml(u);
+        }
+        return fallback;
     }
 };
