@@ -19,6 +19,7 @@ const App = {
         this.updateNavbar();
         this.initEventListeners();
         this.loadCartCount();
+        if (typeof Auth !== 'undefined') Auth.init();
     },
 
     /**
