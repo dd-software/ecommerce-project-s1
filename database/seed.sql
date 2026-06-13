@@ -5,7 +5,7 @@
 USE uct_ecommerce;
 
 -- ============================================
--- Usuarios (passwords: "Password123!")
+-- Usuarios (passwords: Password123!)
 -- hash generado con password_hash('Password123!', PASSWORD_BCRYPT, ['cost' => 12])
 -- ============================================
 INSERT INTO usuarios (nombre, apellido, email, password_hash, rol, activo) VALUES
@@ -42,13 +42,13 @@ INSERT INTO categorias (nombre, slug, descripcion, id_padre, activo) VALUES
 -- ============================================
 INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, stock_minimo, imagen_url, activo, meta_descripcion) VALUES
 -- Tecnología - Computadores
-(2, 'Notebook HP ProBook 450 G9', 'notebook-hp-probook-450-g9', 'Notebook HP ProBook 450 G9, Intel Core i5-1235U, 8GB RAM, 256GB SSD, Pantalla 15.6" FHD', 599990, 25, 5, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400', 1, 'Notebook HP para productividad empresarial.'),
-(2, 'MacBook Air M3', 'macbook-air-m3', 'MacBook Air con chip M3, 8GB RAM, 256GB SSD, Pantalla Liquid Retina 13.6"', 999990, 15, 3, 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400', 1, 'MacBook Air ultradelgado con chip M3.'),
-(2, 'Monitor Dell 27" 4K', 'monitor-dell-27-4k', 'Monitor Dell UltraSharp U2723QE, 27 pulgadas, resolución 4K UHD, USB-C Hub', 389990, 10, 3, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400', 1, 'Monitor profesional Dell 4K.'),
+(2, 'Notebook HP ProBook 450 G9', 'notebook-hp-probook-450-g9', 'Notebook HP ProBook 450 G9, Intel Core i5-1235U, 8GB RAM, 256GB SSD, Pantalla 15.6 pulg FHD', 599990, 25, 5, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400', 1, 'Notebook HP para productividad empresarial.'),
+(2, 'MacBook Air M3', 'macbook-air-m3', 'MacBook Air con chip M3, 8GB RAM, 256GB SSD, Pantalla Liquid Retina 13.6 pulg', 999990, 15, 3, 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400', 1, 'MacBook Air ultradelgado con chip M3.'),
+(2, 'Monitor Dell 27 pulg 4K', 'monitor-dell-27-4k', 'Monitor Dell UltraSharp U2723QE, 27 pulgadas, resolución 4K UHD, USB-C Hub', 389990, 10, 3, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400', 1, 'Monitor profesional Dell 4K.'),
 (2, 'Teclado Mecánico Logitech MX', 'teclado-mecanico-logitech-mx', 'Teclado mecánico inalámbrico Logitech MX Mechanical, switches táctiles, retroiluminado', 89990, 40, 10, 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400', 1, 'Teclado mecánico premium Logitech.'),
 
 -- Celulares
-(3, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max, 256GB, Titanio Natural, Pantalla 6.7" Super Retina XDR', 1299990, 8, 2, 'https://images.unsplash.com/photo-1592750475338-74b7b2108593?w=400', 1, 'El iPhone más avanzado de Apple.'),
+(3, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max, 256GB, Titanio Natural, Pantalla 6.7 pulg Super Retina XDR', 1299990, 8, 2, 'https://images.unsplash.com/photo-1592750475338-74b7b2108593?w=400', 1, 'El iPhone más avanzado de Apple.'),
 (3, 'Samsung Galaxy S24 Ultra', 'samsung-galaxy-s24-ultra', 'Samsung Galaxy S24 Ultra, 512GB, Titanium Gray, S Pen incluido, Galaxy AI', 1199990, 12, 2, 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400', 1, 'Samsung Galaxy S24 Ultra con Galaxy AI.'),
 (3, 'Cargador Inalámbrico 15W', 'cargador-inalambrico-15w', 'Cargador inalámbrico rápido 15W compatible Qi, diseño delgado', 19990, 100, 20, 'https://images.unsplash.com/photo-1621929747188-0b4dc1b27ee1?w=400', 1, 'Cargador inalámbrico rápido.'),
 
