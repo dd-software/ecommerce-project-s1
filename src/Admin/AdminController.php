@@ -19,11 +19,27 @@ class AdminController
     }
 
     /**
+     * Verifica que el usuario autenticado tenga rol admin
+     */
+    private function verificarAdmin(Request $request, Response $response): ?array
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user || $user['rol'] !== 'admin') {
+            $response->error('INSUFFICIENT_PERMISSIONS', 'Acceso denegado. Se requiere rol de administrador.', 403);
+            return null;
+        }
+        return $user;
+    }
+
+    /**
      * GET /api/admin/dashboard
      * Obtiene métricas y KPIs del dashboard
      */
     public function dashboard(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $metricas = $this->service->obtenerDashboard();
             $response->json($metricas);
@@ -38,6 +54,9 @@ class AdminController
      */
     public function listarProductos(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $pagina = max(1, (int)($request->getQuery('pagina', 1)));
             $porPagina = min(100, max(1, (int)($request->getQuery('por_pagina', 20))));
@@ -56,6 +75,9 @@ class AdminController
      */
     public function crearProducto(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $data = $request->getBody();
             $request->validateRequired(['nombre', 'precio', 'id_categoria']);
@@ -76,6 +98,9 @@ class AdminController
      */
     public function actualizarProducto(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $id = (int)$params['id'];
             $data = $request->getBody();
@@ -98,6 +123,9 @@ class AdminController
      */
     public function eliminarProducto(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $id = (int)$params['id'];
             $this->service->eliminarProducto($id);
@@ -113,6 +141,9 @@ class AdminController
      */
     public function listarPedidos(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $estado = $request->getQuery('estado');
             $pagina = max(1, (int)($request->getQuery('pagina', 1)));
@@ -131,7 +162,8 @@ class AdminController
      */
     public function cambiarEstadoPedido(Request $request, Response $response, array $params): void
     {
-        $user = $request->getAttribute('authenticated_user');
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
 
         try {
             $pedidoId = (int)$params['id'];
@@ -162,6 +194,9 @@ class AdminController
      */
     public function reporteVentas(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $periodo = $request->getQuery('periodo', 'mes');
             $reporte = $this->service->obtenerReporteVentas($periodo);
@@ -177,6 +212,9 @@ class AdminController
      */
     public function listarUsuarios(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $pagina = max(1, (int)($request->getQuery('pagina', 1)));
             $porPagina = min(100, max(1, (int)($request->getQuery('por_pagina', 20))));
@@ -194,6 +232,9 @@ class AdminController
      */
     public function toggleUsuario(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $id = (int)$params['id'];
             $data = $request->getBody();
@@ -212,6 +253,9 @@ class AdminController
      */
     public function productosMasVendidos(Request $request, Response $response, array $params): void
     {
+        $user = $this->verificarAdmin($request, $response);
+        if ($user === null) return;
+
         try {
             $reporte = $this->service->obtenerProductosMasVendidos();
             $response->json($reporte);

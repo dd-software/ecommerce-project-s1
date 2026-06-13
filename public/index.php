@@ -77,7 +77,7 @@ $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], 
 // --- Módulo E: Pagos ---
 $router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
-$router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
+$router->post('/api/pagos/webhook', [PagosController::class, 'webhook'], auth: true);
 
 // --- Módulo F: Inventario ---
 $router->get('/api/inventario', [InventarioController::class, 'verificar']);
@@ -100,9 +100,9 @@ $router->get('/api/admin/reportes/productos-mas-vendidos', [AdminController::cla
 
 // --- Módulo H: Integración ---
 $router->get('/api/health', [IntegracionController::class, 'health']);
-$router->post('/api/notificaciones/email', [IntegracionController::class, 'enviarEmail']);
+$router->post('/api/notificaciones/email', [IntegracionController::class, 'enviarEmail'], auth: true);
 $router->get('/api/notificaciones/cola', [IntegracionController::class, 'listarCola'], auth: true, admin: true);
-$router->post('/api/notificaciones/confirmacion-pedido', [IntegracionController::class, 'notificarConfirmacion']);
+$router->post('/api/notificaciones/confirmacion-pedido', [IntegracionController::class, 'notificarConfirmacion'], auth: true);
 $router->get('/api/exportar/pedidos', [IntegracionController::class, 'exportarPedidos'], auth: true);
 $router->get('/api/exportar/productos', [IntegracionController::class, 'exportarProductos'], auth: true);
 $router->get('/api/exportar/reporte-ventas', [IntegracionController::class, 'exportarReporteVentas'], auth: true);

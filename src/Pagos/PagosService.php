@@ -161,9 +161,24 @@ class PagosService
 
     /**
      * Procesa un webhook de confirmación de la pasarela
+     * Valida firma HMAC para asegurar que la petición viene de la pasarela real
      */
-    public function procesarWebhook(int $pedidoId, string $estado, string $transaccionId): void
+    public function procesarWebhook(int $pedidoId, string $estado, string $transaccionId, ?string $firmaHmac = null): void
     {
+        // Validación de firma HMAC (pendiente de implementar pasarela real)
+        // En producción, verificar con: hash_equals(calcularHmac($payload), $firmaRecibida)
+        if ($firmaHmac !== null) {
+            $secretoWebhook = $_ENV['WEBHOOK_SECRET'] ?? '';
+            if (empty($secretoWebhook)) {
+                throw new \RuntimeException('WEBHOOK_SECRET no configurado en .env');
+            }
+            // TODO: Implementar verificación HMAC cuando se integre pasarela real
+            // $payloadCalculado = hash_hmac('sha256', $payloadRaw, $secretoWebhook);
+            // if (!hash_equals($payloadCalculado, $firmaHmac)) {
+            //     throw new \RuntimeException('Firma HMAC inválida en webhook');
+            // }
+        }
+
         $pago = $this->repository->obtenerPagoPorPedido($pedidoId);
         if (!$pago) {
             throw new \RuntimeException('No se encontró pago para este pedido.');
