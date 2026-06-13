@@ -5,45 +5,142 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ecommerce UCT - Tienda Online</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div id="loading-spinner" class="d-none text-center mt-5"><div class="spinner-border text-primary" role="status"></div></div>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="#">🛒 Ecommerce UCT</a>
+    <a class="navbar-brand" href="/">🛒 Ecommerce UCT</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" id="linkCatalogo">Catálogo</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" id="linkCarrito">Carrito <span id="carritoCount" class="badge bg-success">0</span></a></li>
-      </ul>
-      <ul class="navbar-nav">
-        <li class="nav-item"><a class="nav-link" href="#" id="linkLogin">Iniciar Sesión</a></li>
-        <li class="nav-item"><a class="nav-link" href="#" id="linkRegistro">Registrarse</a></li>
+      <form class="d-flex mx-auto" id="search-form" role="search">
+        <input class="form-control me-2" type="search" id="search-input" placeholder="Buscar productos..." aria-label="Buscar">
+        <button class="btn btn-outline-light" type="submit"><i class="bi bi-search"></i></button>
+      </form>
+      <ul class="navbar-nav ms-auto">
+        <!-- Sin autenticar -->
+        <li class="nav-item" id="auth-links">
+          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-person"></i> Iniciar Sesión</a>
+        </li>
+        <li class="nav-item dropdown d-none" id="user-links">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item d-none" href="#" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
+            <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link position-relative" href="#" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+            <i class="bi bi-cart3"></i> Carrito
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" id="cart-count">0</span>
+          </a>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
 
-<main class="container mt-4" id="mainContent">
-  <h1>Bienvenido a Ecommerce UCT</h1>
-  <p class="lead">Proyecto integrador - Diseño y Desarrollo de Software + IA</p>
-  <div class="row" id="productosContainer"></div>
+<main class="container mt-4">
+  <div id="products-container" class="row"></div>
+  <div id="pagination-container" class="d-flex justify-content-center mt-4"></div>
 </main>
+
+<!-- Detalle de producto -->
+<div id="product-detail" class="d-none"></div>
+
+<!-- Modal Login -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+<div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title">Iniciar Sesión</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body">
+<form id="login-form" novalidate>
+<div class="mb-3"><label class="form-label">Email</label>
+<input type="email" class="form-control" id="login-email" required placeholder="tu@email.com"></div>
+<div class="mb-3"><label class="form-label">Contraseña</label>
+<input type="password" class="form-control" id="login-password" required></div>
+<div id="login-error" class="alert alert-danger d-none"></div>
+<button type="submit" class="btn btn-primary w-100" id="login-submit">Iniciar Sesión</button>
+</form>
+<p class="mt-3 text-center">¿No tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Regístrate</a></p>
+</div></div></div></div>
+
+<!-- Modal Registro -->
+<div class="modal fade" id="registerModal" tabindex="-1">
+<div class="modal-dialog"><div class="modal-content">
+<div class="modal-header"><h5 class="modal-title">Crear Cuenta</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body">
+<form id="register-form" novalidate>
+<div class="row"><div class="col-md-6 mb-3"><label class="form-label">Nombre</label>
+<input type="text" class="form-control" id="reg-nombre" required></div>
+<div class="col-md-6 mb-3"><label class="form-label">Apellido</label>
+<input type="text" class="form-control" id="reg-apellido" required></div></div>
+<div class="mb-3"><label class="form-label">Email</label>
+<input type="email" class="form-control" id="reg-email" required></div>
+<div class="mb-3"><label class="form-label">Contraseña</label>
+<input type="password" class="form-control" id="reg-password" required minlength="6"></div>
+<div class="mb-3"><label class="form-label">Confirmar Contraseña</label>
+<input type="password" class="form-control" id="reg-password2" required></div>
+<div id="register-error" class="alert alert-danger d-none"></div>
+<button type="submit" class="btn btn-success w-100" id="register-submit">Crear Cuenta</button>
+</form>
+<p class="mt-3 text-center">¿Ya tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Inicia sesión</a></p>
+</div></div></div></div>
+
+<!-- Offcanvas Carrito -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
+<div class="offcanvas-header"><h5><i class="bi bi-cart3"></i> Tu Carrito</h5>
+<button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
+<div class="offcanvas-body">
+<div id="cart-empty" class="text-center py-5"><i class="bi bi-cart-x display-3 text-muted"></i><p class="mt-2">Tu carrito está vacío</p></div>
+<div id="cart-items"></div>
+<div id="cart-summary" class="d-none"><div id="cart-summary-content"></div>
+<a href="#" class="btn btn-primary w-100 mt-3" id="btn-checkout-nav" data-bs-toggle="modal" data-bs-target="#checkoutModal">Ir a Pagar</a></div>
+</div></div>
+
+<!-- Modal Checkout -->
+<div class="modal fade" id="checkoutModal" tabindex="-1">
+<div class="modal-dialog modal-lg"><div class="modal-content">
+<div class="modal-header"><h5>Checkout</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<div class="modal-body">
+<form id="checkout-form">
+<div id="checkout-items"></div>
+<div id="checkout-totals" class="border-top pt-3 mt-3"></div>
+<div class="mb-3"><label class="form-label">Dirección de envío</label>
+<textarea class="form-control" id="shipping-address" rows="2" required></textarea></div>
+<div class="mb-3"><label class="form-label">Teléfono</label>
+<input type="tel" class="form-control" id="shipping-phone"></div>
+<div class="mb-3"><label class="form-label">Cupón de descuento</label>
+<div class="input-group"><input type="text" class="form-control" id="coupon-code" placeholder="Ingresa código">
+<button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button></div></div>
+<div class="mb-3"><label class="form-label">Notas del pedido</label>
+<textarea class="form-control" id="order-notes" rows="2"></textarea></div>
+<div id="checkout-error" class="alert alert-danger d-none"></div>
+<button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Confirmar Pedido</button>
+</form>
+</div></div></div></div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/app.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/catalogo.js"></script>
 <script src="js/carrito.js"></script>
-<script src="js/auth.js"></script>
 <script src="js/checkout.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof App !== 'undefined') App.init();
-    if (typeof Catalogo !== 'undefined') Catalogo.cargarDestacados();
+    App.init();
+    Catalogo.cargarProductos(1);
 });
 </script>
 </body>
