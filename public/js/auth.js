@@ -58,7 +58,7 @@ const Auth = {
                     // Redirigir según rol
                     const redirect = new URLSearchParams(window.location.search).get('redirect');
                     if (data.data.usuario.rol === 'admin') {
-                        window.location.href = '/admin.html';
+                        window.location.href = window.location.pathname.replace(/\/+$/, '') + '/admin.html';
                     } else {
                         window.location.href = redirect || '/';
                     }
