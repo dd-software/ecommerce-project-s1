@@ -31,9 +31,10 @@ class PagosRepository
         string $estado,
         string $respuesta
     ): int {
+        $fechaPago = $estado === 'aprobado' ? 'NOW()' : 'NULL';
         $stmt = $this->db->prepare(
             "INSERT INTO pagos (id_pedido, metodo_pago, monto, referencia_externa, estado, respuesta_pasarela, fecha_pago)
-             VALUES (:pedido, :metodo, :monto, :ref, :estado, :respuesta, NOW())"
+             VALUES (:pedido, :metodo, :monto, :ref, :estado, :respuesta, {$fechaPago})"
         );
         $stmt->execute([
             ':pedido'    => $pedidoId,
