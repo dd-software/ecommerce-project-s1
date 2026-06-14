@@ -3,137 +3,205 @@
 declare(strict_types=1);
 
 /**
- * PagosController - Procesamiento de pagos y simulación Webpay
+ * PagosService - Lógica de negocio de procesamiento de pagos
+ * Simula integración con pasarela tipo Webpay
  */
 namespace App\Pagos;
 
-use App\Core\{Request, Response};
+use App\Core\Database;
+use App\Checkout\CheckoutService;
+use App\Checkout\CheckoutRepository;
+use App\Inventario\InventarioService;
+use App\Inventario\InventarioRepository;
 
-class PagosController
+class PagosService
 {
-    private PagosService $service;
+    private PagosRepository $repository;
+    private CheckoutService $checkoutService;
 
-    public function __construct()
+    public function __construct(PagosRepository $repository)
     {
-        $this->service = new PagosService(new PagosRepository());
+        $this->repository = $repository;
+        $this->checkoutService = new CheckoutService(new CheckoutRepository());
     }
 
     /**
-     * POST /api/pagos/procesar
-     * Procesa un pago (simulación Webpay)
+     * Procesa un pago simulado para un pedido
+     * RN-E01: El stock se descuenta tras confirmar el pago
+     * RN-E02: El pedido cambia de 'pendiente' a 'pagado' solo con confirmación exitosa
      */
-    public function procesar(Request $request, Response $response, array $params): void
+    public function procesarPago(int $pedidoId, string $metodoPago, string $tokenTarjeta, int $userId): array
     {
-        $user = $request->getAttribute('authenticated_user');
-        if (!$user) {
-            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
-            return;
+        // Verificar que el pedido existe y está pendiente
+        $pedido = $this->checkoutService->obtenerPedido($pedidoId);
+        if (!$pedido) {
+            throw new \RuntimeException('Pedido no encontrado.');
         }
 
+        if ($pedido['estado'] !== 'pendiente') {
+            throw new \RuntimeException('El pedido ya fue procesado. Estado actual: ' . $pedido['estado']);
+        }
+
+        $monto = (int)$pedido['total'];
+
+        // Simular procesamiento con pasarela de pago
+        // En entorno real, esto llamaría a Webpay/Stripe/MercadoPago
+        $transaccionId = 'TX-' . strtoupper(bin2hex(random_bytes(6)));
+        $respuestaPasarela = $this->simularPasarelaPago($tokenTarjeta, $monto);
+
+        $db = Database::getInstance();
+
         try {
-            $data = $request->getBody();
-            $request->validateRequired(['pedido_id', 'metodo_pago']);
+            $db->beginTransaction();
 
-            $pedidoId = (int)$data['pedido_id'];
-
-            // Validar existencia del pedido y pertenencia del usuario
-            $pedido = $this->service->obtenerPedido($pedidoId);
-            if (!$pedido) {
-                $response->error('ORDER_NOT_FOUND', 'Pedido no encontrado.', 404);
-                return;
-            }
-
-            $esAdmin = ($user['rol'] ?? '') === 'admin';
-            if (!$esAdmin && (int)$pedido['id_usuario'] !== (int)$user['id']) {
-                $response->error('INSUFFICIENT_PERMISSIONS', 'No tienes permiso para interactuar con este pedido.', 403);
-                return;
-            }
-
-            $resultado = $this->service->procesarPago(
+            // Registrar el intento de pago
+            $pagoId = $this->repository->registrarPago(
                 pedidoId: $pedidoId,
-                metodoPago: $data['metodo_pago'],
-                tokenTarjeta: $data['token_tarjeta'] ?? 'sim_tok_' . bin2hex(random_bytes(8)),
-                userId: (int)$user['id']
+                metodoPago: $metodoPago,
+                monto: $monto,
+                referenciaExterna: $transaccionId,
+                estado: $respuestaPasarela['estado'],
+                respuesta: json_encode($respuestaPasarela)
             );
 
-            $response->json($resultado);
+            if ($respuestaPasarela['estado'] === 'aprobado') {
+                // RN-E02 + RN-003: Solo descontar stock tras pago confirmado
+                $this->checkoutService->descontarStock($pedidoId);
 
-        } catch (\InvalidArgumentException $e) {
-            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
-        } catch (\RuntimeException $e) {
-            $response->error('PAYMENT_ERROR', $e->getMessage(), 402);
+                // Actualizar estado del pedido
+                $this->checkoutService->actualizarEstado(
+                    pedidoId: $pedidoId,
+                    nuevoEstado: 'pagado',
+                    userId: $userId,
+                    comentario: 'Pago aprobado. Transacción: ' . $transaccionId
+                );
+
+                // Registrar movimiento de inventario
+                $inventarioService = new InventarioService(new InventarioRepository());
+                $detalles = $pedido['detalle'] ?? [];
+                foreach ($detalles as $detalle) {
+                    $inventarioService->registrarEgreso(
+                        productoId: (int)$detalle['id_producto'],
+                        cantidad: (int)$detalle['cantidad'],
+                        pedidoId: $pedidoId,
+                        motivo: 'Venta - Pedido #' . $pedidoId
+                    );
+                }
+
+                $mensaje = 'Pago aprobado exitosamente.';
+            } else {
+                $this->checkoutService->actualizarEstado(
+                    pedidoId: $pedidoId,
+                    nuevoEstado: 'cancelado',
+                    userId: $userId,
+                    comentario: 'Pago rechazado: ' . $respuestaPasarela['mensaje']
+                );
+                $mensaje = 'Pago rechazado: ' . $respuestaPasarela['mensaje'];
+            }
+
+            $db->commit();
+
+            return [
+                'transaccion_id'  => $transaccionId,
+                'estado'          => $respuestaPasarela['estado'],
+                'mensaje'         => $mensaje,
+                'pedido_id'       => $pedidoId,
+                'monto'           => $monto,
+                'monto_formateado' => '$' . number_format($monto / 100, 0, ',', '.'),
+            ];
+
         } catch (\Exception $e) {
-            $response->error('SERVER_ERROR', 'Error al procesar el pago.', 500);
+            $db->rollback();
+            throw $e;
         }
     }
 
     /**
-     * GET /api/pagos/estado/{pedidoId}
+     * Simula una pasarela de pago (Webpay)
+     * Aprueba pagos con token que no empiecen con "fail_"
+     */
+    private function simularPasarelaPago(string $tokenTarjeta, int $monto): array
+    {
+        // Simular delay de procesamiento
+        usleep(100000); // 100ms
+
+        // Tokens que empiezan con "fail_" simulan rechazo
+        if (str_starts_with($tokenTarjeta, 'fail_')) {
+            return [
+                'estado'  => 'rechazado',
+                'codigo'  => 'REJECTED',
+                'mensaje' => 'Tarjeta rechazada por el emisor.',
+            ];
+        }
+
+        // 90% de probabilidad de aprobación en simulación
+        if (random_int(1, 10) <= 9) {
+            return [
+                'estado'  => 'aprobado',
+                'codigo'  => 'APPROVED',
+                'mensaje' => 'Transacción aprobada.',
+                'cuotas'  => 1,
+            ];
+        }
+
+        return [
+            'estado'  => 'rechazado',
+            'codigo'  => 'INSUFFICIENT_FUNDS',
+            'mensaje' => 'Fondos insuficientes.',
+        ];
+    }
+
+    /**
      * Consulta el estado del pago de un pedido
      */
-    public function estado(Request $request, Response $response, array $params): void
+    public function consultarEstadoPago(int $pedidoId): ?array
     {
-        $user = $request->getAttribute('authenticated_user');
-        if (!$user) {
-            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
-            return;
+        return $this->repository->obtenerPagoPorPedido($pedidoId);
+    }
+
+    /**
+     * Procesa un webhook de confirmación de la pasarela
+     */
+/**
+     * Procesa un webhook de confirmación de la pasarela
+     * Evita reprocesar pagos ya aprobados (Garantiza Idempotencia y RN-E02)
+     */
+    public function procesarWebhook(int $pedidoId, string $estado, string $transaccionId): void
+    {
+        $pago = $this->repository->obtenerPagoPorPedido($pedidoId);
+        if (!$pago) {
+            throw new \RuntimeException('No se encontró pago para este pedido.');
         }
 
-        try {
-            $pedidoId = (int)$params['pedidoId'];
+        // (2) Si el pago ya está aprobado, no volver a procesar ni descontar stock
+        if (($pago['estado'] ?? '') === 'aprobado') {
+            // Retornamos de manera silenciosa o con un mensaje indicando que ya fue procesado
+            return; 
+        }
 
-            // Validar existencia del pedido y pertenencia del usuario antes de exponer el estado del pago
-            $pedido = $this->service->obtenerPedido($pedidoId);
-            if (!$pedido) {
-                $response->error('ORDER_NOT_FOUND', 'Pedido no encontrado.', 404);
-                return;
-            }
+        $nuevoEstado = match ($estado) {
+            'approved', 'aprobado' => 'aprobado',
+            'rejected', 'rechazado' => 'rechazado',
+            'refunded', 'reembolsado' => 'reembolsado',
+            default => 'pendiente',
+        };
 
-            $esAdmin = ($user['rol'] ?? '') === 'admin';
-            if (!$esAdmin && (int)$pedido['id_usuario'] !== (int)$user['id']) {
-                $response->error('INSUFFICIENT_PERMISSIONS', 'No tienes permiso para ver este pedido.', 403);
-                return;
-            }
+        // Actualizar el estado del pago en la base de datos
+        $this->repository->actualizarEstadoPago((int)$pago['id'], $nuevoEstado, $transaccionId);
 
-            $estado = $this->service->consultarEstadoPago($pedidoId);
-
-            if (!$estado) {
-                $response->error('PAYMENT_NOT_FOUND', 'No se encontró pago para este pedido.', 404);
-                return;
-            }
-
-            $response->json($estado);
-
-        } catch (\Exception $e) {
-            $response->error('SERVER_ERROR', 'Error al consultar estado del pago.', 500);
+        // Solo si pasa a aprobado por primera vez, alteramos stock y pedido
+        if ($nuevoEstado === 'aprobado') {
+            $this->checkoutService->descontarStock($pedidoId);
+            $this->checkoutService->actualizarEstado($pedidoId, 'pagado', null, 'Confirmado por webhook');
         }
     }
 
     /**
-     * POST /api/pagos/webhook
-     * Webhook simulado de confirmación de pasarela de pago
+     * Obtiene un pedido a través del servicio de Checkout
      */
-    public function webhook(Request $request, Response $response, array $params): void
+    public function obtenerPedido(int $pedidoId): ?array
     {
-        try {
-            $data = $request->getBody();
-
-            // En producción: validar firma del webhook
-            $pedidoId = (int)($data['pedido_id'] ?? 0);
-            $estado = $data['estado'] ?? 'rechazado';
-            $transaccionId = $data['transaccion_id'] ?? '';
-
-            if ($pedidoId <= 0) {
-                $response->error('INVALID_WEBHOOK', 'pedido_id requerido.', 422);
-                return;
-            }
-
-            $this->service->procesarWebhook($pedidoId, $estado, $transaccionId);
-
-            $response->json(['mensaje' => 'Webhook procesado exitosamente.']);
-
-        } catch (\Exception $e) {
-            $response->error('WEBHOOK_ERROR', 'Error al procesar webhook.', 500);
-        }
+        return $this->checkoutService->obtenerPedido($pedidoId);
     }
 }
+
