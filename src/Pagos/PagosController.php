@@ -34,8 +34,23 @@ class PagosController
             $data = $request->getBody();
             $request->validateRequired(['pedido_id', 'metodo_pago']);
 
+            $pedidoId = (int)$data['pedido_id'];
+
+            // Validar existencia del pedido y pertenencia del usuario
+            $pedido = $this->service->obtenerPedido($pedidoId);
+            if (!$pedido) {
+                $response->error('ORDER_NOT_FOUND', 'Pedido no encontrado.', 404);
+                return;
+            }
+
+            $esAdmin = ($user['rol'] ?? '') === 'admin';
+            if (!$esAdmin && (int)$pedido['id_usuario'] !== (int)$user['id']) {
+                $response->error('INSUFFICIENT_PERMISSIONS', 'No tienes permiso para interactuar con este pedido.', 403);
+                return;
+            }
+
             $resultado = $this->service->procesarPago(
-                pedidoId: (int)$data['pedido_id'],
+                pedidoId: $pedidoId,
                 metodoPago: $data['metodo_pago'],
                 tokenTarjeta: $data['token_tarjeta'] ?? 'sim_tok_' . bin2hex(random_bytes(8)),
                 userId: (int)$user['id']
@@ -66,6 +81,20 @@ class PagosController
 
         try {
             $pedidoId = (int)$params['pedidoId'];
+
+            // Validar existencia del pedido y pertenencia del usuario antes de exponer el estado del pago
+            $pedido = $this->service->obtenerPedido($pedidoId);
+            if (!$pedido) {
+                $response->error('ORDER_NOT_FOUND', 'Pedido no encontrado.', 404);
+                return;
+            }
+
+            $esAdmin = ($user['rol'] ?? '') === 'admin';
+            if (!$esAdmin && (int)$pedido['id_usuario'] !== (int)$user['id']) {
+                $response->error('INSUFFICIENT_PERMISSIONS', 'No tienes permiso para ver este pedido.', 403);
+                return;
+            }
+
             $estado = $this->service->consultarEstadoPago($pedidoId);
 
             if (!$estado) {
