@@ -34,9 +34,14 @@ class AuthController
                 return;
             }
 
-            // Validar fortaleza de contraseña
-            if (strlen($data['password']) < 8) {
-                $response->error('WEAK_PASSWORD', 'La contraseña debe tener al menos 8 caracteres.', 422, 'password');
+            // Validar fortaleza de contraseña (spec seguridad §3:
+            // mínimo 8 caracteres, al menos una mayúscula, un número y un carácter especial)
+            $password = $data['password'];
+            if (strlen($password) < 8
+                || !preg_match('/[A-Z]/', $password)
+                || !preg_match('/[0-9]/', $password)
+                || !preg_match('/[^A-Za-z0-9]/', $password)) {
+                $response->error('WEAK_PASSWORD', 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.', 422, 'password');
                 return;
             }
 
