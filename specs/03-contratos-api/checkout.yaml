@@ -1,17 +1,20 @@
 openapi: 3.0.0
 info:
   title: API Checkout
-  description: Contrato para la creación y procesamiento de órdenes de compra.
-  version: 1.0.0
+  description: Contrato para la creación y consulta de pedidos de compra.
+  version: 2.0.0
 servers:
-  - url: http://localhost:8084
-    description: Microservicio de Checkout
+  - url: http://localhost/Ecomers/public
+    description: Servidor local XAMPP
+
 paths:
   /api/checkout:
     post:
-      summary: Crear una nueva orden de compra a partir del carrito
+      summary: Crear un nuevo pedido desde el carrito
       tags:
         - Checkout
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -19,43 +22,264 @@ paths:
             schema:
               type: object
               required:
-                - carritoId
-                - direccionEnvio
+                - carrito_id
+                - direccion_envio
               properties:
-                carritoId:
-                  type: string
-                  example: "cart-999"
-                direccionEnvio:
+                carrito_id:
+                  type: integer
+                  example: 3
+                direccion_envio:
                   type: string
                   example: "Av. Siempreviva 742, Springfield"
-                notasEspeciales:
+                telefono:
+                  type: string
+                  example: "+56912345678"
+                notas:
                   type: string
                   example: "Dejar en recepción si no estoy."
+                cupon:
+                  type: string
+                  example: "DESC10"
       responses:
         '201':
-          description: Orden creada con éxito, lista para pagar.
+          description: Pedido creado exitosamente, listo para pagar.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Orden'
-        '400':
-          description: Carrito vacío o datos de envío inválidos.
+                $ref: '#/components/schemas/PedidoDetalle'
+        '401':
+          description: Token de autenticación requerido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Carrito vacío, carrito ajeno, stock insuficiente o datos inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/pedidos:
+    get:
+      summary: Listar pedidos del usuario autenticado
+      tags:
+        - Pedidos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de pedidos del usuario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PedidoResumen'
+        '401':
+          description: Token de autenticación requerido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/pedidos/{id}:
+    get:
+      summary: Obtener detalle completo de un pedido
+      tags:
+        - Pedidos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Detalle completo del pedido con items, historial y pago.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PedidoDetalle'
+        '401':
+          description: Token de autenticación requerido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: El pedido no pertenece al usuario autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Pedido no encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
-    Orden:
+    PedidoResumen:
       type: object
       properties:
-        ordenId:
-          type: string
-          example: "ord-555"
-        carritoId:
-          type: string
-          example: "cart-999"
-        total:
-          type: number
-          format: float
-          example: 179.98
+        id:
+          type: integer
+          example: 1
         estado:
           type: string
-          example: "PENDIENTE_PAGO"
+          enum: [pendiente, pagado, en_preparacion, enviado, entregado, cancelado]
+          example: "pendiente"
+        total:
+          type: integer
+          description: Monto total en centavos
+          example: 35700
+        total_formateado:
+          type: string
+          example: "$357"
+        total_items:
+          type: integer
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-06-14T10:00:00-04:00"
+
+    PedidoDetalle:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        id_usuario:
+          type: integer
+          example: 2
+        estado:
+          type: string
+          enum: [pendiente, pagado, en_preparacion, enviado, entregado, cancelado]
+          example: "pendiente"
+        subtotal:
+          type: integer
+          description: Subtotal en centavos
+          example: 29990
+        iva:
+          type: integer
+          description: IVA 19% en centavos
+          example: 5698
+        total:
+          type: integer
+          description: Total en centavos
+          example: 35688
+        subtotal_formateado:
+          type: string
+          example: "$299"
+        iva_formateado:
+          type: string
+          example: "$56"
+        total_formateado:
+          type: string
+          example: "$356"
+        direccion_envio:
+          type: string
+          example: "Av. Siempreviva 742, Springfield"
+        telefono_contacto:
+          type: string
+          example: "+56912345678"
+        notas:
+          type: string
+          example: "Dejar en recepción."
+        mensaje:
+          type: string
+          example: "Pedido creado exitosamente. Proceda al pago."
+        detalle:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetallePedido'
+        historial_estados:
+          type: array
+          items:
+            $ref: '#/components/schemas/EstadoPedido'
+        pago:
+          $ref: '#/components/schemas/Pago'
+
+    DetallePedido:
+      type: object
+      properties:
+        id_producto:
+          type: integer
+          example: 8
+        nombre_producto:
+          type: string
+          example: "Audífonos Sony WH-1000XM5"
+        cantidad:
+          type: integer
+          example: 1
+        precio_unitario:
+          type: integer
+          description: Precio en centavos
+          example: 29990
+
+    EstadoPedido:
+      type: object
+      properties:
+        estado:
+          type: string
+          enum: [pendiente, pagado, en_preparacion, enviado, entregado, cancelado]
+          example: "pendiente"
+        comentario:
+          type: string
+          example: "Pedido creado"
+        fecha_cambio:
+          type: string
+          format: date-time
+          example: "2026-06-14T10:00:00-04:00"
+
+    Pago:
+      type: object
+      nullable: true
+      properties:
+        metodo_pago:
+          type: string
+          example: "webpay"
+        monto:
+          type: integer
+          description: Monto en centavos
+          example: 35688
+        estado:
+          type: string
+          enum: [pendiente, aprobado, rechazado, reembolsado]
+          example: "aprobado"
+        referencia_externa:
+          type: string
+          example: "TX-A1B2C3D4E5F6"
+        fecha_pago:
+          type: string
+          format: date-time
+          example: "2026-06-14T10:05:00-04:00"
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "El carrito no pertenece al usuario autenticado."
