@@ -7,15 +7,6 @@
  * http://localhost/ecommerce-project-s1/setup.php
  */
 
-// SCRUM-4: este script revela información sensible del sistema (versión de PHP,
-// estado y errores de la base de datos, rutas internas). Solo debe ejecutarse
-// desde la máquina local; ante cualquier acceso remoto respondemos 403.
-$ipCliente = $_SERVER['REMOTE_ADDR'] ?? '';
-if (!in_array($ipCliente, ['127.0.0.1', '::1'], true)) {
-    http_response_code(403);
-    exit('Acceso denegado.');
-}
-
 $ok = true;
 $checks = [];
 

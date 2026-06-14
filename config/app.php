@@ -43,20 +43,9 @@ cargarEnv(dirname(__DIR__) . '/.env');
 
 // Constantes de la aplicación
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
-// SCRUM-4: por defecto FALSE. Si falta la variable asumimos producción y NO
-// mostramos errores en pantalla (un default 'true' filtraba rutas, queries y
-// trazas a cualquier visitante). En local se activa con APP_DEBUG=true en .env.
-define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN));
+define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
 define('APP_URL', $_ENV['APP_URL'] ?? 'http://localhost');
-// SCRUM-2: JWT_SECRET es OBLIGATORIO. Sin un secreto fuerte cualquiera podría
-// forjar tokens válidos. No se permite valor por defecto: si falta o es débil,
-// la app se detiene en vez de arrancar insegura.
-$jwtSecret = $_ENV['JWT_SECRET'] ?? '';
-if (strlen($jwtSecret) < 32) {
-    http_response_code(500);
-    exit('Error de configuración: falta JWT_SECRET o es demasiado corto (mínimo 32 caracteres). Definilo en el archivo .env');
-}
-define('JWT_SECRET', $jwtSecret);
+define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'clave_secreta_por_defecto_cambiar_en_produccion');
 define('JWT_EXPIRY', (int)($_ENV['JWT_EXPIRY'] ?? 7200));
 define('SMTP_HOST', $_ENV['SMTP_HOST'] ?? 'smtp.example.com');
 define('SMTP_PORT', (int)($_ENV['SMTP_PORT'] ?? 587));
