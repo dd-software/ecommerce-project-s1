@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 /**
  * CarritoController - Maneja el carrito de compras
+ * REFACTORIZADO: Inyecta CatalogoService al Service
  */
 namespace App\Carrito;
 
+use App\Catalogo\CatalogoService;
+use App\Catalogo\CatalogoRepository;
 use App\Core\{Request, Response};
 
 class CarritoController
@@ -15,7 +18,13 @@ class CarritoController
 
     public function __construct()
     {
-        $this->service = new CarritoService(new CarritoRepository());
+        // ✅ CAMBIO: Crear CatalogoService aquí y pasarlo al Service
+        $catalogoService = new CatalogoService(new CatalogoRepository());
+        
+        $this->service = new CarritoService(
+            new CarritoRepository(),
+            $catalogoService  // ← INYECTADO
+        );
     }
 
     /**
@@ -189,8 +198,7 @@ class CarritoController
 
     /**
      * MÉTODO PRIVADO: Extrae contexto de usuario/session de Request
-     * Refactor para eliminar redundancia (DRY principle)
-     * 
+    
      * @param Request $request
      * @param array $data Datos opcionales del body (para agregar, contiene session_id)
      * @return array ['userId' => ?int, 'sessionId' => ?string]
@@ -210,9 +218,7 @@ class CarritoController
 
     /**
      * MÉTODO PRIVADO: Obtiene carrito usando contexto extraído
-     * Refactor para eliminar repetición de llamadas a obtenerCarrito()
-     * 
-     * @param ?int $userId
+     * @param ?int $userId         
      * @param ?string $sessionId
      * @return array Carrito con items y totales
      */
