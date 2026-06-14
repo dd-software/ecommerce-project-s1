@@ -177,6 +177,18 @@ class CarritoRepository
     }
 
     /**
+     * Obtiene un carrito por ID (para verificar propiedad)
+     */
+    public function obtenerPorId(int $carritoId): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, id_usuario FROM carritos WHERE id = :id"
+        );
+        $stmt->execute([':id' => $carritoId]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
      * Desactiva el carrito cuando se convierte en pedido
      */
     public function desactivarParaCheckout(int $carritoId): void

@@ -44,6 +44,12 @@ class CheckoutService
         try {
             $db->beginTransaction();
 
+            // Validar que el carrito pertenece al usuario autenticado (RN-D02)
+            $carrito = (new CarritoRepository())->obtenerPorId($carritoId);
+            if (!$carrito || (int)$carrito['id_usuario'] !== $userId) {
+                throw new \RuntimeException('El carrito no pertenece al usuario autenticado.');
+            }
+
             // Obtener items del carrito
             $items = $this->carritoService->obtenerItemsParaCheckout($carritoId);
 
