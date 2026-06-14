@@ -68,7 +68,7 @@ class PagosService
                 // RN-E02 + RN-003: Solo descontar stock tras pago confirmado
                 $this->checkoutService->descontarStock($pedidoId);
 
-                // Actualizar estado del pedido
+                // Actualizar estado del pedido a pagado
                 $this->checkoutService->actualizarEstado(
                     pedidoId: $pedidoId,
                     nuevoEstado: 'pagado',
@@ -90,12 +90,14 @@ class PagosService
 
                 $mensaje = 'Pago aprobado exitosamente.';
             } else {
+                // CORRECCIÓN: Mantener el pedido como 'pendiente' registrando el intento fallido
                 $this->checkoutService->actualizarEstado(
                     pedidoId: $pedidoId,
-                    nuevoEstado: 'cancelado',
+                    nuevoEstado: 'pendiente', // Se mantiene pendiente para permitir reintentos
                     userId: $userId,
-                    comentario: 'Pago rechazado: ' . $respuestaPasarela['mensaje']
+                    comentario: 'Intento de pago rechazado. Transacción: ' . $transaccionId . ' - Motivo: ' . $respuestaPasarela['mensaje']
                 );
+                
                 $mensaje = 'Pago rechazado: ' . $respuestaPasarela['mensaje'];
             }
 
@@ -161,9 +163,6 @@ class PagosService
 
     /**
      * Procesa un webhook de confirmación de la pasarela
-     */
-/**
-     * Procesa un webhook de confirmación de la pasarela
      * Evita reprocesar pagos ya aprobados (Garantiza Idempotencia y RN-E02)
      */
     public function procesarWebhook(int $pedidoId, string $estado, string $transaccionId): void
@@ -204,4 +203,3 @@ class PagosService
         return $this->checkoutService->obtenerPedido($pedidoId);
     }
 }
-
