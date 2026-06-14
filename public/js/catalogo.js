@@ -162,7 +162,7 @@ const Catalogo = {
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="product-card position-relative">
                     ${stockBadge}
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
+                    <img src="${this.safeUrl(p.imagen_url) || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
                          class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
                          onerror="this.src='https://via.placeholder.com/400x220?text=Sin+Imagen'">
                     <div class="card-body">
@@ -313,12 +313,30 @@ const Catalogo = {
     },
 
     /**
-     * Escapa HTML para prevenir XSS
+     * Escapa HTML para prevenir XSS (SCRUM-1).
+     * Escapa también comillas: el resultado se usa dentro de atributos HTML,
+     * donde un " o ' permitiría romper el atributo e inyectar código.
      */
     escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str || '';
-        return div.innerHTML;
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+
+    /**
+     * Devuelve una URL segura para usar en src/href (SCRUM-1).
+     * Solo admite http(s) o rutas relativas; bloquea javascript:, data:, etc.
+     * Si la URL no es confiable devuelve '' (el onerror mostrará el placeholder).
+     */
+    safeUrl(url) {
+        const u = String(url ?? '').trim();
+        if (/^https?:\/\//i.test(u) || u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) {
+            return this.escapeHtml(u);
+        }
+        return '';
     },
 
     /**
@@ -356,7 +374,7 @@ const Catalogo = {
         container.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
+                    <img src="${this.safeUrl(product.imagen_url) || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
                          class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
                          onerror="this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'">
                 </div>
