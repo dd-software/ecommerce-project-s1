@@ -188,7 +188,7 @@ const Admin = {
                             ${productos.map(p => `
                                 <tr>
                                     <td>${p.id}</td>
-                                    <td><img src="${this.safeUrl(p.imagen_url) || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src='https://via.placeholder.com/40'"></td>
+                                    <td><img src="${p.imagen_url || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src='https://via.placeholder.com/40'"></td>
                                     <td>${this.escapeHtml(p.nombre)}</td>
                                     <td>${this.escapeHtml(p.categoria_nombre || '-')}</td>
                                     <td>${p.precio_formateado || App.formatPrice(p.precio)}</td>
@@ -512,7 +512,7 @@ const Admin = {
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">URL Imagen</label>
-                                <input type="url" class="form-control" id="prod-imagen" value="${product ? this.escapeHtml(product.imagen_url || '') : ''}">
+                                <input type="url" class="form-control" id="prod-imagen" value="${product ? (product.imagen_url || '') : ''}">
                             </div>
                             <div class="mb-3">
                                 <div class="form-check">
@@ -648,28 +648,9 @@ const Admin = {
         }
     },
 
-    /**
-     * Escapa HTML para prevenir XSS (SCRUM-5).
-     * Escapa también comillas porque el resultado se usa dentro de atributos.
-     */
     escapeHtml(str) {
-        return String(str ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    },
-
-    /**
-     * Devuelve una URL segura para src/href (SCRUM-5).
-     * Solo http(s) o rutas relativas; bloquea javascript:, data:, etc.
-     */
-    safeUrl(url) {
-        const u = String(url ?? '').trim();
-        if (/^https?:\/\//i.test(u) || u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) {
-            return this.escapeHtml(u);
-        }
-        return '';
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
     }
 };
