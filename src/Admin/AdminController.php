@@ -60,7 +60,8 @@ class AdminController
             $data = $request->getBody();
             $request->validateRequired(['nombre', 'precio', 'id_categoria']);
 
-            $producto = $this->service->crearProducto($data);
+            $user = $request->getAttribute('authenticated_user');
+            $producto = $this->service->crearProducto($data, (int)$user['id']);
             $response->json($producto, 201);
 
         } catch (\InvalidArgumentException $e) {
@@ -80,7 +81,8 @@ class AdminController
             $id = (int)$params['id'];
             $data = $request->getBody();
 
-            $producto = $this->service->actualizarProducto($id, $data);
+            $user = $request->getAttribute('authenticated_user');
+            $producto = $this->service->actualizarProducto($id, $data, (int)$user['id']);
             $response->json($producto);
 
         } catch (\InvalidArgumentException $e) {
@@ -100,7 +102,8 @@ class AdminController
     {
         try {
             $id = (int)$params['id'];
-            $this->service->eliminarProducto($id);
+            $user = $request->getAttribute('authenticated_user');
+            $this->service->eliminarProducto($id, (int)$user['id']);
             $response->json(['mensaje' => 'Producto eliminado exitosamente.']);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al eliminar producto.', 500);
@@ -199,9 +202,13 @@ class AdminController
             $data = $request->getBody();
             $activo = isset($data['activo']) ? (int)$data['activo'] : null;
 
-            $this->service->cambiarEstadoUsuario($id, $activo);
+            $user = $request->getAttribute('authenticated_user');
+            $this->service->cambiarEstadoUsuario($id, $activo, (int)$user['id']);
             $response->json(['mensaje' => 'Estado de usuario actualizado.']);
 
+        } catch (\RuntimeException $e) {
+            // G-2: por ejemplo, intento de desactivar al último administrador
+            $response->error('OPERATION_NOT_ALLOWED', $e->getMessage(), 422);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al cambiar estado de usuario.', 500);
         }

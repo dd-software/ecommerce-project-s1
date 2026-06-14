@@ -48,12 +48,12 @@ class AdminService
     /**
      * Crea un nuevo producto
      */
-    public function crearProducto(array $data): array
+    public function crearProducto(array $data, int $userId): array
     {
         // Generar slug desde el nombre
         $slug = $this->generarSlug($data['nombre']);
 
-        return $this->repository->crearProducto([
+        $producto = $this->repository->crearProducto([
             'nombre'          => trim($data['nombre']),
             'slug'            => $slug,
             'descripcion'     => $data['descripcion'] ?? '',
@@ -64,12 +64,17 @@ class AdminService
             'stock_minimo'    => (int)($data['stock_minimo'] ?? 5),
             'activo'          => 1,
         ]);
+
+        // G-1: registrar en auditoría
+        $this->repository->registrarAuditoria('producto', $producto['id'] ?? null, 'CREATE', $userId, 'Creó producto: ' . trim($data['nombre']));
+
+        return $producto;
     }
 
     /**
      * Actualiza un producto existente
      */
-    public function actualizarProducto(int $id, array $data): array
+    public function actualizarProducto(int $id, array $data, int $userId): array
     {
         $producto = (new CatalogoRepository())->buscarPorIdAdmin($id);
         if (!$producto) {
@@ -89,15 +94,23 @@ class AdminService
         if (isset($data['stock_minimo'])) $campos['stock_minimo'] = (int)$data['stock_minimo'];
         if (isset($data['activo'])) $campos['activo'] = (int)$data['activo'];
 
-        return $this->repository->actualizarProducto($id, $campos);
+        $resultado = $this->repository->actualizarProducto($id, $campos);
+
+        // G-1: registrar en auditoría
+        $this->repository->registrarAuditoria('producto', $id, 'UPDATE', $userId, 'Actualizó producto #' . $id);
+
+        return $resultado;
     }
 
     /**
      * Soft-delete de un producto
      */
-    public function eliminarProducto(int $id): void
+    public function eliminarProducto(int $id, int $userId): void
     {
         $this->repository->softDeleteProducto($id);
+
+        // G-1: registrar en auditoría
+        $this->repository->registrarAuditoria('producto', $id, 'DELETE', $userId, 'Eliminó producto #' . $id);
     }
 
     /**
@@ -149,9 +162,20 @@ class AdminService
     /**
      * Activa/desactiva un usuario
      */
-    public function cambiarEstadoUsuario(int $id, ?int $activo): void
+    public function cambiarEstadoUsuario(int $id, ?int $activo, int $userId): void
     {
+        // G-2: no permitir desactivar al último administrador activo
+        if ((int)$activo === 0) {
+            $usuario = $this->repository->obtenerUsuario($id);
+            if ($usuario && $usuario['rol'] === 'admin' && $this->repository->contarAdminsActivos() <= 1) {
+                throw new \RuntimeException('No se puede desactivar al último administrador activo.');
+            }
+        }
+
         $this->repository->actualizarEstadoUsuario($id, $activo);
+
+        // G-1: registrar en auditoría
+        $this->repository->registrarAuditoria('usuario', $id, 'UPDATE', $userId, 'Cambió estado activo=' . (int)$activo . ' del usuario #' . $id);
     }
 
     /**

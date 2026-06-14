@@ -363,4 +363,47 @@ class AdminRepository
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    // ========== Auditoría y soporte (Sprint 2) ==========
+
+    /**
+     * G-1: registra una acción administrativa en auditoria_sistema
+     */
+    public function registrarAuditoria(string $entidad, ?int $idEntidad, string $accion, ?int $idUsuario, string $detalle = ''): void
+    {
+        $stmt = $this->db->prepare(
+            "INSERT INTO auditoria_sistema (entidad, id_entidad, accion, id_usuario, detalle, ip_origen)
+             VALUES (:entidad, :id_entidad, :accion, :id_usuario, :detalle, :ip)"
+        );
+        $stmt->execute([
+            ':entidad'    => $entidad,
+            ':id_entidad' => $idEntidad,
+            ':accion'     => $accion,
+            ':id_usuario' => $idUsuario,
+            ':detalle'    => $detalle,
+            ':ip'         => $_SERVER['REMOTE_ADDR'] ?? null,
+        ]);
+    }
+
+    /**
+     * G-2: obtiene rol y estado de un usuario (para validaciones)
+     */
+    public function obtenerUsuario(int $id): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, rol, activo FROM usuarios WHERE id = :id AND deleted_at IS NULL"
+        );
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * G-2: cuenta cuántos administradores activos hay en el sistema
+     */
+    public function contarAdminsActivos(): int
+    {
+        return (int)$this->db->query(
+            "SELECT COUNT(*) as total FROM usuarios WHERE rol = 'admin' AND activo = 1 AND deleted_at IS NULL"
+        )->fetch()['total'];
+    }
 }
