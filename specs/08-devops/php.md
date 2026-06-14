@@ -8,7 +8,7 @@
 
 **Estado:** Sprint 1  
 
-**Última actualización:** 2025  
+**Última actualización:** 2026  
 
 ---
 
