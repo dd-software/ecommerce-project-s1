@@ -162,11 +162,21 @@ class PagosService
     /**
      * Procesa un webhook de confirmación de la pasarela
      */
+/**
+     * Procesa un webhook de confirmación de la pasarela
+     * Evita reprocesar pagos ya aprobados (Garantiza Idempotencia y RN-E02)
+     */
     public function procesarWebhook(int $pedidoId, string $estado, string $transaccionId): void
     {
         $pago = $this->repository->obtenerPagoPorPedido($pedidoId);
         if (!$pago) {
             throw new \RuntimeException('No se encontró pago para este pedido.');
+        }
+
+        // (2) Si el pago ya está aprobado, no volver a procesar ni descontar stock
+        if (($pago['estado'] ?? '') === 'aprobado') {
+            // Retornamos de manera silenciosa o con un mensaje indicando que ya fue procesado
+            return; 
         }
 
         $nuevoEstado = match ($estado) {
@@ -176,11 +186,22 @@ class PagosService
             default => 'pendiente',
         };
 
+        // Actualizar el estado del pago en la base de datos
         $this->repository->actualizarEstadoPago((int)$pago['id'], $nuevoEstado, $transaccionId);
 
+        // Solo si pasa a aprobado por primera vez, alteramos stock y pedido
         if ($nuevoEstado === 'aprobado') {
             $this->checkoutService->descontarStock($pedidoId);
             $this->checkoutService->actualizarEstado($pedidoId, 'pagado', null, 'Confirmado por webhook');
         }
     }
+
+    /**
+     * Obtiene un pedido a través del servicio de Checkout
+     */
+    public function obtenerPedido(int $pedidoId): ?array
+    {
+        return $this->checkoutService->obtenerPedido($pedidoId);
+    }
 }
+
