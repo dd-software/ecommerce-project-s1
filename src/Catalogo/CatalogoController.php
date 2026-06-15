@@ -53,7 +53,7 @@ class CatalogoController
             );
 
         } catch (\Exception $e) {
-            $response->error('SERVER_ERROR', 'Error al obtener productos: ' . $e->getMessage(), 500);
+            $response->error('SERVER_ERROR', 'Error al obtener producto.', 500);
         }
     }
 

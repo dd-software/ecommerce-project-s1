@@ -90,7 +90,7 @@ class CatalogoRepository
 
         // Formatear precios para el frontend
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format((float)$p['precio'], 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = $p['stock'] <= 0; // RN-A02
@@ -117,7 +117,7 @@ class CatalogoRepository
         $producto = $stmt->fetch();
 
         if ($producto) {
-            $producto['precio_formateado'] = '$' . number_format($producto['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format((float)$p['precio'], 0, ',', '.');
             $producto['precio'] = (int)$producto['precio'];
             $producto['stock'] = (int)$producto['stock'];
             $producto['sin_stock'] = (int)$producto['stock'] <= 0;
@@ -176,7 +176,7 @@ class CatalogoRepository
         $productos = $stmt->fetchAll();
 
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format((float)$p['precio'], 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = (int)$p['stock'] <= 0;
