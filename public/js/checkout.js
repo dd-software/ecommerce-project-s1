@@ -12,7 +12,8 @@ const Checkout = {
      */
     async init() {
         if (!App.user) {
-            window.location.href = '/login.html?redirect=checkout.html';
+            // El checkout solo está disponible para usuarios autenticados.
+            // El carrito muestra "Iniciar Sesión" para invitados, así que aquí solo salimos.
             return;
         }
 
@@ -36,10 +37,16 @@ const Checkout = {
                 this.cartId = data.data.id;
                 this.renderItems();
                 this.renderSummary();
+                const btn = document.getElementById('btn-place-order');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirmar Pedido y Pagar';
+                }
             } else {
                 container.innerHTML = `
-                    <div class="alert alert-warning">
-                        Tu carrito está vacío. <a href="/catalogo.html">Ir al catálogo</a>
+                    <div class="alert alert-warning mb-0">
+                        Tu carrito está vacío.
+                        <button type="button" class="btn btn-link p-0 align-baseline" data-bs-dismiss="modal">Ver productos</button>
                     </div>`;
                 const btn = document.getElementById('btn-place-order');
                 if (btn) btn.disabled = true;
@@ -104,19 +111,11 @@ const Checkout = {
      * Configura eventos
      */
     initEventListeners() {
-        // Formulario de checkout
+        // Formulario de checkout (el botón "Confirmar Pedido" es type=submit, basta el submit)
         const form = document.getElementById('checkout-form');
-        if (form) {
+        if (form && !form.dataset.bound) {
+            form.dataset.bound = '1';
             form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await this.placeOrder();
-            });
-        }
-
-        // Botón de pago
-        const btn = document.getElementById('btn-place-order');
-        if (btn) {
-            btn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 await this.placeOrder();
             });
@@ -202,17 +201,18 @@ const Checkout = {
             const paymentData = await paymentResp.json();
 
             if (paymentData.success && paymentData.data.estado === 'aprobado') {
-                // Éxito
+                // Éxito: mostrar confirmación dentro del modal
                 App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
-                // Redirigir a confirmación
-                setTimeout(() => {
-                    window.location.href = `/pedido-confirmado.html?pedido_id=${pedido.id || pedido.pedido_id}`;
-                }, 2000);
+                this.renderConfirmation(pedido.id || pedido.pedido_id);
+                // El carrito ya fue convertido en pedido: refrescar contador
+                App.cartCount = 0;
+                App.updateCartBadge();
+                if (typeof Carrito !== 'undefined') Carrito.loadCart();
             } else {
                 App.showToast('Pago rechazado: ' + (paymentData.data?.mensaje || 'Error'), 'error');
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = 'Reintentar Pago';
+                    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Reintentar Pago';
                 }
             }
         } catch (err) {
@@ -221,11 +221,26 @@ const Checkout = {
                 errorDiv.classList.remove('d-none');
             }
             App.showToast(err.message, 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirmar Pedido y Pagar';
+            }
         }
+    },
 
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Confirmar Pedido';
-        }
+    /**
+     * Muestra la confirmación del pedido dentro del modal de checkout
+     */
+    renderConfirmation(pedidoId) {
+        const modalBody = document.querySelector('#checkoutModal .modal-body');
+        if (!modalBody) return;
+        modalBody.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:4rem"></i>
+                <h4 class="fw-bold mt-3">¡Pedido confirmado!</h4>
+                <p class="text-muted mb-1">Tu pago fue aprobado correctamente.</p>
+                <p class="mb-4">N.º de pedido: <strong>#${pedidoId}</strong></p>
+                <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Seguir comprando</button>
+            </div>`;
     }
 };

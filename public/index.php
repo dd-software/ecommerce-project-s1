@@ -48,6 +48,12 @@ $router = new Router();
 // Rutas de API
 // ============================================
 
+// --- Raíz ---
+$router->get('/', function(Request $_req, Response $res) {
+    header('Location: store/');
+    exit;
+});
+
 // --- Módulo C: Autenticación ---
 $router->post('/api/auth/registro', [AuthController::class, 'registro']);
 $router->post('/api/auth/login', [AuthController::class, 'login']);

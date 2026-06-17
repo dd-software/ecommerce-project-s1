@@ -4,22 +4,47 @@
  */
 
 const App = {
-    apiBase: window.location.pathname.replace(/\/+$/, '') + '/api',
+    apiBase: window.location.href.replace(/\/[^/]*$/, '') + '/api',
     token: null,
     user: null,
     cartCount: 0,
 
+    // Placeholder local (data URI) usado cuando una imagen no carga.
+    // Cumple CSP (img-src 'self' data:) sin depender de servicios externos.
+    PLACEHOLDER: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='100%25' height='100%25' fill='%23e9ecef'/%3E%3Ctext x='50%25' y='50%25' fill='%236c757d' font-family='sans-serif' font-size='18' text-anchor='middle' dominant-baseline='middle'%3ESin imagen%3C/text%3E%3C/svg%3E",
+
+    _initialized: false,
+
     /**
-     * Inicializa la aplicación
+     * Inicializa la aplicación (idempotente: evita doble inicialización)
      */
     init() {
+        if (this._initialized) return;
+        this._initialized = true;
+
         this.token = localStorage.getItem('uct_auth_token');
         this.user = JSON.parse(localStorage.getItem('uct_user') || 'null');
 
         this.updateNavbar();
         this.initEventListeners();
+        this.initImageFallback();
         this.loadCartCount();
         if (typeof Auth !== 'undefined') Auth.init();
+    },
+
+    /**
+     * Maneja el fallback de imágenes rotas con un único listener en fase de
+     * captura (los eventos 'error' de <img> no propagan, por eso useCapture).
+     * Reemplaza el uso de onerror inline, que viola la CSP (script-src 'self').
+     */
+    initImageFallback() {
+        document.addEventListener('error', (e) => {
+            const el = e.target;
+            if (el && el.tagName === 'IMG' && el.dataset.fallbackApplied !== '1') {
+                el.dataset.fallbackApplied = '1';
+                el.src = App.PLACEHOLDER;
+            }
+        }, true);
     },
 
     /**
@@ -64,18 +89,7 @@ const App = {
                 this.logout();
             });
         }
-
-        // Búsqueda global
-        const searchForm = document.getElementById('search-form');
-        if (searchForm) {
-            searchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const query = document.getElementById('search-input').value.trim();
-                if (query) {
-                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?search=' + encodeURIComponent(query);
-                }
-            });
-        }
+        // La búsqueda se maneja en main.js (búsqueda en la misma página, sin recargar)
     },
 
     /**
@@ -132,7 +146,8 @@ const App = {
         localStorage.removeItem('uct_user');
         this.token = null;
         this.user = null;
-        window.location.href = '/';
+        // Recargar la página actual (sin query) en lugar de ir a la raíz del servidor
+        window.location.href = window.location.href.split('?')[0];
     },
 
     /**
@@ -196,8 +211,8 @@ const App = {
     /**
      * Formatea un precio en centavos a string
      */
-    formatPrice(cents) {
-        return '$' + new Intl.NumberFormat('es-CL').format(Math.round(cents / 100));
+    formatPrice(amount) {
+        return '$' + new Intl.NumberFormat('es-CL').format(Math.round(amount));
     },
 
     /**

@@ -50,7 +50,7 @@ class AdminRepository
         );
         $stmt->execute();
         $result = $stmt->fetch();
-        $result['total_ventas_formateado'] = '$' . number_format((int)$result['total_ventas'] / 100, 0, ',', '.');
+        $result['total_ventas_formateado'] = '$' . number_format((int)$result['total_ventas'], 0, ',', '.');
         return $result;
     }
 
@@ -65,7 +65,7 @@ class AdminRepository
         );
         $stmt->execute();
         $result = $stmt->fetch();
-        $result['total_ventas_formateado'] = '$' . number_format((int)$result['total_ventas'] / 100, 0, ',', '.');
+        $result['total_ventas_formateado'] = '$' . number_format((int)$result['total_ventas'], 0, ',', '.');
         return $result;
     }
 
@@ -106,7 +106,7 @@ class AdminRepository
         $pedidos = $stmt->fetchAll();
 
         foreach ($pedidos as &$p) {
-            $p['total_formateado'] = '$' . number_format($p['total'] / 100, 0, ',', '.');
+            $p['total_formateado'] = '$' . number_format($p['total'], 0, ',', '.');
         }
 
         return $pedidos;
@@ -144,7 +144,7 @@ class AdminRepository
         $productos = $stmt->fetchAll();
 
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format($p['precio'], 0, ',', '.');
         }
 
         return ['productos' => $productos, 'total' => $total];
@@ -254,7 +254,7 @@ class AdminRepository
         $pedidos = $stmt->fetchAll();
 
         foreach ($pedidos as &$p) {
-            $p['total_formateado'] = '$' . number_format($p['total'] / 100, 0, ',', '.');
+            $p['total_formateado'] = '$' . number_format($p['total'], 0, ',', '.');
         }
 
         return ['pedidos' => $pedidos, 'total' => $total];
@@ -340,7 +340,7 @@ class AdminRepository
         $ventas = $stmt->fetchAll();
 
         foreach ($ventas as &$v) {
-            $v['total_ventas_formateado'] = '$' . number_format($v['total_ventas'] / 100, 0, ',', '.');
+            $v['total_ventas_formateado'] = '$' . number_format($v['total_ventas'], 0, ',', '.');
         }
 
         return $ventas;

@@ -55,13 +55,13 @@ const Auth = {
                         } catch (e) { /* silencioso */ }
                     }
 
-                    // Redirigir según rol
-                    const redirect = new URLSearchParams(window.location.search).get('redirect');
-                    if (data.data.usuario.rol === 'admin') {
-                        window.location.href = window.location.pathname.replace(/\/+$/, '') + '/admin.html';
-                    } else {
-                        window.location.href = redirect || '/';
+                    // Cerrar el modal de login y recargar para reflejar la sesión
+                    // (no existe un admin.html separado: el admin usa la misma tienda)
+                    const loginModalEl = document.getElementById('loginModal');
+                    if (loginModalEl && window.bootstrap) {
+                        bootstrap.Modal.getOrCreateInstance(loginModalEl).hide();
                     }
+                    window.location.href = window.location.href.split('?')[0];
                 } else {
                     if (errorDiv) {
                         errorDiv.textContent = data.error?.message || 'Credenciales incorrectas.';
@@ -135,7 +135,7 @@ const Auth = {
 
                 if (data.success) {
                     App.setAuth(data.data.token, data.data.usuario);
-                    window.location.href = '/';
+                    window.location.reload();
                 } else {
                     if (errorDiv) {
                         errorDiv.textContent = data.error?.message || 'Error al registrar.';

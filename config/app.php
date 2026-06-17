@@ -30,7 +30,11 @@ function cargarEnv(string $ruta): void
             $valor = trim($valor, '"\'');
             $valor = trim($valor);
 
-            if (!array_key_exists($clave, $_ENV) && getenv($clave) === false) {
+            // Poblar SIEMPRE $_ENV en cada request. En SAPI multi-hilo (mod_php),
+            // putenv() persiste entre requests pero $_ENV se reinicia; si solo
+            // condicionáramos por getenv(), tras el primer request $_ENV quedaría
+            // sin definir y las credenciales caerían a valores por defecto.
+            if (!array_key_exists($clave, $_ENV)) {
                 $_ENV[$clave] = $valor;
                 putenv("{$clave}={$valor}");
             }

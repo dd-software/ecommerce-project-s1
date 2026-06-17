@@ -116,6 +116,7 @@ const Catalogo = {
             if (data.success) {
                 this.renderProducts(data.data);
                 this.renderPagination(data.meta?.pagination);
+                this.updateProductsCount(data.meta?.pagination, data.data.length);
             }
         } catch (e) {
             container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';
@@ -162,9 +163,8 @@ const Catalogo = {
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="product-card position-relative">
                     ${stockBadge}
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
-                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/400x220?text=Sin+Imagen'">
+                    <img src="${p.imagen_url || App.PLACEHOLDER}"
+                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}">
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
@@ -175,7 +175,7 @@ const Catalogo = {
                         <div class="mt-2">
                             ${addButton}
                         </div>
-                        <a href="/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
+                        <button class="btn btn-outline-uct btn-sm w-100 mt-1 view-detail-btn" data-id="${p.id}">Ver Detalle</button>
                     </div>
                 </div>
             </div>`;
@@ -271,6 +271,24 @@ const Catalogo = {
             });
         }
 
+        // Ver detalle de producto (delegado) -> abre modal
+        document.addEventListener('click', (e) => {
+            const detailBtn = e.target.closest('.view-detail-btn');
+            if (detailBtn) {
+                e.preventDefault();
+                const productId = detailBtn.dataset.id;
+                const modalEl = document.getElementById('productModal');
+                if (modalEl) {
+                    const container = document.getElementById('product-detail');
+                    if (container) {
+                        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+                    }
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    this.loadDetail(productId);
+                }
+            }
+        });
+
         // Agregar al carrito (delegado)
         document.addEventListener('click', async (e) => {
             if (e.target.classList.contains('add-to-cart-btn')) {
@@ -310,6 +328,20 @@ const Catalogo = {
                 btn.textContent = 'Agregar al Carrito';
             }
         });
+    },
+
+    /**
+     * Actualiza el contador de productos en la barra de filtros
+     */
+    updateProductsCount(pagination, visibles) {
+        const el = document.getElementById('products-count');
+        if (!el) return;
+        const total = pagination?.total ?? visibles ?? 0;
+        if (this.filters.q) {
+            el.textContent = `${total} resultado${total === 1 ? '' : 's'} para "${this.filters.q}"`;
+        } else {
+            el.textContent = `${total} producto${total === 1 ? '' : 's'}`;
+        }
     },
 
     /**
@@ -356,9 +388,8 @@ const Catalogo = {
         container.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
-                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'">
+                    <img src="${product.imagen_url || App.PLACEHOLDER}"
+                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}">
                 </div>
                 <div class="col-md-6">
                     <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>

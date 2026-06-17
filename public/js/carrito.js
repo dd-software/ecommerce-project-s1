@@ -58,9 +58,8 @@ const Carrito = {
         container.innerHTML = this.cart.items.map(item => `
             <div class="cart-item row align-items-center" data-item-id="${item.id}">
                 <div class="col-md-2 col-3">
-                    <img src="${item.imagen_url || 'https://via.placeholder.com/80?text=N/A'}"
-                         class="cart-item-img" alt="${this.escapeHtml(item.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/80?text=N/A'">
+                    <img src="${item.imagen_url || App.PLACEHOLDER}"
+                         class="cart-item-img" alt="${this.escapeHtml(item.nombre)}">
                 </div>
                 <div class="col-md-4 col-9">
                     <h6 class="mb-1">${this.escapeHtml(item.nombre)}</h6>
@@ -108,10 +107,10 @@ const Carrito = {
                 <strong>Total:</strong>
                 <strong class="text-primary fs-5">${this.cart.total_formateado}</strong>
             </div>
-            <button class="btn btn-accent w-100 btn-lg" id="btn-checkout" ${App.user ? '' : 'disabled'}>
-                ${App.user ? 'Proceder al Pago' : 'Inicia Sesión para Comprar'}
-            </button>
-            ${!App.user ? '<p class="text-muted small mt-2 text-center">Debes iniciar sesión para continuar con la compra.</p>' : ''}
+            ${App.user
+                ? '<button class="btn btn-accent w-100 btn-lg" id="btn-checkout" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#checkoutModal">Proceder al Pago</button>'
+                : '<button class="btn btn-accent w-100 btn-lg" id="btn-checkout" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión para Comprar</button>'
+            }
             <button class="btn btn-outline-danger w-100 mt-2 btn-sm" id="btn-clear-cart">Vaciar Carrito</button>
         `;
     },
@@ -166,16 +165,8 @@ const Carrito = {
             }
         });
 
-        // Proceder al pago (delegado)
-        document.addEventListener('click', (e) => {
-            if (e.target.id === 'btn-checkout') {
-                if (!App.user) {
-                    window.location.href = '/login.html';
-                } else {
-                    window.location.href = '/checkout.html';
-                }
-            }
-        });
+        // El botón "Proceder al Pago" / "Iniciar Sesión" abre el modal correspondiente
+        // mediante data-bs-toggle/data-bs-target (manejado por Bootstrap, sin redirección).
 
         // Vaciar carrito (delegado)
         document.addEventListener('click', async (e) => {
