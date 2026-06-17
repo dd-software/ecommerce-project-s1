@@ -1,10 +1,61 @@
 openapi: 3.0.0
 info:
-  title: API checkout
+  title: API Checkout
+  description: Contrato para la creación y procesamiento de órdenes de compra.
   version: 1.0.0
+servers:
+  - url: http://localhost:8084
+    description: Microservicio de Checkout
 paths:
   /api/checkout:
-    get:
+    post:
+      summary: Crear una nueva orden de compra a partir del carrito
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - carritoId
+                - direccionEnvio
+              properties:
+                carritoId:
+                  type: string
+                  example: "cart-999"
+                direccionEnvio:
+                  type: string
+                  example: "Av. Siempreviva 742, Springfield"
+                notasEspeciales:
+                  type: string
+                  example: "Dejar en recepción si no estoy."
       responses:
-        '200':
-          description: OK
+        '201':
+          description: Orden creada con éxito, lista para pagar.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Orden'
+        '400':
+          description: Carrito vacío o datos de envío inválidos.
+
+components:
+  schemas:
+    Orden:
+      type: object
+      properties:
+        ordenId:
+          type: string
+          example: "ord-555"
+        carritoId:
+          type: string
+          example: "cart-999"
+        total:
+          type: number
+          format: float
+          example: 179.98
+        estado:
+          type: string
+          example: "PENDIENTE_PAGO"

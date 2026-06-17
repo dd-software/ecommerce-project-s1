@@ -1,10 +1,53 @@
 openapi: 3.0.0
 info:
-  title: API pagos
+  title: API Pagos
+  description: Contrato para el procesamiento de transacciones financieras.
   version: 1.0.0
+servers:
+  - url: http://localhost:8085
+    description: Microservicio de Pagos
 paths:
   /api/pagos:
-    get:
+    post:
+      summary: Procesar el pago de una orden de compra
+      tags:
+        - Pagos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ordenId
+                - metodoPago
+                - tokenTarjeta
+              properties:
+                ordenId:
+                  type: string
+                  example: "ord-555"
+                metodoPago:
+                  type: string
+                  example: "TARJETA_CREDITO"
+                tokenTarjeta:
+                  type: string
+                  example: "tok_visa_12345"
       responses:
         '200':
-          description: OK
+          description: Transacción procesada correctamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transaccionId:
+                    type: string
+                    example: "tx-7777"
+                  estado:
+                    type: string
+                    example: "APROBADO"
+                  mensaje:
+                    type: string
+                    example: "Pago capturado exitosamente."
+        '402':
+          description: Pago requerido / Tarjeta rechazada o fondos insuficientes.
