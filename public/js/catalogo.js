@@ -111,6 +111,11 @@ const Catalogo = {
 
         try {
             const resp = await fetch(`${App.apiBase}/catalogo?${params.toString()}`);
+            if (!resp.ok) {
+                const errorData = await resp.json().catch(() => ({}));
+                console.error('Error de servidor:', errorData);
+                throw new Error(errorData.error?.message || 'Error en la respuesta del servidor');
+            }
             const data = await resp.json();
 
             if (data.success) {
@@ -118,7 +123,8 @@ const Catalogo = {
                 this.renderPagination(data.meta?.pagination);
             }
         } catch (e) {
-            container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';
+            console.error('Error cargando productos:', e);
+            container.innerHTML = `<div class="col-12 text-center py-5 text-danger">Error al cargar productos: ${e.message}</div>`;
         }
     },
 
