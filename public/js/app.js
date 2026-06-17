@@ -4,7 +4,7 @@
  */
 
 const App = {
-    apiBase: window.location.pathname.replace(/\/+$/, '') + '/api',
+    apiBase: window.SERVER_API_BASE || '/api',
     token: null,
     user: null,
     cartCount: 0,
@@ -138,13 +138,31 @@ const App = {
     /**
      * Guarda datos de autenticación
      */
-    setAuth(token, user) {
+    /**
+     * Guarda datos de autenticación y sincroniza carrito
+     */
+    async setAuth(token, user) {
         this.token = token;
         this.user = user;
         localStorage.setItem('uct_auth_token', token);
         localStorage.setItem('uct_user', JSON.stringify(user));
         this.updateNavbar();
-        this.loadCartCount();
+        
+        // Sincronizar carrito si hay un sessionId
+        const sessionId = this.getSessionId();
+        if (sessionId) {
+            try {
+                await this.fetchAuth(`${this.apiBase}/carrito/sincronizar`, {
+                    method: 'POST',
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+                // Una vez sincronizado, podemos limpiar el session_id o mantenerlo
+            } catch (e) {
+                console.error('Error sincronizando carrito:', e);
+            }
+        }
+
+        await this.loadCartCount();
     },
 
     /**
