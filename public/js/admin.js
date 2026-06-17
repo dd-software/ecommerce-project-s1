@@ -29,6 +29,10 @@ const Admin = {
                 const section = link.dataset.section;
                 this.loadSection(section);
 
+                // Actualizar breadcrumb
+                const bc = document.getElementById('breadcrumb-current');
+                if (bc) bc.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+
                 // Actualizar clase active
                 document.querySelectorAll('.admin-nav-link').forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
@@ -74,69 +78,82 @@ const Admin = {
             const d = data.data;
 
             container.innerHTML = `
-                <h4 class="mb-4">Panel de Control</h4>
-
-                <div class="row mb-4">
-                    <div class="col-md-3 mb-3">
-                        <div class="stat-card">
-                            <div class="stat-value">${d.total_productos}</div>
-                            <div class="stat-label">Productos</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card stat-card h-100 p-4">
+                            <div class="card-icon bg-glass-primary"><i class="bi bi-box-seam"></i></div>
+                            <h3 class="fw-bold mb-1">${d.total_productos}</h3>
+                            <p class="text-muted small mb-0">Productos en Catálogo</p>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="stat-card accent">
-                            <div class="stat-value">${d.total_pedidos}</div>
-                            <div class="stat-label">Pedidos Totales</div>
+                    <div class="col-md-3">
+                        <div class="card stat-card h-100 p-4">
+                            <div class="card-icon bg-glass-accent"><i class="bi bi-cart-check"></i></div>
+                            <h3 class="fw-bold mb-1">${d.total_pedidos}</h3>
+                            <p class="text-muted small mb-0">Pedidos Realizados</p>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="stat-card success">
-                            <div class="stat-value">${d.ventas_hoy?.total_ventas_formateado || '$0'}</div>
-                            <div class="stat-label">Ventas Hoy</div>
+                    <div class="col-md-3">
+                        <div class="card stat-card h-100 p-4">
+                            <div class="card-icon bg-glass-success"><i class="bi bi-currency-dollar"></i></div>
+                            <h3 class="fw-bold mb-1">${d.ventas_hoy?.total_ventas_formateado || '$0'}</h3>
+                            <p class="text-muted small mb-0">Ventas de Hoy</p>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="stat-card danger">
-                            <div class="stat-value">${d.pedidos_pendientes}</div>
-                            <div class="stat-label">Pendientes</div>
+                    <div class="col-md-3">
+                        <div class="card stat-card h-100 p-4">
+                            <div class="card-icon bg-glass-danger"><i class="bi bi-clock-history"></i></div>
+                            <h3 class="fw-bold mb-1">${d.pedidos_pendientes}</h3>
+                            <p class="text-muted small mb-0">Pedidos Pendientes</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6 mb-4">
-                        <div class="card">
-                            <div class="card-header bg-primary text-white">
-                                <i class="bi bi-exclamation-triangle me-2"></i>Alertas de Stock
+                    <div class="col-lg-7 mb-4">
+                        <div class="table-container h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold mb-0">Últimos Pedidos</h5>
+                                <button class="btn btn-sm btn-link text-decoration-none" onclick="Admin.loadSection('pedidos')">Ver todos</button>
                             </div>
-                            <div class="card-body">
-                                ${d.alertas_stock && d.alertas_stock.length > 0
-                                    ? `<div class="list-group">${d.alertas_stock.map(a => `
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            ${this.escapeHtml(a.nombre)}
-                                            <span class="badge bg-danger">Stock: ${a.stock} (mín: ${a.stock_minimo})</span>
-                                        </div>`).join('')}</div>`
-                                    : '<p class="text-success mb-0">No hay alertas de stock.</p>'}
-                            </div>
+                            ${d.ultimos_pedidos && d.ultimos_pedidos.length > 0
+                                ? `<div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Cliente</th>
+                                                <th>Estado</th>
+                                                <th>Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${d.ultimos_pedidos.slice(0, 5).map(p => `
+                                                <tr>
+                                                    <td><strong>#${p.id}</strong></td>
+                                                    <td>${this.escapeHtml(p.cliente_nombre)}</td>
+                                                    <td><span class="badge-estado ${p.estado}">${p.estado}</span></td>
+                                                    <td>${App.formatPrice(p.monto_total || 0)}</td>
+                                                </tr>`).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>`
+                                : '<p class="text-muted">No hay pedidos recientes.</p>'}
                         </div>
                     </div>
-                    <div class="col-md-6 mb-4">
-                        <div class="card">
-                            <div class="card-header bg-primary text-white">
-                                <i class="bi bi-clock-history me-2"></i>Últimos Pedidos
-                            </div>
-                            <div class="card-body">
-                                ${d.ultimos_pedidos && d.ultimos_pedidos.length > 0
-                                    ? `<div class="list-group">${d.ultimos_pedidos.map(p => `
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>#${p.id}</strong> - ${this.escapeHtml(p.cliente_nombre)} ${this.escapeHtml(p.apellido || '')}
-                                                <br><small>${new Date(p.created_at).toLocaleString('es-CL')}</small>
-                                            </div>
-                                            <span class="badge-estado ${p.estado}">${p.estado}</span>
-                                        </div>`).join('')}</div>`
-                                    : '<p class="text-muted mb-0">No hay pedidos recientes.</p>'}
-                            </div>
+                    <div class="col-lg-5 mb-4">
+                        <div class="table-container h-100">
+                            <h5 class="fw-bold mb-4">Alertas de Stock</h5>
+                            ${d.alertas_stock && d.alertas_stock.length > 0
+                                ? `<div class="list-group list-group-flush">${d.alertas_stock.map(a => `
+                                    <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center border-0 border-bottom">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">${this.escapeHtml(a.nombre)}</h6>
+                                            <small class="text-muted">Mínimo: ${a.stock_minimo}</small>
+                                        </div>
+                                        <span class="badge rounded-pill bg-danger">Quedan ${a.stock}</span>
+                                    </div>`).join('')}</div>`
+                                : '<div class="text-center py-4"><i class="bi bi-check2-circle text-success display-4"></i><p class="text-success mt-2">Todo el stock está correcto.</p></div>'}
                         </div>
                     </div>
                 </div>`;
@@ -367,38 +384,35 @@ const Admin = {
             const ventas = await ventasResp.json();
             const top = await topResp.json();
 
-            let html = `<h4 class="mb-4">Reportes</h4>`;
+            container.innerHTML = `
+                <div class="row g-4">
+                    <div class="col-12 col-xl-8">
+                        <div class="table-container mb-4">
+                            <h5 class="fw-bold mb-4">Ventas Últimos 30 Días</h5>
+                            <div style="height: 350px;">
+                                <canvas id="sales-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-4">
+                        <div class="table-container">
+                            <h5 class="fw-bold mb-4">Top Productos</h5>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle small mb-0">
+                                    <thead><tr><th>Producto</th><th>Ventas</th></tr></thead>
+                                    <tbody>${top.data.map((p, i) => `
+                                        <tr>
+                                            <td class="fw-bold">${this.escapeHtml(p.nombre_producto)}</td>
+                                            <td><span class="badge bg-glass-success text-success">${p.total_vendido}</span></td>
+                                        </tr>`).join('')}</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
 
-            // Productos más vendidos
-            html += `<div class="card mb-4"><div class="card-header bg-primary text-white">
-                <i class="bi bi-star me-2"></i>Productos Más Vendidos</div><div class="card-body">`;
-
-            if (top.success && top.data && top.data.length > 0) {
-                html += `<table class="table table-hover">
-                    <thead><tr><th>#</th><th>Producto</th><th>Unidades Vendidas</th><th>Recaudación</th></tr></thead>
-                    <tbody>${top.data.map((p, i) => `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td>${this.escapeHtml(p.nombre_producto)}</td>
-                            <td><strong>${p.total_vendido}</strong></td>
-                            <td>$ ${new Intl.NumberFormat('es-CL').format(Math.round(p.total_recaudado / 100))}</td>
-                        </tr>`).join('')}</tbody></table>`;
-            } else {
-                html += '<p class="text-muted">No hay datos de ventas aún.</p>';
-            }
-            html += '</div></div>';
-
-            // Ventas por día
-            html += `<div class="card"><div class="card-header bg-primary text-white">
-                <i class="bi bi-graph-up me-2"></i>Ventas Últimos 30 Días</div><div class="card-body">
-                <canvas id="sales-chart" height="200"></canvas>
-            </div></div>`;
-
-            container.innerHTML = html;
-
-            // Renderizar gráfico si hay datos
             if (ventas.success && ventas.data && ventas.data.length > 0) {
-                this.renderSalesChart(ventas.data);
+                setTimeout(() => this.renderSalesChart(ventas.data), 100);
             }
         } catch (e) {
             container.innerHTML = '<div class="alert alert-danger">Error al cargar reportes.</div>';
@@ -412,31 +426,46 @@ const Admin = {
         const ctx = document.getElementById('sales-chart');
         if (!ctx) return;
 
-        const labels = ventasData.map(v => v.fecha);
+        // Limpiar canvas anterior si existe
+        if (this.myChart) this.myChart.destroy();
+
+        const labels = ventasData.map(v => {
+            const d = new Date(v.fecha);
+            return `${d.getDate()}/${d.getMonth()+1}`;
+        });
         const values = ventasData.map(v => Math.round(v.total_ventas / 100));
 
-        // Crear barras simples con HTML/CSS
-        const maxVal = Math.max(...values, 1);
-        let html = '<div class="d-flex align-items-end" style="height:200px;gap:2px">';
-        ventasData.forEach((v, i) => {
-            const height = Math.max(4, (values[i] / maxVal) * 180);
-            html += `<div class="flex-fill bg-primary" style="height:${height}px;min-width:6px;border-radius:2px 2px 0 0"
-                        title="${v.fecha}: $${new Intl.NumberFormat('es-CL').format(values[i])}"></div>`;
-        });
-        html += '</div>';
-        html += '<div class="d-flex mt-2" style="gap:2px;font-size:0.6rem">';
-        // Mostrar algunas fechas
-        const step = Math.max(1, Math.floor(ventasData.length / 10));
-        ventasData.forEach((v, i) => {
-            if (i % step === 0 || i === ventasData.length - 1) {
-                const fecha = new Date(v.fecha);
-                html += `<div class="flex-fill text-muted" style="min-width:6px;transform:rotate(-45deg);transform-origin:top left">${fecha.getDate()}/${fecha.getMonth()+1}</div>`;
-            } else {
-                html += '<div class="flex-fill" style="min-width:6px"></div>';
+        this.myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas Diarias ($)',
+                    data: values,
+                    borderColor: '#003366',
+                    backgroundColor: 'rgba(0, 51, 102, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#F2A900'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: value => '$' + new Intl.NumberFormat('es-CL').format(value)
+                        }
+                    }
+                }
             }
         });
-        html += '</div>';
-        ctx.outerHTML = html;
     },
 
     /**
