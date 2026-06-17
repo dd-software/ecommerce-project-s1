@@ -41,10 +41,18 @@ function cargarEnv(string $ruta): void
 // Cargar .env desde la raíz del proyecto
 cargarEnv(dirname(__DIR__) . '/.env');
 
+// Configuración general
+define('APP_NAME', 'UCT Ecommerce');
+define('APP_URL', 'https://teclab.uct.cl/~mvaldebenito2025/public');
+define('APP_ENV', 'development'); // development, production, testing
+define('APP_DEBUG', true);
+
+// Configuración de rutas
+define('ROOT_PATH', dirname(__DIR__));
+define('PUBLIC_PATH', ROOT_PATH . '/public');
+define('STORAGE_PATH', ROOT_PATH . '/storage');
+
 // Constantes de la aplicación
-define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
-define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
-define('APP_URL', $_ENV['APP_URL'] ?? 'http://localhost');
 define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'clave_secreta_por_defecto_cambiar_en_produccion');
 define('JWT_EXPIRY', (int)($_ENV['JWT_EXPIRY'] ?? 7200));
 define('SMTP_HOST', $_ENV['SMTP_HOST'] ?? 'smtp.example.com');
