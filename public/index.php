@@ -1,5 +1,33 @@
 <?php
 
+// Reporte de errores forzado a archivo para depuración
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
+// Log de errores manual (ahora directo a pantalla)
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    echo "<h1>ERROR DETECTADO</h1>";
+    echo "<b>Mensaje:</b> $errstr<br>";
+    echo "<b>Archivo:</b> $errfile<br>";
+    echo "<b>Línea:</b> $errline<br>";
+    exit();
+});
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== NULL) {
+        echo "<h1>ERROR FATAL DETECTADO</h1>";
+        echo "<b>Mensaje:</b> " . $error['message'] . "<br>";
+        echo "<b>Archivo:</b> " . $error['file'] . "<br>";
+        echo "<b>Línea:</b> " . $error['line'] . "<br>";
+        exit();
+    }
+});
+
+echo "PHP IS ALIVE";
+exit();
+
 declare(strict_types=1);
 
 /**
@@ -45,8 +73,46 @@ if (APP_ENV === 'development') {
 $router = new Router();
 
 // ============================================
-// Rutas de API
+// Rutas de API y Frontend
 // ============================================
+
+// --- Inicio / Frontend ---
+$router->get('/', function($req, $res) {
+    if (file_exists(__DIR__ . '/index_template.html')) {
+        $html = file_get_contents(__DIR__ . '/index_template.html');
+        $base = APP_URL . '/api';
+        $configScript = "<script>window.SERVER_API_BASE = '{$base}'; console.log('SISTEMA: API BASE OK');</script>";
+        $html = str_ireplace('<html', "<html data-php-active='true'", $html);
+        $html = str_ireplace('<head>', "<head>{$configScript}", $html);
+        $res->html($html);
+    } else {
+        $res->error('NOT_FOUND', 'Página de inicio no encontrada', 404);
+    }
+});
+
+$router->get('/login', function($req, $res) {
+    if (file_exists(__DIR__ . '/login_template.html')) {
+        $html = file_get_contents(__DIR__ . '/login_template.html');
+        $base = APP_URL . '/api';
+        $configScript = "<script>window.SERVER_API_BASE = '{$base}';</script>";
+        $html = str_ireplace('<head>', "<head>{$configScript}", $html);
+        $res->html($html);
+    } else {
+        $res->error('NOT_FOUND', 'Página de login no encontrada', 404);
+    }
+});
+
+$router->get('/admin', function($req, $res) {
+    if (file_exists(__DIR__ . '/admin.html')) {
+        $html = file_get_contents(__DIR__ . '/admin.html');
+        $base = APP_URL . '/api';
+        $configScript = "<script>window.SERVER_API_BASE = '{$base}'; console.log('API Base set to:', window.SERVER_API_BASE);</script>";
+        $html = str_ireplace('<head>', "<head>{$configScript}", $html);
+        $res->html($html);
+    } else {
+        $res->error('NOT_FOUND', 'Página de administración no encontrada', 404);
+    }
+});
 
 // --- Módulo C: Autenticación ---
 $router->post('/api/auth/registro', [AuthController::class, 'registro']);
