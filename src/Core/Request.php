@@ -20,7 +20,19 @@ class Request
     public function __construct()
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        
+        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+        $basePath = str_replace('\\', '/', dirname($scriptName));
+        if ($basePath === '/' || $basePath === '\\') {
+            $basePath = '';
+        }
+        
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        if ($basePath !== '' && str_starts_with($path, $basePath)) {
+            $path = substr($path, strlen($basePath));
+        }
+        
+        $this->uri = '/' . ltrim($path, '/');
         $this->queryParams = $_GET;
         $this->headers = $this->parseHeaders();
 

@@ -13,7 +13,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="/">🛒 Ecommerce UCT</a>
+    <a class="navbar-brand" href="./">🛒 Ecommerce UCT</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -141,6 +141,16 @@
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
     Catalogo.cargarProductos(1);
+    
+    // Auto-open login modal if requested
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('showLogin') === 'true') {
+        const modalEl = document.getElementById('loginModal');
+        if (modalEl) {
+            const loginModal = new bootstrap.Modal(modalEl);
+            loginModal.show();
+        }
+    }
 });
 </script>
 </body>

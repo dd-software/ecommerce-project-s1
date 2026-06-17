@@ -132,7 +132,8 @@ const App = {
         localStorage.removeItem('uct_user');
         this.token = null;
         this.user = null;
-        window.location.href = '/';
+        const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+        window.location.href = base + '/';
     },
 
     /**

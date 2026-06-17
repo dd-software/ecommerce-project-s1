@@ -57,10 +57,11 @@ const Auth = {
 
                     // Redirigir según rol
                     const redirect = new URLSearchParams(window.location.search).get('redirect');
+                    const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
                     if (data.data.usuario.rol === 'admin') {
-                        window.location.href = window.location.pathname.replace(/\/+$/, '') + '/admin.html';
+                        window.location.href = base + '/admin.html';
                     } else {
-                        window.location.href = redirect || '/';
+                        window.location.href = redirect || (base + '/');
                     }
                 } else {
                     if (errorDiv) {
@@ -135,7 +136,8 @@ const Auth = {
 
                 if (data.success) {
                     App.setAuth(data.data.token, data.data.usuario);
-                    window.location.href = '/';
+                    const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+                    window.location.href = base + '/';
                 } else {
                     if (errorDiv) {
                         errorDiv.textContent = data.error?.message || 'Error al registrar.';

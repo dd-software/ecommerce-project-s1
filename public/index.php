@@ -44,6 +44,17 @@ if (APP_ENV === 'development') {
 // Crear router y registrar rutas
 $router = new Router();
 
+// Servir la página de inicio (index.html) si se accede a la raíz
+$router->get('/', function($request, $response) {
+    $htmlPath = __DIR__ . '/index.html';
+    if (file_exists($htmlPath)) {
+        header('Content-Type: text/html; charset=utf-8');
+        readfile($htmlPath);
+    } else {
+        $response->error('NOT_FOUND', 'Página no encontrada.', 404);
+    }
+});
+
 // ============================================
 // Rutas de API
 // ============================================

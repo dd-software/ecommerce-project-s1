@@ -11,7 +11,8 @@ const Admin = {
      */
     init() {
         if (!App.user || App.user.rol !== 'admin') {
-            window.location.href = '/login.html?redirect=admin.html';
+            const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+            window.location.href = base + '/index.html?showLogin=true';
             return;
         }
 
