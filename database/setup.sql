@@ -480,32 +480,25 @@ INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, s
 (2, 'MacBook Air M3', 'macbook-air-m3', 'MacBook Air con chip M3, 8GB RAM, 256GB SSD, Pantalla Liquid Retina 13.6 pulg', 99999000, 15, 3, 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400', 1, 'MacBook Air ultradelgado con chip M3.'),
 (2, 'Monitor Dell 27 pulg 4K', 'monitor-dell-27-4k', 'Monitor Dell UltraSharp U2723QE, 27 pulgadas, resolución 4K UHD, USB-C Hub', 38999000, 10, 3, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400', 1, 'Monitor profesional Dell 4K.'),
 (2, 'Teclado Mecánico Logitech MX', 'teclado-mecanico-logitech-mx', 'Teclado mecánico inalámbrico Logitech MX Mechanical, switches táctiles, retroiluminado', 8999000, 40, 10, 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400', 1, 'Teclado mecánico premium Logitech.'),
-
 -- Celulares
 (3, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max, 256GB, Titanio Natural, Pantalla 6.7 pulg Super Retina XDR', 129999000, 8, 2, 'https://images.unsplash.com/photo-1592750475338-74b7b2108593?w=400', 1, 'El iPhone más avanzado de Apple.'),
 (3, 'Samsung Galaxy S24 Ultra', 'samsung-galaxy-s24-ultra', 'Samsung Galaxy S24 Ultra, 512GB, Titanium Gray, S Pen incluido, Galaxy AI', 119999000, 12, 2, 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400', 1, 'Samsung Galaxy S24 Ultra con Galaxy AI.'),
 (3, 'Cargador Inalámbrico 15W', 'cargador-inalambrico-15w', 'Cargador inalámbrico rápido 15W compatible Qi, diseño delgado', 1999000, 100, 20, 'https://images.unsplash.com/photo-1621929747188-0b4dc1b27ee1?w=400', 1, 'Cargador inalámbrico rápido.'),
-
 -- Audio
 (4, 'Audífonos Sony WH-1000XM5', 'audifonos-sony-wh-1000xm5', 'Audífonos inalámbricos Sony con cancelación de ruido activa líder en la industria', 29999000, 18, 5, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', 1, 'Audífonos premium con ANC Sony.'),
 (4, 'Parlante JBL Flip 6', 'parlante-jbl-flip-6', 'Parlante Bluetooth portátil JBL Flip 6, resistente al agua IP67, 12h batería', 7999000, 35, 8, 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400', 1, 'Parlante portátil JBL resistente al agua.'),
-
 -- Ropa Hombre
 (6, 'Polera Algodón Premium', 'polera-algodon-premium', 'Polera 100% algodón peinado, disponible en varios colores, corte regular', 1599000, 150, 30, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', 1, 'Polera de algodón premium.'),
 (6, 'Jeans Slim Fit', 'jeans-slim-fit', 'Jeans slim fit denim elástico, lavado oscuro, 5 bolsillos', 3599000, 80, 15, 'https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=400', 1, 'Jeans slim fit de denim premium.'),
-
 -- Ropa Mujer
 (7, 'Vestido Verano Floral', 'vestido-verano-floral', 'Vestido de verano estampado floral, tejido liviano, corte A', 2499000, 60, 12, 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400', 1, 'Vestido veraniego estampado floral.'),
 (7, 'Chaqueta Denim', 'chaqueta-denim', 'Chaqueta de denim oversize, lavado claro, botones metálicos', 4299000, 45, 10, 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400', 1, 'Chaqueta de denim oversize.'),
-
 -- Deportes
 (8, 'Zapatillas Running Pro', 'zapatillas-running-pro', 'Zapatillas ideales para maratones con amortiguación premium, suela Vibram', 8999000, 20, 5, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', 1, 'Zapatillas running con amortiguación premium.'),
 (8, 'Colchoneta Yoga 6mm', 'colchoneta-yoga-6mm', 'Colchoneta de yoga 6mm, material TPE ecológico, antideslizante, incluye correa', 2499000, 70, 15, 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=400', 1, 'Colchoneta yoga ecológica 6mm.'),
-
 -- Hogar
 (9, 'Lámpara LED Escritorio', 'lampara-led-escritorio', 'Lámpara LED con brazo ajustable, 3 modos de luz, puerto USB carga', 2999000, 55, 10, 'https://images.unsplash.com/photo-1507473885765-e6ed057ab6fe?w=400', 1, 'Lámpara LED escritorio ajustable.'),
 (9, 'Set Toallas Algodón', 'set-toallas-algodon', 'Set de 6 toallas 100% algodón egipcio, 2 baño, 2 mano, 2 rostro', 3999000, 40, 10, 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=400', 1, 'Set toallas algodón egipcio.'),
-
 -- Libros
 (10, 'Clean Code - Robert Martin', 'clean-code-robert-martin', 'Clean Code: A Handbook of Agile Software Craftsmanship - Edición tapa blanda', 3499000, 25, 5, 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400', 1, 'Libro Clean Code de Robert C. Martin.'),
 (10, 'El Principito', 'el-principito', 'El Principito de Antoine de Saint-Exupéry - Edición ilustrada de colección', 1299000, 50, 10, 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', 1, 'El Principito edición ilustrada.'),
