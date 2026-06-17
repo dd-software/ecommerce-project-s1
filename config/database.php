@@ -13,11 +13,11 @@ if (!defined('APP_ENV')) {
 
 function obtenerConexionPDO(): PDO
 {
-    $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
+    $host = $_ENV['DB_HOST'] ?? 'teclab.uct.cl';
     $port = $_ENV['DB_PORT'] ?? '3306';
-    $dbname = $_ENV['DB_NAME'] ?? 'uct_ecommerce';
-    $user = $_ENV['DB_USER'] ?? 'ecommerce_app';
-    $pass = $_ENV['DB_PASS'] ?? '';
+    $dbname = $_ENV['DB_NAME'] ?? 'mvaldebenito_db2';
+    $user = $_ENV['DB_USER'] ?? 'mvaldebenito';
+    $pass = $_ENV['DB_PASS'] ?? 'MvX91mQp#';
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
 
