@@ -42,25 +42,15 @@ const Auth = {
                 const data = await resp.json();
 
                 if (data.success) {
-                    App.setAuth(data.data.token, data.data.usuario);
-
-                    // Sincronizar carrito
-                    const sessionId = App.getSessionId();
-                    if (sessionId) {
-                        try {
-                            await App.fetchAuth(`${App.apiBase}/carrito/sincronizar`, {
-                                method: 'POST',
-                                body: JSON.stringify({ session_id: sessionId })
-                            });
-                        } catch (e) { /* silencioso */ }
-                    }
+                    await App.setAuth(data.data.token, data.data.usuario);
 
                     // Redirigir según rol
-                    const redirect = new URLSearchParams(window.location.search).get('redirect');
+                    const appRoot = App.apiBase.replace(/\/api$/, '') || '/';
                     if (data.data.usuario.rol === 'admin') {
-                        window.location.href = window.location.pathname.replace(/\/+$/, '') + '/admin.html';
+                        window.location.href = appRoot + '/admin';
                     } else {
-                        window.location.href = redirect || '/';
+                        const redirect = new URLSearchParams(window.location.search).get('redirect');
+                        window.location.href = redirect || appRoot;
                     }
                 } else {
                     if (errorDiv) {
@@ -134,8 +124,9 @@ const Auth = {
                 const data = await resp.json();
 
                 if (data.success) {
-                    App.setAuth(data.data.token, data.data.usuario);
-                    window.location.href = '/';
+                    await App.setAuth(data.data.token, data.data.usuario);
+                    const appRoot = App.apiBase.replace(/\/api$/, '') || '/';
+                    window.location.href = appRoot;
                 } else {
                     if (errorDiv) {
                         errorDiv.textContent = data.error?.message || 'Error al registrar.';
