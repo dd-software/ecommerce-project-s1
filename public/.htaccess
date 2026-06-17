@@ -1,29 +1,38 @@
 Options -MultiViews -Indexes
 RewriteEngine On
 
+# Detectar RewriteBase dinámicamente o forzar para subdirectorio
+RewriteBase /~mvaldebenito2025/public/
+
 <IfModule headers_module>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "DENY"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net"
+    # CSP actualizado para permitir Google Fonts y CDNs de Bootstrap
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; img-src 'self' data: https://images.unsplash.com https://ui-avatars.com;"
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Authorization, Content-Type, X-Request-ID"
     Header always set Access-Control-Max-Age "86400"
 </IfModule>
 
-<IfModule !headers_module>
-    # Si mod_headers no está disponible, se omite (seguridad básica igual funciona)
-</IfModule>
-
 # Manejo de preflight OPTIONS
 RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^ - [R=200,L]
 
-# Permitir acceso directo a archivos y directorios existentes (assets, imágenes)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Permitir acceso directo a archivos existentes, EXCEPTO index.html y login.html
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME} !index\.html
+RewriteCond %{REQUEST_FILENAME} !login\.html
+RewriteRule ^ - [L]
+
+# Las reglas de login y admin se comentan para que las maneje index.php y podamos inyectar la API
+# RewriteRule ^login$ login.html [L]
+# RewriteRule ^admin$ admin.html [L]
 
 # Enrutar el resto al front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]
+
