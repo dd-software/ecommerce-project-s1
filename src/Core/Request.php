@@ -20,7 +20,36 @@ class Request
     public function __construct()
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        
+        $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        
+        // 1. Intentar con el subdirectorio físico de la aplicación (incluyendo /public si corresponde)
+        $dir = str_replace('\\', '/', dirname($scriptName));
+        if ($dir !== '/' && $dir !== '.' && $dir !== '') {
+            if (str_starts_with($uri, $dir)) {
+                $uri = substr($uri, strlen($dir));
+            }
+        }
+
+        // 2. Intentar también con la carpeta base (excluyendo /public)
+        $basePath = '';
+        if (($pos = strpos($scriptName, '/public/index.php')) !== false) {
+            $basePath = substr($scriptName, 0, $pos);
+        } elseif (($pos = strpos($scriptName, '/index.php')) !== false) {
+            $basePath = substr($scriptName, 0, $pos);
+        }
+
+        if ($basePath !== '' && str_starts_with($uri, $basePath)) {
+            $uri = substr($uri, strlen($basePath));
+        }
+
+        // Si la URI queda vacía, normalizar a '/'
+        if ($uri === '') {
+            $uri = '/';
+        }
+
+        $this->uri = $uri;
         $this->queryParams = $_GET;
         $this->headers = $this->parseHeaders();
 

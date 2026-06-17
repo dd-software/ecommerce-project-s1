@@ -44,6 +44,14 @@ if (APP_ENV === 'development') {
 // Crear router y registrar rutas
 $router = new Router();
 
+// Rutas base para servir la interfaz si se accede directamente
+$router->get('/', function(Request $request, Response $response) {
+    $response->html(file_get_contents(__DIR__ . '/index.html'));
+});
+$router->get('/index.php', function(Request $request, Response $response) {
+    $response->html(file_get_contents(__DIR__ . '/index.html'));
+});
+
 // ============================================
 // Rutas de API
 // ============================================
