@@ -1,14 +1,34 @@
+-- database/schema.sql
 -- ============================================
 -- Schema: Plataforma Ecommerce UCT
--- Motor: MySQL 8.x / InnoDB
+-- Motor: MySQL 8.x / MariaDB
 -- Charset: utf8mb4
 -- ============================================
 
-CREATE DATABASE IF NOT EXISTS uct_ecommerce
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+-- NO usar CREATE DATABASE/USE para compatibilidad con entornos compartidos
 
-USE uct_ecommerce;
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS impuestos;
+DROP TABLE IF EXISTS notificaciones;
+DROP TABLE IF EXISTS auditoria_sistema;
+DROP TABLE IF EXISTS lista_deseos;
+DROP TABLE IF EXISTS resenas;
+DROP TABLE IF EXISTS envios;
+DROP TABLE IF EXISTS pedido_cupon;
+DROP TABLE IF EXISTS cupones;
+DROP TABLE IF EXISTS movimientos_inventario;
+DROP TABLE IF EXISTS pagos;
+DROP TABLE IF EXISTS estados_pedido;
+DROP TABLE IF EXISTS detalle_pedido;
+DROP TABLE IF EXISTS pedidos;
+DROP TABLE IF EXISTS items_carrito;
+DROP TABLE IF EXISTS carritos;
+DROP TABLE IF EXISTS direcciones;
+DROP TABLE IF EXISTS imagenes_producto;
+DROP TABLE IF EXISTS productos;
+DROP TABLE IF EXISTS categorias;
+DROP TABLE IF EXISTS usuarios;
+SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================
 -- Tabla: usuarios
