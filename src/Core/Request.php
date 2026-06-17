@@ -20,7 +20,12 @@ class Request
     public function __construct()
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/');
+        if ($scriptDir !== '' && str_starts_with($rawUri, $scriptDir)) {
+            $rawUri = substr($rawUri, strlen($scriptDir));
+        }
+        $this->uri = $rawUri ?: '/';
         $this->queryParams = $_GET;
         $this->headers = $this->parseHeaders();
 
@@ -40,15 +45,20 @@ class Request
     private function parseHeaders(): array
     {
         $headers = [];
-        foreach ($_SERVER as $key => $value) {
-            if (str_starts_with($key, 'HTTP_')) {
-                $headerName = str_replace('_', '-', substr($key, 5));
-                $headers[$headerName] = $value;
+        // getallheaders() includes Authorization correctly on Apache/mod_php
+        if (function_exists('getallheaders')) {
+            foreach (getallheaders() as $name => $value) {
+                $headers[strtoupper($name)] = $value;
             }
-        }
-        // Headers especiales
-        if (isset($_SERVER['CONTENT_TYPE'])) {
-            $headers['CONTENT-TYPE'] = $_SERVER['CONTENT_TYPE'];
+        } else {
+            foreach ($_SERVER as $key => $value) {
+                if (str_starts_with($key, 'HTTP_')) {
+                    $headers[strtoupper(str_replace('_', '-', substr($key, 5)))] = $value;
+                }
+            }
+            if (isset($_SERVER['CONTENT_TYPE'])) {
+                $headers['CONTENT-TYPE'] = $_SERVER['CONTENT_TYPE'];
+            }
         }
         return $headers;
     }
@@ -101,7 +111,7 @@ class Request
      */
     public function getHeader(string $name): ?string
     {
-        $name = strtoupper(str_replace('-', '-', $name));
+        $name = strtoupper($name);
         return $this->headers[$name] ?? null;
     }
 

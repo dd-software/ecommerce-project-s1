@@ -61,8 +61,8 @@ class Router
     {
         // Normalizar path
         $path = '/' . trim($path, '/');
-        if ($path === '/') {
-            $path = '';
+        if ($path === '') {
+            $path = '/';
         }
 
         $routePattern = $this->pathToPattern($path);
@@ -94,7 +94,7 @@ class Router
     public function dispatch(Request $request, Response $response): void
     {
         $method = $request->getMethod();
-        $uri = rtrim($request->getUri(), '/') ?: '';
+        $uri = rtrim($request->getUri(), '/') ?: '/';
 
         // Buscar ruta que coincida
         foreach ($this->routes as $route) {

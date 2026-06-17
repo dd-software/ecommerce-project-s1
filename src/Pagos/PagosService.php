@@ -109,7 +109,7 @@ class PagosService
                 'mensaje'         => $mensaje,
                 'pedido_id'       => $pedidoId,
                 'monto'           => $monto,
-                'monto_formateado' => '$' . number_format($monto / 100, 0, ',', '.'),
+                'monto_formateado' => '$' . number_format($monto, 0, ',', '.'),
             ];
 
         } catch (\Exception $e) {
