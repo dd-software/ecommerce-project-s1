@@ -1,0 +1,31 @@
+# Dependencias PHP
+/vendor/
+
+# Configuración de entorno
+.env
+.env.local
+.env.*.local
+
+# composer.lock se commitea; vendor no
+
+# Archivos IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos de OS
+.DS_Store
+Thumbs.db
+
+# Logs
+/var/log/*.log
+
+# Directorio de subidas (contenido generado por usuarios)
+/public/uploads/
+
+# Cobertura de tests
+/coverage/
+
+# Artefactos de build
+/dist/

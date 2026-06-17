@@ -1,10 +1,56 @@
 openapi: 3.0.0
 info:
-  title: API catalogo
+  title: API Catálogo
+  description: Contrato para la navegación de productos, categorías y búsquedas.
   version: 1.0.0
+servers:
+  - url: http://localhost:8082
+    description: Microservicio de Catálogo
 paths:
   /api/catalogo:
     get:
+      summary: Obtener el listado de productos disponibles
+      tags:
+        - Catálogo
       responses:
         '200':
-          description: OK
+          description: Listado de productos obtenido con éxito.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Producto'
+        '500':
+          description: Error interno del servidor.
+
+components:
+  schemas:
+    Producto:
+      type: object
+      required:
+        - id
+        - nombre
+        - precio
+        - stock
+      properties:
+        id:
+          type: string
+          example: "prod-123"
+          description: Identificador único del producto.
+        nombre:
+          type: string
+          example: "Zapatillas Running Pro"
+        descripcion:
+          type: string
+          example: "Zapatillas ideales para maratones con amortiguación premium."
+        precio:
+          type: number
+          format: float
+          example: 89.99
+        imagenUrl:
+          type: string
+          example: "https://mi-ecommerce.com/imagenes/zap-123.jpg"
+        stock:
+          type: integer
+          example: 45

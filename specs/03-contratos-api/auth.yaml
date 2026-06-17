@@ -1,10 +1,57 @@
 openapi: 3.0.0
 info:
-  title: API auth
+  title: API Autenticación
+  description: Contrato para el inicio de sesión y gestión de sesiones mediante JWT.
   version: 1.0.0
+servers:
+  - url: http://localhost:8081
+    description: Microservicio de Autenticación
 paths:
   /api/auth:
-    get:
+    post:
+      summary: Iniciar sesión de usuario
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@email.com"
+                password:
+                  type: string
+                  format: password
+                  example: "Segura123!"
       responses:
         '200':
-          description: OK
+          description: Autenticación exitosa.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  usuario:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "usr-888"
+                      nombre:
+                        type: string
+                        example: "Juan Pérez"
+                      rol:
+                        type: string
+                        example: "CLIENTE"
+        '401':
+          description: Credenciales incorrectas o usuario no encontrado.

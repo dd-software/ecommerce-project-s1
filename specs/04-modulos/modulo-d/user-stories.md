@@ -1,11 +1,10 @@
+# Historias de Usuario - Checkout
 
-# Historias de Usuario
+### US-D-001: Completar mis datos de despacho y contacto
+- **Como** cliente
+- **Quiero** completar mis datos de despacho y contacto
+- **Para** garantizar que el pedido llegue al lugar correcto
+- **Criterios de Aceptación**:
+  - El formulario debe validar campos obligatorios antes del envío.
+  - Debe sugerir las direcciones previamente utilizadas si existiesen.
 
-US-D-001
-Como usuario
-Quiero utilizar Checkout
-Para completar una tarea de negocio.
-
-Criterios de aceptación:
-- Funciona correctamente.
-- Cumple contratos.

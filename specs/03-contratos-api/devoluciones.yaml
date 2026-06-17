@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: API Devoluciones (RMAs)
+  description: Contrato para la gestión de devoluciones de productos, reembolsos y logística inversa.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8089
+    description: Microservicio de Devoluciones
+paths:
+  /api/devoluciones:
+    post:
+      summary: Solicitar la devolución de un producto de una orden
+      tags:
+        - Devoluciones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ordenId
+                - productoId
+                - motivo
+              properties:
+                ordenId:
+                  type: string
+                  example: "ord-555"
+                productoId:
+                  type: string
+                  example: "prod-123"
+                motivo:
+                  type: string
+                  example: "El talle quedó demasiado chico."
+                comentarios:
+                  type: string
+                  example: "Solicito cambio por un talle L o reembolso."
+      responses:
+        '201':
+          description: Solicitud de devolución registrada correctamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDevolucion'
+        '404':
+          description: No se encontró la orden o el producto asociado a esa compra.
+
+components:
+  schemas:
+    TicketDevolucion:
+      type: object
+      properties:
+        devolucionId:
+          type: string
+          example: "dev-8821"
+        ordenId:
+          type: string
+          example: "ord-555"
+        estadoSolicitud:
+          type: string
+          example: "PENDIENTE_APROBACION"
+          enum: [PENDIENTE_APROBACION, ETIQUETA_GENERADA, PRODUCTO_RECIBIDO, REEMBOLSADO, RECHAZADO]
+        etiquetaRetornoUrl:
+          type: string
+          example: "https://mi-ecommerce.com/devoluciones/etiqueta-dev-8821.pdf"
+          description: URL del PDF que el cliente debe imprimir para pegar en el paquete de retorno.
