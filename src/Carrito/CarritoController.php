@@ -18,6 +18,13 @@ class CarritoController
         $this->service = new CarritoService(new CarritoRepository());
     }
 
+    private function sessionId(Request $request, array $data = []): ?string
+    {
+        return $request->getHeader('X-Session-Id')
+            ?? ($data['session_id'] ?? null)
+            ?? (session_id() ?: null);
+    }
+
     /**
      * GET /api/carrito
      * Obtiene el carrito actual
@@ -26,7 +33,7 @@ class CarritoController
     {
         try {
             $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
+            $sessionId = $this->sessionId($request);
 
             $carrito = $this->service->obtenerCarrito(
                 userId: $user ? (int)$user['id'] : null,
@@ -58,7 +65,7 @@ class CarritoController
             }
 
             $user = $request->getAttribute('authenticated_user');
-            $sessionId = $data['session_id'] ?? ($request->getHeader('X-Session-Id') ?? null);
+            $sessionId = $this->sessionId($request, $data);
 
             $this->service->agregarItem(
                 productoId: $productoId,
@@ -107,7 +114,7 @@ class CarritoController
             }
 
             $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
+            $sessionId = $this->sessionId($request);
 
             if ($cantidad === 0) {
                 $this->service->eliminarItem($itemId);
@@ -142,7 +149,7 @@ class CarritoController
             $this->service->eliminarItem($itemId);
 
             $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
+            $sessionId = $this->sessionId($request);
 
             $carrito = $this->service->obtenerCarrito(
                 userId: $user ? (int)$user['id'] : null,
@@ -164,7 +171,7 @@ class CarritoController
     {
         try {
             $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
+            $sessionId = $this->sessionId($request);
 
             $this->service->vaciarCarrito(
                 userId: $user ? (int)$user['id'] : null,
@@ -198,7 +205,7 @@ class CarritoController
                 $this->service->sincronizarCarrito((int)$user['id'], $sessionId);
             }
 
-            $carrito = $this->service->obtenerCarrito(userId: (int)$user['id']);
+            $carrito = $this->service->obtenerCarrito(userId: (int)$user['id'], sessionId: null);
             $response->json($carrito);
 
         } catch (\Exception $e) {
