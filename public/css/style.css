@@ -1,0 +1,433 @@
+/* ============================================
+   Design System - UCT Ecommerce
+   Paleta institucional UCT
+   Primario: #003366
+   Secundario/Acento: #F2A900
+   Fondo Claro: #F8F9FA
+   Texto Oscuro: #212529
+   ============================================ */
+
+:root {
+    --uct-primary: #003366;
+    --uct-primary-hover: #002244;
+    --uct-primary-light: #1a4877;
+    --uct-accent: #F2A900;
+    --uct-accent-hover: #d49500;
+    --uct-bg-light: #F8F9FA;
+    --uct-text-dark: #212529;
+    --uct-text-muted: #6c757d;
+    --uct-success: #198754;
+    --uct-danger: #DC3545;
+    --uct-warning: #FFC107;
+    --uct-info: #0DCAF0;
+}
+
+/* === General === */
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--uct-bg-light);
+    color: var(--uct-text-dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === Navbar === */
+.navbar-uct {
+    background-color: var(--uct-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-uct .navbar-brand {
+    color: white !important;
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.navbar-uct .nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    transition: color 0.2s;
+}
+
+.navbar-uct .nav-link:hover {
+    color: white !important;
+}
+
+.navbar-uct .badge-cart {
+    background-color: var(--uct-accent);
+    color: var(--uct-text-dark);
+    font-size: 0.7rem;
+    position: relative;
+    top: -8px;
+    left: -5px;
+}
+
+/* === Botones === */
+.btn-primary-uct {
+    background-color: var(--uct-primary);
+    border-color: var(--uct-primary);
+    color: white;
+}
+
+.btn-primary-uct:hover {
+    background-color: var(--uct-primary-hover);
+    border-color: var(--uct-primary-hover);
+    color: white;
+}
+
+.btn-accent {
+    background-color: var(--uct-accent);
+    border-color: var(--uct-accent);
+    color: var(--uct-text-dark);
+    font-weight: 600;
+}
+
+.btn-accent:hover {
+    background-color: var(--uct-accent-hover);
+    border-color: var(--uct-accent-hover);
+    color: var(--uct-text-dark);
+}
+
+.btn-outline-uct {
+    color: var(--uct-primary);
+    border-color: var(--uct-primary);
+}
+
+.btn-outline-uct:hover {
+    background-color: var(--uct-primary);
+    color: white;
+}
+
+/* === Cards de Producto === */
+.product-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: white;
+    height: 100%;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.product-card .card-img-top {
+    height: 220px;
+    object-fit: cover;
+    background-color: #f0f0f0;
+}
+
+.product-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--uct-text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.product-card .card-category {
+    font-size: 0.8rem;
+    color: var(--uct-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.product-card .card-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--uct-primary);
+    margin-top: auto;
+}
+
+.product-card .stock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.75rem;
+}
+
+/* === Sin Stock === */
+.sin-stock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sin-stock-overlay span {
+    background: var(--uct-danger);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* === Hero === */
+.hero-section {
+    background: linear-gradient(135deg, var(--uct-primary) 0%, var(--uct-primary-light) 100%);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 2rem;
+}
+
+.hero-section h1 {
+    font-weight: 800;
+    font-size: 2.5rem;
+}
+
+.hero-section .lead {
+    color: rgba(255,255,255,0.9);
+}
+
+/* === Carrito === */
+.cart-item {
+    border-bottom: 1px solid #eee;
+    padding: 1rem 0;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.cart-item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.cart-summary {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* === Admin Dashboard === */
+.admin-sidebar {
+    background: var(--uct-primary);
+    min-height: calc(100vh - 56px);
+    padding-top: 1rem;
+}
+
+.admin-sidebar .nav-link {
+    color: rgba(255,255,255,0.75);
+    padding: 0.75rem 1rem;
+    border-radius: 0;
+    transition: all 0.2s;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.admin-sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+    margin-right: 0.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-left: 4px solid var(--uct-primary);
+}
+
+.stat-card.accent { border-left-color: var(--uct-accent); }
+.stat-card.success { border-left-color: var(--uct-success); }
+.stat-card.danger { border-left-color: var(--uct-danger); }
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--uct-primary);
+}
+
+.stat-card .stat-label {
+    font-size: 0.85rem;
+    color: var(--uct-text-muted);
+    text-transform: uppercase;
+}
+
+/* === Toast Notifications === */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1060;
+}
+
+/* === Footer === */
+.footer {
+    background-color: var(--uct-primary);
+    color: rgba(255,255,255,0.8);
+    padding: 2rem 0 1rem;
+    margin-top: auto;
+}
+
+.footer a {
+    color: var(--uct-accent);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: white;
+}
+
+/* === Modal === */
+.modal-header-uct {
+    background-color: var(--uct-primary);
+    color: white;
+}
+
+/* === Checkout === */
+.checkout-steps {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.checkout-step {
+    text-align: center;
+    flex: 1;
+    max-width: 200px;
+}
+
+.checkout-step .step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #dee2e6;
+    color: var(--uct-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.checkout-step.active .step-number {
+    background: var(--uct-primary);
+    color: white;
+}
+
+.checkout-step.completed .step-number {
+    background: var(--uct-success);
+    color: white;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 0;
+    }
+
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+
+    .product-card .card-img-top {
+        height: 160px;
+    }
+
+    .admin-sidebar {
+        min-height: auto;
+    }
+}
+
+/* === Empty State === */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--uct-text-muted);
+    margin-bottom: 1rem;
+}
+
+.empty-state h5 {
+    color: var(--uct-text-muted);
+}
+
+/* === Loading Spinner === */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+/* === Search bar === */
+.search-bar {
+    position: relative;
+}
+
+.search-bar input {
+    border-radius: 2rem;
+    padding-left: 2.5rem;
+    border: 2px solid #dee2e6;
+    transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+    border-color: var(--uct-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.15);
+}
+
+.search-bar .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--uct-text-muted);
+}
+
+/* === Tabla admin === */
+.table-admin th {
+    background-color: var(--uct-primary);
+    color: white;
+    font-weight: 500;
+}
+
+.table-admin .btn-action {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* === Estado badges en pedidos === */
+.badge-estado {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.25rem;
+}
+
+.badge-estado.pendiente { background: #ffeaa7; color: #856404; }
+.badge-estado.pagado { background: #81ecec; color: #006064; }
+.badge-estado.en_preparacion { background: #a29bfe; color: #3c1a9e; }
+.badge-estado.enviado { background: #74b9ff; color: #003d6b; }
+.badge-estado.entregado { background: #55efc4; color: #006b3c; }
+.badge-estado.cancelado { background: #fab1a0; color: #8b0000; }
