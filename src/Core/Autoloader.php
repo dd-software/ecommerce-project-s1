@@ -8,12 +8,12 @@ declare(strict_types=1);
  */
 
 spl_autoload_register(function (string $class): void {
-    // Namespace base del proyecto
+    // Namespace base del proyecto apunte a la carpeta src
     $prefix = 'App\\';
-    $baseDir = dirname(__DIR__) . '/';
+    $baseDir = dirname(dirname(__DIR__)) . '/src/';
 
-    // Verificar si la clase usa el namespace base
-    if (!str_starts_with($class, $prefix)) {
+    // Verificar si la clase usa el namespace base (compatible con PHP < 8)
+    if (strpos($class, $prefix) !== 0) {
         return;
     }
 
