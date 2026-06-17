@@ -193,33 +193,32 @@ Los contratos OpenAPI 3.0 de cada módulo se encuentran en [`specs/03-contratos-
 ## Estructura del Repositorio
 
 ```
-ecommerce-project-s1-team-1-heavyduty/
+Ecomers/
 ├── README.md
-└── specs/
-    ├── 00-producto/
-    │   ├── vision-producto.md
-    │   └── reglas-negocio.md
-    ├── 01-arquitectura/
-    │   └── arquitectura-general.md
-    ├── 02-modelado/
-    │   └── modelo-dominio.md
-    ├── 03-contratos-api/
-    │   ├── auth.yaml
-    │   ├── catalogo.yaml
-    │   ├── carrito.yaml
-    │   ├── checkout.yaml
-    │   ├── pagos.yaml
-    │   ├── inventario.yaml
-    │   └── admin.yaml
-    └── 04-modulos/
-        ├── modulo-a/   ← Catálogo
-        ├── modulo-b/   ← Carrito
-        ├── modulo-c/   ← Autenticación
-        ├── modulo-d/   ← Checkout
-        ├── modulo-e/   ← Pasarela de Pago
-        ├── modulo-f/   ← Inventario
-        ├── modulo-g/   ← Administración
-        └── modulo-h/   ← Integración
+├── .env.example            # Plantilla de configuración (copiar a .env)
+├── .htaccess               # Reescritura: redirige la raíz a public/
+├── config/
+│   └── app.php             # Carga el .env y define constantes (APP_ENV, JWT_SECRET, ...)
+├── database/
+│   ├── schema.sql          # Crea la BD uct_ecommerce y las tablas
+│   ├── seed.sql            # Datos de ejemplo (productos, categorías, usuarios)
+│   ├── setup.sql           # Crea BD + usuario dedicado (despliegue con usuario propio)
+│   ├── fix_encoding.sql            # Corrige tildes de productos si se importó mal
+│   └── fix_categorias_encoding.sql # Corrige tildes de categorías
+├── public/                 # Document root (lo que sirve Apache)
+│   ├── .htaccess           # Reglas de reescritura + cabeceras de seguridad (CSP)
+│   ├── index.php           # Front controller: registra rutas y despacha
+│   ├── index.html          # Tienda (diseño Bootstrap)
+│   ├── css/  js/           # Estilos y scripts de la tienda Bootstrap
+│   └── store/              # Tienda alternativa (diseño estilo PCFactory)
+├── src/                    # Backend (PSR-4, namespace App\)
+│   ├── Core/               # Router, Request, Response, Database, JWT, Session, middlewares
+│   ├── Auth/  Catalogo/  Carrito/  Checkout/    # Módulos A–D
+│   ├── Pagos/  Inventario/  Admin/  Integracion/ # Módulos E–H
+│   └── ...
+└── specs/                  # Documentación SDD (specs por módulo, contratos API, modelado)
+    ├── 00-producto/   01-arquitectura/   02-modelado/   03-contratos-api/
+    └── 04-modulos/    (modulo-a … modulo-h)
 ```
 
 ---
@@ -239,77 +238,93 @@ ecommerce-project-s1-team-1-heavyduty/
 
 ### Requisitos del Sistema
 
-| Componente | Versión Requerida |
-|---|---|
-| PHP | 8.x |
-| MySQL | 8.x |
-| Apache | 2.4 |
-| Git | 2.40+ |
+Para desarrollo local basta con **XAMPP** (incluye Apache, MySQL/MariaDB y PHP).
+
+| Componente | Versión Requerida | Notas |
+|---|---|---|
+| PHP | 8.2+ | Incluido en XAMPP |
+| MySQL / MariaDB | 8.x / 10.x | Incluido en XAMPP |
+| Apache | 2.4 | Con módulos **`mod_rewrite`** y **`mod_headers`** activos (por defecto en XAMPP) |
+| Git | 2.40+ | Para clonar el repositorio |
 
 ---
 
-### 💻 Despliegue Local (Desarrollo)
+### 💻 Despliegue Local con XAMPP (lo que usamos)
 
-#### Opción 1: XAMPP (Windows / Linux / macOS)
+> Apache debe tener habilitados **`mod_rewrite`** y **`mod_headers`** (vienen activos por defecto en XAMPP). El proyecto **no** usa `config/database.php`: la configuración se lee de un archivo **`.env`**.
 
-1. **Descargar e instalar XAMPP** desde [apachefriends.org](https://www.apachefriends.org)
-2. **Clonar el repositorio** en la carpeta `htdocs`:
-   ```bash
-   cd C:\xampp\htdocs         # Windows
-   cd /opt/lampp/htdocs        # Linux
-   cd /Applications/XAMPP/htdocs  # macOS
-
-   git clone https://github.com/dd-software/ecommerce-project-s1.git ecommerce
-   cd ecommerce
-   git checkout feature/full-platform
-   ```
-3. **Configurar base de datos:**
-   - Abrir XAMPP Control Panel y arrancar **Apache** y **MySQL**
-   - Abrir phpMyAdmin: http://localhost/phpmyadmin
-   - Crear base de datos: `ecommerce_uct` (utf8mb4_general_ci)
-   - Importar `database/schema.sql` desde la pestaña Importar
-   - Importar `database/seed.sql` para datos de prueba
-4. **Configurar la conexión:**
-   - Copiar `config/database.example.php` → `config/database.php`
-   - Editar credenciales (por defecto XAMPP: `root` / sin contraseña):
-     ```php
-     define('DB_HOST', 'localhost');
-     define('DB_NAME', 'ecommerce_uct');
-     define('DB_USER', 'root');
-     define('DB_PASS', '');
-     ```
-5. **Abrir en el navegador:** http://localhost/ecommerce/public
-
-#### Opción 2: WAMP (Windows)
-
-1. **Descargar e instalar WAMP** desde [wampserver.com](https://www.wampserver.com)
-2. **Clonar el repositorio** en la carpeta `www`:
-   ```bash
-   cd C:\wamp64\www
-   git clone https://github.com/dd-software/ecommerce-project-s1.git ecommerce
-   cd ecommerce
-   git checkout feature/full-platform
-   ```
-3. **Configurar base de datos:**
-   - Arrancar WAMP (icono verde en la bandeja)
-   - Abrir phpMyAdmin: http://localhost/phpmyadmin
-   - Crear base de datos `ecommerce_uct` (utf8mb4_general_ci)
-   - Importar `database/schema.sql` y `database/seed.sql`
-4. **Configurar la conexión** en `config/database.php` (WAMP default: `root` / sin contraseña)
-5. **Abrir en el navegador:** http://localhost/ecommerce/public
-
-#### Opción 3: Servidor de desarrollo PHP embebido
+#### 1. Clonar el repositorio dentro de `htdocs`
 
 ```bash
-git clone https://github.com/dd-software/ecommerce-project-s1.git
-cd ecommerce-project-s1
-git checkout feature/full-platform
+cd C:\xampp\htdocs
+git clone https://github.com/dd-software/ecommerce-project-s1.git Ecomers
+cd Ecomers
+git checkout team-4-los-debians
+```
 
-# Iniciar servidor PHP embebido
+> ⚠️ La carpeta **debe llamarse `Ecomers`**: las URLs y el enrutamiento asumen la ruta `/Ecomers/public/`.
+
+#### 2. Iniciar los servicios
+
+Abrir el **XAMPP Control Panel** y pulsar **Start** en **Apache** y **MySQL**.
+
+#### 3. Crear e importar la base de datos
+
+Desde una terminal (Git Bash o `cmd`) en la raíz del proyecto:
+
+```bash
+# Crea la base de datos uct_ecommerce y todas las tablas
+"C:\xampp\mysql\bin\mysql.exe" -u root < database/schema.sql
+
+# Carga datos de ejemplo. ¡Usar utf8mb4 para que las tildes no salgan como "?"!
+"C:\xampp\mysql\bin\mysql.exe" -u root --default-character-set=utf8mb4 uct_ecommerce < database/seed.sql
+```
+
+> Alternativa con **phpMyAdmin** (http://localhost/phpmyadmin): pestaña *Importar* → `database/schema.sql`, luego `database/seed.sql`, con cotejamiento **utf8mb4**.
+>
+> Si las tildes ya quedaron como `?`, corrígelas con:
+> ```bash
+> "C:\xampp\mysql\bin\mysql.exe" -u root --default-character-set=utf8mb4 uct_ecommerce < database/fix_encoding.sql
+> "C:\xampp\mysql\bin\mysql.exe" -u root --default-character-set=utf8mb4 uct_ecommerce < database/fix_categorias_encoding.sql
+> ```
+
+#### 4. Configurar el entorno (`.env`)
+
+Copiar `.env.example` → `.env` y ajustarlo para XAMPP (usuario `root` **sin contraseña**):
+
+```ini
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=uct_ecommerce
+DB_USER=root
+DB_PASS=
+JWT_SECRET=pon_aqui_una_cadena_aleatoria_de_minimo_32_caracteres
+JWT_EXPIRY=7200
+APP_ENV=development
+APP_DEBUG=true
+APP_URL=http://localhost/Ecomers/public
+```
+
+> ⚠️ El `.env.example` trae `DB_USER=ecommerce_app` por defecto. En XAMPP usa **`root`** y deja **`DB_PASS` vacío**, o la app fallará con *"Access denied for user 'ecommerce_app'"*.
+
+#### 5. Abrir en el navegador
+
+| URL | Qué es |
+|---|---|
+| `http://localhost/Ecomers/public/` | Entrada (redirige a la tienda) |
+| `http://localhost/Ecomers/public/index.html` | Tienda — diseño Bootstrap |
+| `http://localhost/Ecomers/public/store/` | Tienda — diseño estilo PCFactory |
+| `http://localhost/Ecomers/public/api/health` | Healthcheck de la API REST |
+
+La API REST vive bajo `http://localhost/Ecomers/public/api/...`
+
+#### Servidor PHP embebido (opcional, solo para probar la API)
+
+```bash
 php -S localhost:8080 -t public/
 ```
 
-> ⚠️ El servidor embebido de PHP es útil para desarrollo rápido, pero no soporta `.htaccess`. Usa Apache o Nginx para todas las funcionalidades.
+> ⚠️ El servidor embebido **no soporta `.htaccess`**, así que el enrutamiento y las cabeceras de seguridad no funcionan igual. Para la experiencia completa usa Apache (XAMPP).
 
 ---
 
@@ -357,17 +372,19 @@ sudo mysql -u root -p
 ```
 
 ```sql
-CREATE DATABASE ecommerce_uct CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ecommerce_user'@'localhost' IDENTIFIED BY 'contraseña_segura_aqui';
-GRANT ALL PRIVILEGES ON ecommerce_uct.* TO 'ecommerce_user'@'localhost';
+-- El nombre real de la base de datos es uct_ecommerce.
+-- database/setup.sql ya crea la BD y un usuario dedicado 'ecommerce_app'.
+CREATE DATABASE uct_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'ecommerce_app'@'localhost' IDENTIFIED BY 'contraseña_segura_aqui';
+GRANT ALL PRIVILEGES ON uct_ecommerce.* TO 'ecommerce_app'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
 
 ```bash
-# Importar schema y datos
-mysql -u ecommerce_user -p ecommerce_uct < database/schema.sql
-mysql -u ecommerce_user -p ecommerce_uct < database/seed.sql
+# Importar schema y datos (utf8mb4 para conservar las tildes)
+mysql -u ecommerce_app -p uct_ecommerce --default-character-set=utf8mb4 < database/schema.sql
+mysql -u ecommerce_app -p uct_ecommerce --default-character-set=utf8mb4 < database/seed.sql
 ```
 
 #### 4. Desplegar la Aplicación
@@ -377,12 +394,11 @@ mysql -u ecommerce_user -p ecommerce_uct < database/seed.sql
 cd /var/www
 sudo git clone https://github.com/dd-software/ecommerce-project-s1.git ecommerce
 cd ecommerce
-sudo git checkout feature/full-platform
+sudo git checkout team-4-los-debians
 
 # Configurar permisos
 sudo chown -R www-data:www-data /var/www/ecommerce
 sudo chmod -R 755 /var/www/ecommerce
-sudo chmod -R 775 /var/www/ecommerce/storage
 ```
 
 #### 5. Configurar Apache Virtual Host
@@ -418,26 +434,25 @@ sudo systemctl reload apache2
 
 #### 6. Configurar Variables de Entorno
 
+La configuración se lee de un archivo **`.env`** (cargado por `config/app.php`). No existe `config/database.php`.
+
 ```bash
 cd /var/www/ecommerce
-cp config/database.example.php config/database.php
-
-# Editar con las credenciales de producción
-sudo nano config/database.php
+cp .env.example .env
+sudo nano .env
 ```
 
-```php
-<?php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'ecommerce_uct');
-define('DB_USER', 'ecommerce_user');
-define('DB_PASS', 'contraseña_segura_aqui');
-
-define('APP_ENV', 'production');
-define('APP_DEBUG', false);
-define('APP_URL', 'https://tudominio.com');
-define('JWT_SECRET', 'clave-secreta-jwt-de-al-menos-32-caracteres');
-define('JWT_EXPIRY', 3600);
+```ini
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=uct_ecommerce
+DB_USER=ecommerce_app
+DB_PASS=contraseña_segura_aqui
+JWT_SECRET=clave-secreta-jwt-de-al-menos-32-caracteres
+JWT_EXPIRY=3600
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://tudominio.com
 ```
 
 #### 7. HTTPS con Certbot (SSL Gratuito)
@@ -449,18 +464,35 @@ sudo certbot --apache -d tudominio.com
 
 #### 8. Verificar el Despliegue
 
-- 🌐 Abrir `https://tudominio.com` — deberías ver la landing page del catálogo
-- 🔐 Probar login con el usuario seed: `cliente@test.com` / `password123`
-- ⚙️ Acceder al admin: `admin@test.com` / `admin123` → `/admin`
+- 🌐 Abrir `https://tudominio.com/` — deberías ver la tienda
+- 🩺 Comprobar la API: `https://tudominio.com/api/health` debe responder `{"success":true,...}`
+- 🔐 Iniciar sesión con un usuario seed (ver tabla abajo)
 
 ---
 
-### 🔐 Usuarios de Prueba (Seed Data)
+### 🔐 Usuarios de Prueba (datos de `seed.sql`)
 
 | Rol | Email | Contraseña |
 |---|---|---|
-| Administrador | admin@test.com | admin123 |
-| Cliente | cliente@test.com | password123 |
+| Administrador | `admin@uct.cl` | `admin123` |
+| Cliente | `juan@email.com` | `password123` |
+| Cliente | `maria@email.com` | `password123` |
+| Vendedor | `pedro@uct.cl` | `password123` |
+| Supervisor | `ana@uct.cl` | `password123` |
+
+> Estas credenciales funcionan tras importar `database/seed.sql`. También puedes crear una cuenta nueva desde el botón **"Crear cuenta"** de la tienda.
+
+---
+
+### 🛠️ Problemas comunes
+
+| Síntoma | Causa / Solución |
+|---|---|
+| **500 Internal Server Error** o *"exceeded the limit of 10 internal redirects"* | Falta el archivo **`public/.htaccess`**. Debe existir (contiene las reglas de reescritura y las cabeceras de seguridad). |
+| *"Access denied for user 'ecommerce_app'"* | El `.env` no apunta a `root`. En XAMPP: `DB_USER=root` y `DB_PASS=` vacío. |
+| Tildes/ñ aparecen como `?` | Importaste sin `utf8mb4`. Reimporta `seed.sql` con `--default-character-set=utf8mb4` o corre `database/fix_encoding.sql` y `database/fix_categorias_encoding.sql`. |
+| **404** en `http://localhost/Ecomers/` | Falta el `/public/`. Entra por `http://localhost/Ecomers/public/`. |
+| La página carga pero no aparecen productos | MySQL no está iniciado, la BD no se importó, o el `.env` tiene credenciales/DB incorrectas. |
 
 ---
 

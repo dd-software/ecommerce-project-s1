@@ -9,11 +9,12 @@ USE uct_ecommerce;
 -- hash generado con password_hash('Password123!', PASSWORD_BCRYPT, ['cost' => 12])
 -- ============================================
 INSERT INTO usuarios (nombre, apellido, email, password_hash, rol, activo) VALUES
-('Admin', 'Sistema', 'admin@uct.cl', '$2y$12$LJ3m4ys3Gql.ZhkBARVOge7JxSJgXPKCFs7r0dVIQGIgGndOMrHaa', 'admin', 1),
-('Juan', 'Pérez', 'juan@email.com', '$2y$12$LJ3m4ys3Gql.ZhkBARVOge7JxSJgXPKCFs7r0dVIQGIgGndOMrHaa', 'cliente', 1),
-('María', 'González', 'maria@email.com', '$2y$12$LJ3m4ys3Gql.ZhkBARVOge7JxSJgXPKCFs7r0dVIQGIgGndOMrHaa', 'cliente', 1),
-('Pedro', 'Vendedor', 'pedro@uct.cl', '$2y$12$LJ3m4ys3Gql.ZhkBARVOge7JxSJgXPKCFs7r0dVIQGIgGndOMrHaa', 'vendedor', 1),
-('Ana', 'Supervisor', 'ana@uct.cl', '$2y$12$LJ3m4ys3Gql.ZhkBARVOge7JxSJgXPKCFs7r0dVIQGIgGndOMrHaa', 'supervisor', 1);
+-- Contraseñas: admin@uct.cl => 'admin123' ; el resto => 'password123'
+('Admin', 'Sistema', 'admin@uct.cl', '$2y$12$mnCE8v0ryLtPhYjMerpeiuGMayZrtQclzZJNS79gli6MZBcaYsALu', 'admin', 1),
+('Juan', 'Pérez', 'juan@email.com', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'cliente', 1),
+('María', 'González', 'maria@email.com', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'cliente', 1),
+('Pedro', 'Vendedor', 'pedro@uct.cl', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'vendedor', 1),
+('Ana', 'Supervisor', 'ana@uct.cl', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'supervisor', 1);
 
 -- ============================================
 -- Direcciones
