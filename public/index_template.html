@@ -40,6 +40,8 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                             <li><a class="dropdown-item d-none" href="admin" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
+                            <li><a class="dropdown-item" href="perfil.html"><i class="bi bi-person-gear"></i> Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="mis-pedidos.html"><i class="bi bi-bag"></i> Mis Pedidos</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                         </ul>
@@ -64,15 +66,29 @@
                 <div class="col-md-8 col-lg-6">
                     <form id="search-form-catalogo" class="search-bar">
                         <i class="bi bi-search search-icon"></i>
-                        <input type="search" id="search-input-catalogo" class="form-control form-control-lg bg-white shadow-sm" placeholder="¿Qué estás buscando hoy?">
+                        <input type="search" id="search-input-catalogo" class="form-control form-control-lg bg-white shadow-sm" placeholder="¿Qué estás buscando hoy?" autocomplete="off">
+                        <!-- Instant Search Suggestions -->
+                        <div id="search-suggestions" class="search-suggestions d-none"></div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Sección Productos Destacados -->
+    <section id="destacados-section" class="container my-5 d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1" style="font-size:1.4rem;"><i class="bi bi-star-fill text-warning me-2"></i>Productos Destacados</h2>
+                <p class="text-muted mb-0 small">Selección especial para ti</p>
+            </div>
+            <a href="#catalog-main" class="btn btn-outline-uct btn-sm fw-semibold">Ver todo el catálogo <i class="bi bi-arrow-down ms-1"></i></a>
+        </div>
+        <div id="destacados-container" class="row"></div>
+    </section>
+
     <!-- Main Content with Sidebar Filters -->
-    <main class="container my-5">
+    <main class="container my-5" id="catalog-main">
         <div class="row">
             <!-- Sidebar de filtros -->
             <aside class="col-md-4 col-lg-3 mb-4">
