@@ -2,7 +2,6 @@
  * app.js - Lógica principal de la aplicación
  * Manejo de autenticación, navegación, toast y utilidades
  */
-
 const App = {
     apiBase: (() => {
         if (window.SERVER_API_BASE) return window.SERVER_API_BASE;
