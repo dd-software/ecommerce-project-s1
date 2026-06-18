@@ -102,3 +102,16 @@ Este documento detalla todos los problemas identificados y corregidos en la plat
     });
     ```
 
+---
+
+## 8. Corrección de Carga Infinita en Catálogo e Integración de Búsqueda
+* **Problema:**
+  * **Advertencia de PHP en la API:** En `src/Catalogo/CatalogoRepository.php` (método `buscarPorId`), se utilizaba una variable `$p` no definida en lugar de `$producto`. Esto disparaba un warning de PHP en entornos locales con `APP_DEBUG=true` que corrompía la estructura del JSON y hacía fallar al parseador de frontend.
+  * **Carga Infinita en Frontend:** Si la API del catálogo retornaba un error (`data.success === false`), el método `loadProducts()` de `catalogo.js` no controlaba este estado en su condicional, omitiendo la limpieza del spinner y dejándolo girando infinitamente.
+  * **Desconexión en Búsqueda Global:** La barra de búsqueda en el navbar del sitio redirigía a `/?search=QUERY`, mientras que el catálogo esperaba el parámetro `q` en la URL, provocando que la búsqueda no funcionara.
+* **Solución:**
+  * Se corrigió la referencia a `$producto` en la consulta del detalle en `CatalogoRepository.php`.
+  * Se añadió una estructura `else` al condicional de `data.success` en `catalogo.js` para limpiar el spinner y renderizar un mensaje de error limpio en caso de fallo del backend.
+  * Se actualizó la lectura de URL en el catálogo para soportar tanto `q` como `search` de forma transparente.
+
+
