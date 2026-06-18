@@ -1,10 +1,12 @@
 <?php
+declare(strict_types=1);
+
 // Iniciar buffer de salida INMEDIATAMENTE para capturar cualquier output inesperado
 ob_start();
 // Desactivar display_errors de inmediato - los errores se manejan por JSON, no HTML
 ini_set('display_errors', '0');
 ini_set('display_startup_errors', '0');
-declare(strict_types=1);
+
 /**
  * Front Controller - Punto de entrada único de la aplicación
  * Maneja todas las peticiones HTTP y enruta a los controladores correspondientes
