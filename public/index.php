@@ -105,42 +105,54 @@ $router = new Router();
 // Rutas de API y Frontend
 // ============================================
 
-// --- Inicio / Frontend ---
-$router->get('/', function($req, $res) {
-    if (file_exists(__DIR__ . '/index_template.html')) {
-        $html = file_get_contents(__DIR__ . '/index_template.html');
-        $base = APP_URL . '/api';
-        $configScript = "<script>window.SERVER_API_BASE = '{$base}'; console.log('SISTEMA: API BASE OK');</script>";
-        $html = str_ireplace('<html', "<html data-php-active='true'", $html);
-        $html = str_ireplace('<head>', "<head>{$configScript}", $html);
-        $res->html($html);
-    } else {
-        $res->error('NOT_FOUND', 'Página de inicio no encontrada', 404);
+// ─── Inicio / Frontend ────────────────────────────────────────────────────
+// Función helper para servir un HTML con la URL de API inyectada
+$servirHtml = function(string $archivo, \App\Core\Response $res): void {
+    $ruta = __DIR__ . '/' . $archivo;
+    if (!file_exists($ruta)) {
+        $res->error('NOT_FOUND', "Página '{$archivo}' no encontrada", 404);
+        return;
     }
+    $html = file_get_contents($ruta);
+    $base = APP_URL . '/api';
+    $configScript = "<script>window.SERVER_API_BASE = '{$base}'; console.log('[UCT] API base: ' + window.SERVER_API_BASE);</script>";
+    $html = str_ireplace('<html', "<html data-php-active='true'", $html);
+    $html = str_ireplace('<head>', "<head>{$configScript}", $html);
+    $res->html($html);
+};
+
+// Inicio — tanto / como /index.html van al mismo handler
+$router->get('/', function($req, $res) use ($servirHtml) {
+    $servirHtml('index.html', $res);
+});
+$router->get('/index.html', function($req, $res) use ($servirHtml) {
+    $servirHtml('index.html', $res);
 });
 
-$router->get('/login', function($req, $res) {
-    if (file_exists(__DIR__ . '/login_template.html')) {
-        $html = file_get_contents(__DIR__ . '/login_template.html');
-        $base = APP_URL . '/api';
-        $configScript = "<script>window.SERVER_API_BASE = '{$base}';</script>";
-        $html = str_ireplace('<head>', "<head>{$configScript}", $html);
-        $res->html($html);
-    } else {
-        $res->error('NOT_FOUND', 'Página de login no encontrada', 404);
-    }
+// Login
+$router->get('/login', function($req, $res) use ($servirHtml) {
+    $servirHtml('login.html', $res);
+});
+$router->get('/login.html', function($req, $res) use ($servirHtml) {
+    $servirHtml('login.html', $res);
 });
 
-$router->get('/admin', function($req, $res) {
-    if (file_exists(__DIR__ . '/admin.html')) {
-        $html = file_get_contents(__DIR__ . '/admin.html');
-        $base = APP_URL . '/api';
-        $configScript = "<script>window.SERVER_API_BASE = '{$base}'; console.log('API Base set to:', window.SERVER_API_BASE);</script>";
-        $html = str_ireplace('<head>', "<head>{$configScript}", $html);
-        $res->html($html);
-    } else {
-        $res->error('NOT_FOUND', 'Página de administración no encontrada', 404);
-    }
+// Admin
+$router->get('/admin', function($req, $res) use ($servirHtml) {
+    $servirHtml('admin.html', $res);
+});
+$router->get('/admin.html', function($req, $res) use ($servirHtml) {
+    $servirHtml('admin.html', $res);
+});
+
+// Producto
+$router->get('/producto.html', function($req, $res) use ($servirHtml) {
+    $servirHtml('producto.html', $res);
+});
+
+// Pedido confirmado
+$router->get('/pedido-confirmado.html', function($req, $res) use ($servirHtml) {
+    $servirHtml('pedido-confirmado.html', $res);
 });
 
 // --- Módulo C: Autenticación ---
