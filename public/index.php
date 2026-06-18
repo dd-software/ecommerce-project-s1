@@ -52,15 +52,6 @@ use App\Integracion\IntegracionController;
 Session::iniciar();
 // Crear request y response
 $request = new Request();
-// DEBUG TEMP - remove after diagnosis
-@file_put_contents(sys_get_temp_dir() . '/uct_route_debug.json', json_encode([
-    'uri' => $request->getUri(),
-    'method' => $request->getMethod(),
-    'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? 'N/A',
-    'SCRIPT_NAME' => $_SERVER['SCRIPT_NAME'] ?? 'N/A',
-    'PHP_SELF' => $_SERVER['PHP_SELF'] ?? 'N/A',
-    'time' => date('c'),
-], JSON_PRETTY_PRINT));
 $response = new Response();
 // Aplicar middleware JWT (adjunta usuario autenticado si hay token válido)
 JwtMiddleware::procesar($request);
