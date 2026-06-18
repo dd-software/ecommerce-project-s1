@@ -5,28 +5,57 @@ ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-// Log de errores manual (ahora directo a pantalla)
+// Log de errores manual (ahora directo a pantalla o JSON según el contexto)
 set_error_handler(function($errno, $errstr, $errfile, $errline) {
-    echo "<h1>ERROR DETECTADO</h1>";
-    echo "<b>Mensaje:</b> $errstr<br>";
-    echo "<b>Archivo:</b> $errfile<br>";
-    echo "<b>Línea:</b> $errline<br>";
+    if (strpos($_SERVER['REQUEST_URI'] ?? '', '/api') !== false) {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'error' => [
+                'code' => 'PHP_ERROR',
+                'message' => $errstr,
+                'file' => $errfile,
+                'line' => $errline
+            ]
+        ]);
+    } else {
+        echo "<div style='border: 2px solid red; padding: 20px; font-family: sans-serif;'>";
+        echo "<h1>ERROR DETECTADO</h1>";
+        echo "<b>Mensaje:</b> $errstr<br>";
+        echo "<b>Archivo:</b> $errfile<br>";
+        echo "<b>Línea:</b> $errline<br>";
+        echo "</div>";
+    }
     exit();
 });
 
 register_shutdown_function(function() {
     $error = error_get_last();
-    if ($error !== NULL) {
-        echo "<h1>ERROR FATAL DETECTADO</h1>";
-        echo "<b>Mensaje:</b> " . $error['message'] . "<br>";
-        echo "<b>Archivo:</b> " . $error['file'] . "<br>";
-        echo "<b>Línea:</b> " . $error['line'] . "<br>";
+    if ($error !== NULL && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_CORE_ERROR || $error['type'] === E_COMPILE_ERROR)) {
+        if (strpos($_SERVER['REQUEST_URI'] ?? '', '/api') !== false) {
+            header('Content-Type: application/json');
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => [
+                    'code' => 'FATAL_ERROR',
+                    'message' => $error['message'],
+                    'file' => $error['file'],
+                    'line' => $error['line']
+                ]
+            ]);
+        } else {
+            echo "<div style='background: #fee; border: 2px solid red; padding: 20px; font-family: sans-serif;'>";
+            echo "<h1>ERROR FATAL DETECTADO</h1>";
+            echo "<b>Mensaje:</b> " . $error['message'] . "<br>";
+            echo "<b>Archivo:</b> " . $error['file'] . "<br>";
+            echo "<b>Línea:</b> " . $error['line'] . "<br>";
+            echo "</div>";
+        }
         exit();
     }
 });
-
-echo "PHP IS ALIVE";
-exit();
 
 declare(strict_types=1);
 
