@@ -1,231 +1,226 @@
 /**
- * checkout.js - Proceso de checkout y creación de pedido
+ * checkout.js - Proceso de pago y confirmación de pedido
+ * Muestra el resumen del carrito, captura dirección y procesa el pedido
  */
 
+// Placeholder SVG local
+const IMG_PLACEHOLDER_40 = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='8' fill='%2394a3b8'%3EImg%3C/text%3E%3C/svg%3E";
+
 const Checkout = {
-    cartId: null,
-    cart: null,
-    cuponAplicado: false,
-
     /**
-     * Inicializa la página de checkout
+     * Inicializa el checkout (se llama cuando se abre el modal)
      */
-    async init() {
-        if (!App.user) {
-            window.location.href = '/login.html?redirect=checkout.html';
-            return;
-        }
-
-        await this.loadCart();
+    init() {
+        this.renderResumen();
         this.initEventListeners();
     },
 
     /**
-     * Carga el carrito para checkout
+     * Renderiza el resumen del pedido en el modal
      */
-    async loadCart() {
-        const container = document.getElementById('checkout-items');
-        if (!container) return;
+    renderResumen() {
+        const items = (typeof Carrito !== 'undefined') ? Carrito.getItems() : [];
 
-        try {
-            const resp = await App.fetchAuth(`${App.apiBase}/carrito`);
-            const data = await resp.json();
+        const checkoutItems  = document.getElementById('checkout-items');
+        const checkoutTotals = document.getElementById('checkout-totals');
 
-            if (data.success && data.data && data.data.items && data.data.items.length > 0) {
-                this.cart = data.data;
-                this.cartId = data.data.id;
-                this.renderItems();
-                this.renderSummary();
-            } else {
-                container.innerHTML = `
-                    <div class="alert alert-warning">
-                        Tu carrito está vacío. <a href="/catalogo.html">Ir al catálogo</a>
-                    </div>`;
-                const btn = document.getElementById('btn-place-order');
-                if (btn) btn.disabled = true;
-            }
-        } catch (e) {
-            container.innerHTML = '<div class="alert alert-danger">Error al cargar el carrito.</div>';
+        if (!checkoutItems) return;
+
+        if (items.length === 0) {
+            checkoutItems.innerHTML = '<p class="text-muted text-center">Tu carrito está vacío.</p>';
+            if (checkoutTotals) checkoutTotals.innerHTML = '';
+            return;
         }
-    },
 
-    /**
-     * Renderiza items en checkout
-     */
-    renderItems() {
-        const container = document.getElementById('checkout-items');
-        if (!container || !this.cart) return;
+        // Items
+        checkoutItems.innerHTML = items.map(item => {
+            const precio   = item.precio_unitario || item.precio;
+            const subtotal = item.subtotal || (precio * item.cantidad);
+            return `
+                <div class="d-flex justify-content-between align-items-center mb-2 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="${item.imagen_url || IMG_PLACEHOLDER_40}"
+                             alt="${this.escapeHtml(item.nombre)}"
+                             style="width:40px;height:40px;object-fit:cover;border-radius:6px;"
+                             onerror="this.onerror=null;this.src=IMG_PLACEHOLDER_40">
+                        <span>${this.escapeHtml(item.nombre)} <span class="text-muted">x${item.cantidad}</span></span>
+                    </div>
+                    <strong>${App.formatPrice(subtotal)}</strong>
+                </div>`;
+        }).join('');
 
-        container.innerHTML = this.cart.items.map(item => `
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <span class="fw-semibold">${Catalogo.escapeHtml(item.nombre)}</span>
-                    <small class="text-muted ms-2">x${item.cantidad}</small>
+        // Totales
+        const subtotalTotal = items.reduce((sum, item) => {
+            const precio   = item.precio_unitario || item.precio;
+            const subtotal = item.subtotal || (precio * item.cantidad);
+            return sum + subtotal;
+        }, 0);
+
+        if (checkoutTotals) {
+            checkoutTotals.innerHTML = `
+                <div class="d-flex justify-content-between mb-1">
+                    <span>Subtotal</span>
+                    <span>${App.formatPrice(subtotalTotal)}</span>
                 </div>
-                <span>${item.subtotal_formateado || App.formatPrice(item.subtotal)}</span>
-            </div>
-        `).join('');
-    },
-
-    /**
-     * Renderiza resumen de totales
-     */
-    renderSummary() {
-        const container = document.getElementById('checkout-totals');
-        if (!container || !this.cart) return;
-
-        let descuentoHTML = '';
-        if (this.cuponAplicado && this.cart.descuento) {
-            descuentoHTML = `
-                <div class="d-flex justify-content-between mb-2 text-success">
-                    <span>Descuento:</span>
-                    <span>-${App.formatPrice(this.cart.descuento)}</span>
+                <div class="d-flex justify-content-between mb-2 text-muted small">
+                    <span>Envío</span>
+                    <span>Por confirmar</span>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex justify-content-between fw-bold fs-6">
+                    <span>Total</span>
+                    <span class="text-primary">${App.formatPrice(subtotalTotal)}</span>
                 </div>`;
         }
-
-        container.innerHTML = `
-            <div class="d-flex justify-content-between mb-2">
-                <span>Subtotal:</span>
-                <span>${this.cart.subtotal_formateado}</span>
-            </div>
-            ${descuentoHTML}
-            <div class="d-flex justify-content-between mb-2">
-                <span>IVA (19%):</span>
-                <span>${this.cart.iva_formateado}</span>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-between mb-3">
-                <strong>Total a Pagar:</strong>
-                <strong class="text-primary fs-5">${this.cart.total_formateado}</strong>
-            </div>`;
     },
 
     /**
-     * Configura eventos
+     * Configura event listeners del formulario de checkout
      */
     initEventListeners() {
-        // Formulario de checkout
         const form = document.getElementById('checkout-form');
         if (form) {
-            form.addEventListener('submit', async (e) => {
+            // Evitar doble binding
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            newForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                await this.placeOrder();
+                this.procesarPedido();
             });
         }
 
-        // Botón de pago
-        const btn = document.getElementById('btn-place-order');
-        if (btn) {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                await this.placeOrder();
-            });
-        }
-
-        // Aplicar cupón
-        const cuponBtn = document.getElementById('btn-apply-coupon');
-        if (cuponBtn) {
-            cuponBtn.addEventListener('click', () => {
-                const codigo = document.getElementById('coupon-code')?.value.trim();
-                if (codigo) {
-                    App.showToast('Cupón será validado al crear el pedido', 'info');
-                }
-            });
+        // Cupón
+        const btnCupon = document.getElementById('btn-apply-coupon');
+        if (btnCupon) {
+            btnCupon.addEventListener('click', () => this.aplicarCupon());
         }
     },
 
     /**
-     * Crea el pedido y procesa el pago
+     * Aplica un cupón de descuento (placeholder — la API puede soportarlo)
      */
-    async placeOrder() {
-        const btn = document.getElementById('btn-place-order');
-        const errorDiv = document.getElementById('checkout-error');
+    aplicarCupon() {
+        const code = document.getElementById('coupon-code')?.value?.trim();
+        if (!code) {
+            App.showToast('Ingresa un código de cupón', 'warning');
+            return;
+        }
+        // Aquí se puede integrar un endpoint de validación
+        App.showToast('Cupón no válido o expirado', 'error');
+    },
 
-        if (!this.cartId || !this.cart || !this.cart.items || this.cart.items.length === 0) {
-            App.showToast('El carrito está vacío', 'error');
+    /**
+     * Procesa el pedido enviando datos a la API de checkout
+     */
+    async procesarPedido() {
+        if (!App.user || !App.token) {
+            App.showToast('Debes iniciar sesión para continuar', 'error');
             return;
         }
 
-        // Recopilar datos del formulario
-        const direccion = document.getElementById('shipping-address')?.value.trim();
-        const telefono = document.getElementById('shipping-phone')?.value.trim();
-        const notas = document.getElementById('order-notes')?.value.trim();
-        const cupon = document.getElementById('coupon-code')?.value.trim() || null;
-
+        const direccion = document.getElementById('shipping-address')?.value?.trim();
         if (!direccion) {
-            if (errorDiv) {
-                errorDiv.textContent = 'La dirección de envío es obligatoria.';
-                errorDiv.classList.remove('d-none');
-            }
+            App.showToast('Ingresa una dirección de envío', 'warning');
+            document.getElementById('shipping-address')?.focus();
             return;
         }
 
-        if (errorDiv) errorDiv.classList.add('d-none');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Procesando...';
+        const items = (typeof Carrito !== 'undefined') ? Carrito.getItems() : [];
+        if (items.length === 0) {
+            App.showToast('Tu carrito está vacío', 'warning');
+            return;
         }
+
+        const btn = document.getElementById('btn-place-order');
+        const errorEl = document.getElementById('checkout-error');
+        if (btn) { btn.disabled = true; btn.textContent = 'Procesando...'; }
+        if (errorEl) errorEl.classList.add('d-none');
 
         try {
-            // Paso 1: Crear pedido
-            const orderResp = await App.fetchAuth(`${App.apiBase}/checkout`, {
+            const payload = {
+                direccion_envio: direccion,
+                telefono:        document.getElementById('shipping-phone')?.value?.trim() || '',
+                notas:           document.getElementById('order-notes')?.value?.trim() || '',
+                session_id:      App.getSessionId()
+            };
+
+            const resp = await App.fetchAuth(`${App.apiBase}/checkout`, {
                 method: 'POST',
-                body: JSON.stringify({
-                    carrito_id: this.cartId,
-                    direccion_envio: direccion,
-                    telefono: telefono,
-                    notas: notas,
-                    cupon: cupon
-                })
+                body:   JSON.stringify(payload)
             });
+            const data = await resp.json();
 
-            const orderData = await orderResp.json();
-
-            if (!orderData.success) {
-                throw new Error(orderData.error?.message || 'Error al crear el pedido');
+            if (data.success) {
+                // Pedido creado → procesar pago
+                const pedidoId = data.data?.pedido_id || data.data?.id;
+                await this.procesarPago(pedidoId, data.data?.total || 0);
+            } else {
+                const msg = data.error?.message || 'Error al crear el pedido';
+                if (errorEl) { errorEl.textContent = msg; errorEl.classList.remove('d-none'); }
+                App.showToast(msg, 'error');
             }
+        } catch (e) {
+            const msg = 'Error de conexión. Intenta nuevamente.';
+            if (errorEl) { errorEl.textContent = msg; errorEl.classList.remove('d-none'); }
+            App.showToast(msg, 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'Confirmar Pedido y Pagar'; }
+        }
+    },
 
-            const pedido = orderData.data;
-
-            // Paso 2: Procesar pago (simulación)
-            App.showToast('Pedido creado. Procesando pago...', 'info');
-
-            const paymentResp = await App.fetchAuth(`${App.apiBase}/pagos/procesar`, {
+    /**
+     * Procesa el pago del pedido
+     */
+    async procesarPago(pedidoId, total) {
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/pagos/procesar`, {
                 method: 'POST',
-                body: JSON.stringify({
-                    pedido_id: pedido.id || pedido.pedido_id,
-                    metodo_pago: 'webpay',
-                    token_tarjeta: 'tok_sim_' + Date.now()
+                body:   JSON.stringify({
+                    pedido_id:    pedidoId,
+                    monto:        total,
+                    metodo_pago:  'tarjeta',  // valor por defecto
+                    session_id:   App.getSessionId()
                 })
             });
+            const data = await resp.json();
 
-            const paymentData = await paymentResp.json();
+            if (data.success) {
+                // Limpiar carrito local
+                if (typeof Carrito !== 'undefined') {
+                    Carrito.items = [];
+                    App.cartCount = 0;
+                    App.updateCartBadge();
+                }
 
-            if (paymentData.success && paymentData.data.estado === 'aprobado') {
-                // Éxito
-                App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
+                // Cerrar modal y mostrar confirmación
+                const modalEl = document.getElementById('checkoutModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+
+                App.showToast('¡Pedido confirmado! Recibirás un email con los detalles.', 'success');
                 // Redirigir a confirmación
                 setTimeout(() => {
-                    window.location.href = `pedido-confirmado.html?pedido_id=${pedido.id || pedido.pedido_id}`;
-                }, 2000);
+                    window.location.href = `pedido-confirmado.html?pedido_id=${pedidoId}`;
+                }, 1500);
             } else {
-                App.showToast('Pago rechazado: ' + (paymentData.data?.mensaje || 'Error'), 'error');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Reintentar Pago';
-                }
+                const msg = data.error?.message || 'Error al procesar el pago';
+                App.showToast(msg, 'error');
+                const errorEl = document.getElementById('checkout-error');
+                if (errorEl) { errorEl.textContent = msg; errorEl.classList.remove('d-none'); }
             }
-        } catch (err) {
-            if (errorDiv) {
-                errorDiv.textContent = err.message;
-                errorDiv.classList.remove('d-none');
-            }
-            App.showToast(err.message, 'error');
+        } catch (e) {
+            App.showToast('Error al procesar el pago', 'error');
         }
+    },
 
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Confirmar Pedido';
-        }
+    /**
+     * Escapa HTML para prevenir XSS
+     */
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
     }
 };

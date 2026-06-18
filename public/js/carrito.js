@@ -1,257 +1,257 @@
 /**
  * carrito.js - Gestión del carrito de compras
+ * Maneja el offcanvas del carrito, agregar/quitar productos y sincronización con la API
  */
 
+// Placeholder SVG local — no requiere servicios externos
+const IMG_PLACEHOLDER_THUMB = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='9' fill='%2394a3b8'%3EImg%3C/text%3E%3C/svg%3E";
+
 const Carrito = {
-    cart: null,
+    items: [],
 
     /**
-     * Inicializa la página de carrito
+     * Inicializa el carrito
      */
     async init() {
-        await this.loadCart();
+        await this.cargar();
         this.initEventListeners();
     },
 
     /**
      * Carga el carrito desde la API
      */
-    async loadCart() {
-        const container = document.getElementById('cart-items');
-        const summary = document.getElementById('cart-summary');
-        const empty = document.getElementById('cart-empty');
-
-        if (!container) return;
-
+    async cargar() {
         try {
-            const resp = await App.fetchAuth(`${App.apiBase}/carrito`);
-            const data = await resp.json();
+            const sessionId = App.getSessionId();
+            const headers = { 'X-Session-Id': sessionId };
+            if (App.token) {
+                headers['Authorization'] = `Bearer ${App.token}`;
+            }
 
-            if (data.success) {
-                this.cart = data.data;
-                if (this.cart.items && this.cart.items.length > 0) {
-                    this.renderItems();
-                    this.renderSummary();
-                    if (empty) empty.classList.add('d-none');
-                    container.classList.remove('d-none');
-                    if (summary) summary.classList.remove('d-none');
-                } else {
-                    if (empty) empty.classList.remove('d-none');
-                    container.classList.add('d-none');
-                    if (summary) summary.classList.add('d-none');
-                }
-                App.cartCount = this.cart.items ? this.cart.items.length : 0;
+            const resp = await fetch(`${App.apiBase}/carrito`, { headers });
+            if (!resp.ok) return;
+
+            const data = await resp.json();
+            if (data.success && data.data) {
+                this.items = data.data.items || [];
+                this.render();
+                App.cartCount = this.items.length;
                 App.updateCartBadge();
             }
         } catch (e) {
-            container.innerHTML = '<div class="alert alert-danger">Error al cargar el carrito.</div>';
+            console.error('Error cargando carrito:', e);
         }
     },
 
     /**
-     * Renderiza los items del carrito
+     * Renderiza los ítems del carrito en el offcanvas
      */
-    renderItems() {
-        const container = document.getElementById('cart-items');
-        if (!container || !this.cart) return;
+    render() {
+        const cartEmpty   = document.getElementById('cart-empty');
+        const cartItems   = document.getElementById('cart-items');
+        const cartSummary = document.getElementById('cart-summary');
 
-        container.innerHTML = this.cart.items.map(item => `
-            <div class="cart-item row align-items-center" data-item-id="${item.id}">
-                <div class="col-md-2 col-3">
-                    <img src="${item.imagen_url || 'https://via.placeholder.com/80?text=N/A'}"
-                         class="cart-item-img" alt="${this.escapeHtml(item.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/80?text=N/A'">
+        if (!cartItems) return;
+
+        if (this.items.length === 0) {
+            if (cartEmpty)   cartEmpty.classList.remove('d-none');
+            if (cartItems)   cartItems.classList.add('d-none');
+            if (cartSummary) cartSummary.classList.add('d-none');
+            return;
+        }
+
+        if (cartEmpty)   cartEmpty.classList.add('d-none');
+        if (cartItems)   cartItems.classList.remove('d-none');
+        if (cartSummary) cartSummary.classList.remove('d-none');
+
+        // Renderizar items
+        cartItems.innerHTML = this.items.map(item => this.itemHtml(item)).join('');
+
+        // Totales
+        const subtotal = this.items.reduce((sum, item) => sum + (item.subtotal || item.precio * item.cantidad), 0);
+        const summaryContent = document.getElementById('cart-summary-content');
+        if (summaryContent) {
+            summaryContent.innerHTML = `
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subtotal (${this.items.length} producto${this.items.length !== 1 ? 's' : ''})</span>
+                    <strong>${App.formatPrice(subtotal)}</strong>
                 </div>
-                <div class="col-md-4 col-9">
-                    <h6 class="mb-1">${this.escapeHtml(item.nombre)}</h6>
-                    <small class="text-muted">Precio unitario: ${item.precio_formateado || App.formatPrice(item.precio_unitario)}</small>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>Envío</span>
+                    <span>Calculado al pagar</span>
                 </div>
-                <div class="col-md-3 col-6 mt-2 mt-md-0">
-                    <div class="input-group input-group-sm" style="max-width:140px">
-                        <button class="btn btn-outline-secondary btn-qty" data-action="minus" data-id="${item.id}">−</button>
-                        <input type="number" class="form-control text-center qty-input"
-                               value="${item.cantidad}" min="1" max="${item.stock || 99}"
-                               data-id="${item.id}" data-stock="${item.stock || 99}">
-                        <button class="btn btn-outline-secondary btn-qty" data-action="plus" data-id="${item.id}">+</button>
+            `;
+        }
+
+        // Attach event listeners a los botones de cantidad/eliminar
+        this.attachItemListeners();
+    },
+
+    /**
+     * Genera el HTML de un ítem del carrito
+     */
+    itemHtml(item) {
+        const precio = item.precio_unitario || item.precio;
+        const subtotal = item.subtotal || (precio * item.cantidad);
+        return `
+            <div class="d-flex align-items-start mb-3 pb-3 border-bottom cart-item" data-id="${item.id}">
+                <img src="${item.imagen_url || IMG_PLACEHOLDER_THUMB}"
+                     alt="${this.escapeHtml(item.nombre)}"
+                     class="rounded me-3 flex-shrink-0"
+                     style="width:60px;height:60px;object-fit:cover;"
+                     onerror="this.onerror=null;this.src=IMG_PLACEHOLDER_THUMB">
+                <div class="flex-grow-1">
+                    <p class="mb-1 fw-semibold small lh-sm">${this.escapeHtml(item.nombre)}</p>
+                    <p class="mb-2 text-primary fw-bold small">${App.formatPrice(precio)}</p>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group input-group-sm" style="width:100px">
+                            <button class="btn btn-outline-secondary btn-qty-minus" type="button" data-id="${item.id}" data-qty="${item.cantidad}">−</button>
+                            <input type="number" class="form-control text-center px-1 qty-input" value="${item.cantidad}" min="1" max="99" data-id="${item.id}" readonly>
+                            <button class="btn btn-outline-secondary btn-qty-plus" type="button" data-id="${item.id}" data-qty="${item.cantidad}">+</button>
+                        </div>
+                        <button class="btn btn-link text-danger p-0 btn-remove-item" data-id="${item.id}" title="Eliminar">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="col-md-2 col-4 mt-2 mt-md-0 text-end">
-                    <strong>${item.subtotal_formateado || App.formatPrice(item.subtotal)}</strong>
+                <div class="ms-2 text-end">
+                    <span class="fw-bold small">${App.formatPrice(subtotal)}</span>
                 </div>
-                <div class="col-md-1 col-2 text-end">
-                    <button class="btn btn-sm btn-outline-danger btn-remove" data-id="${item.id}" title="Eliminar">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            </div>`;
     },
 
     /**
-     * Renderiza el resumen del carrito
-     */
-    renderSummary() {
-        const container = document.getElementById('cart-summary-content');
-        if (!container || !this.cart) return;
-
-        container.innerHTML = `
-            <div class="d-flex justify-content-between mb-2">
-                <span>Subtotal:</span>
-                <span>${this.cart.subtotal_formateado}</span>
-            </div>
-            <div class="d-flex justify-content-between mb-2">
-                <span>IVA (19%):</span>
-                <span>${this.cart.iva_formateado}</span>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-between mb-3">
-                <strong>Total:</strong>
-                <strong class="text-primary fs-5">${this.cart.total_formateado}</strong>
-            </div>
-            <button class="btn btn-accent w-100 btn-lg" id="btn-checkout" ${App.user ? '' : 'disabled'}>
-                ${App.user ? 'Proceder al Pago' : 'Inicia Sesión para Comprar'}
-            </button>
-            ${!App.user ? '<p class="text-muted small mt-2 text-center">Debes iniciar sesión para continuar con la compra.</p>' : ''}
-            <button class="btn btn-outline-danger w-100 mt-2 btn-sm" id="btn-clear-cart">Vaciar Carrito</button>
-        `;
-    },
-
-    /**
-     * Configura eventos del carrito
+     * Configura los event listeners del carrito
      */
     initEventListeners() {
-        // Cambiar cantidad con botones +/- (delegado)
+        // Abrir carrito → cargar datos frescos
+        const cartToggle = document.querySelector('[data-bs-target="#cartOffcanvas"]');
+        if (cartToggle) {
+            cartToggle.addEventListener('click', () => this.cargar());
+        }
+
+        // Vaciar carrito
         document.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('btn-qty') || e.target.closest('.btn-qty')) {
-                const btn = e.target.closest('.btn-qty');
-                const itemId = btn.dataset.id;
-                const action = btn.dataset.action;
-                const input = document.querySelector(`.qty-input[data-id="${itemId}"]`);
-                if (!input) return;
-
-                let qty = parseInt(input.value) || 1;
-                const maxStock = parseInt(input.dataset.stock) || 99;
-
-                if (action === 'minus') qty = Math.max(1, qty - 1);
-                if (action === 'plus') qty = Math.min(maxStock, qty + 1);
-
-                input.value = qty;
-                await this.updateItem(itemId, qty);
-            }
-        });
-
-        // Cambiar cantidad con input directo (delegado)
-        document.addEventListener('change', async (e) => {
-            if (e.target.classList.contains('qty-input')) {
-                const input = e.target;
-                const itemId = input.dataset.id;
-                let qty = parseInt(input.value) || 1;
-                const maxStock = parseInt(input.dataset.stock) || 99;
-
-                qty = Math.max(1, Math.min(maxStock, qty));
-                input.value = qty;
-                await this.updateItem(itemId, qty);
-            }
-        });
-
-        // Eliminar item (delegado)
-        document.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('btn-remove') || e.target.closest('.btn-remove')) {
-                const btn = e.target.closest('.btn-remove');
-                const itemId = btn.dataset.id;
-
-                if (confirm('¿Eliminar este producto del carrito?')) {
-                    await this.removeItem(itemId);
-                }
-            }
-        });
-
-        // Proceder al pago (delegado)
-        document.addEventListener('click', (e) => {
-            if (e.target.id === 'btn-checkout') {
-                if (!App.user) {
-                    window.location.href = '/login.html';
-                } else {
-                    window.location.href = '/checkout.html';
-                }
-            }
-        });
-
-        // Vaciar carrito (delegado)
-        document.addEventListener('click', async (e) => {
-            if (e.target.id === 'btn-clear-cart') {
-                if (confirm('¿Vaciar el carrito completamente?')) {
-                    await this.clearCart();
-                }
+            if (e.target.id === 'btn-vaciar-carrito') {
+                await this.vaciar();
             }
         });
     },
 
     /**
-     * Actualiza cantidad de un item
+     * Agrega listeners a botones dentro de los ítems (se llama tras render)
      */
-    async updateItem(itemId, quantity) {
+    attachItemListeners() {
+        const cartItems = document.getElementById('cart-items');
+        if (!cartItems) return;
+
+        // Disminuir cantidad
+        cartItems.querySelectorAll('.btn-qty-minus').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id  = btn.dataset.id;
+                const qty = parseInt(btn.dataset.qty);
+                if (qty <= 1) {
+                    await this.eliminar(id);
+                } else {
+                    await this.actualizarCantidad(id, qty - 1);
+                }
+            });
+        });
+
+        // Aumentar cantidad
+        cartItems.querySelectorAll('.btn-qty-plus').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id  = btn.dataset.id;
+                const qty = parseInt(btn.dataset.qty);
+                await this.actualizarCantidad(id, qty + 1);
+            });
+        });
+
+        // Eliminar ítem
+        cartItems.querySelectorAll('.btn-remove-item').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                await this.eliminar(btn.dataset.id);
+            });
+        });
+    },
+
+    /**
+     * Actualiza la cantidad de un ítem
+     */
+    async actualizarCantidad(itemId, nuevaCantidad) {
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/carrito/${itemId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ cantidad: quantity })
+                body: JSON.stringify({ cantidad: nuevaCantidad, session_id: App.getSessionId() })
             });
-
             const data = await resp.json();
             if (data.success) {
-                this.cart = data.data;
-                this.renderItems();
-                this.renderSummary();
-                App.cartCount = this.cart.items ? this.cart.items.length : 0;
+                this.items = data.data.items || [];
+                App.cartCount = this.items.length;
                 App.updateCartBadge();
+                this.render();
             } else {
                 App.showToast(data.error?.message || 'Error al actualizar', 'error');
-                await this.loadCart();
             }
-        } catch (err) {
+        } catch (e) {
             App.showToast('Error de conexión', 'error');
         }
     },
 
     /**
-     * Elimina un item del carrito
+     * Elimina un ítem del carrito
      */
-    async removeItem(itemId) {
+    async eliminar(itemId) {
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/carrito/${itemId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                body: JSON.stringify({ session_id: App.getSessionId() })
             });
-
             const data = await resp.json();
             if (data.success) {
-                this.cart = data.data;
-                await this.loadCart();
-                App.showToast('Producto eliminado del carrito', 'success');
+                this.items = data.data.items || [];
+                App.cartCount = this.items.length;
+                App.updateCartBadge();
+                this.render();
+                App.showToast('Producto eliminado del carrito', 'info');
             }
-        } catch (err) {
-            App.showToast('Error al eliminar', 'error');
+        } catch (e) {
+            App.showToast('Error de conexión', 'error');
         }
     },
 
     /**
-     * Vacía el carrito
+     * Vacía el carrito completo
      */
-    async clearCart() {
+    async vaciar() {
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/carrito`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                body: JSON.stringify({ session_id: App.getSessionId() })
             });
-
             const data = await resp.json();
             if (data.success) {
-                await this.loadCart();
-                App.showToast('Carrito vaciado', 'success');
+                this.items = [];
+                App.cartCount = 0;
+                App.updateCartBadge();
+                this.render();
+                App.showToast('Carrito vaciado', 'info');
             }
-        } catch (err) {
-            App.showToast('Error al vaciar', 'error');
+        } catch (e) {
+            App.showToast('Error de conexión', 'error');
         }
     },
 
+    /**
+     * Devuelve los ítems actuales (usado por Checkout)
+     */
+    getItems() {
+        return this.items;
+    },
+
+    /**
+     * Escapa HTML para prevenir XSS
+     */
     escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str || '';
