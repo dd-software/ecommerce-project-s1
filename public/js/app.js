@@ -4,7 +4,18 @@
  */
 
 const App = {
-    apiBase: window.SERVER_API_BASE || '/api',
+    apiBase: (() => {
+        if (window.SERVER_API_BASE) return window.SERVER_API_BASE;
+        const path = window.location.pathname;
+        let base = '';
+        if (path.includes('/public')) {
+            base = path.substring(0, path.indexOf('/public') + 7);
+        } else {
+            const dir = path.substring(0, path.lastIndexOf('/'));
+            base = (dir === '/' ? '' : dir);
+        }
+        return base + '/api';
+    })(),
     token: null,
     user: null,
     cartCount: 0,
