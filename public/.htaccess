@@ -1,43 +1,9 @@
-Options -MultiViews -Indexes
+Options -Indexes
 RewriteEngine On
 
-# Base del subdirectorio público
-RewriteBase /~mvaldebenito2025/public/
+# Servir archivos y directorios reales tal cual (JS, CSS, imágenes, HTML)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-<IfModule mod_headers.c>
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-Frame-Options "DENY"
-    Header always set X-XSS-Protection "1; mode=block"
-    Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    
-    # CSP ampliado para permitir Bootstrap CDN, Google Fonts y cualquier imagen HTTPS/data URI
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://teclab.uct.cl https://cdn.jsdelivr.net"
-    
-    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Authorization, Content-Type, X-Request-ID, X-Session-Id"
-    Header always set Access-Control-Max-Age "86400"
-</IfModule>
-
-# Preflight OPTIONS
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^ - [R=200,L]
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CRÍTICO: Las páginas HTML principales pasan por index.php
-# para inyectar window.SERVER_API_BASE.
-# Sin esto Apache sirve los HTML directamente y el JS no recibe la URL base.
-# ─────────────────────────────────────────────────────────────────────────────
-
-# Petición a raíz vacía → index.php
-RewriteRule ^$ index.php [QSA,L]
-
-# HTMLs específicos → index.php (inyección de API URL)
-RewriteRule ^(index|login|admin|producto|pedido-confirmado)\.html$ index.php [QSA,L]
-
-# Archivos estáticos existentes → servir directamente (css, js, img...)
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# Todo lo demás (API, rutas) → front controller
-RewriteRule ^ index.php [QSA,L]
+# Todo lo demás (rutas API y páginas) → index.php
+RewriteRule ^(.*)$ index.php [QSA,L]

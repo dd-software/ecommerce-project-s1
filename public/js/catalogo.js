@@ -4,10 +4,8 @@
  */
 
 // Placeholder SVG local (no depende de servicios externos)
-const IMG_PLACEHOLDER_CARD   = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='14' fill='%2394a3b8'%3ESin Imagen%3C/text%3E%3C/svg%3E";
+const IMG_PLACEHOLDER_CARD = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='14' fill='%2394a3b8'%3ESin Imagen%3C/text%3E%3C/svg%3E";
 const IMG_PLACEHOLDER_DETAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='18' fill='%2394a3b8'%3ESin Imagen%3C/text%3E%3C/svg%3E";
-const IMG_PLACEHOLDER_THUMB  = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='9' fill='%2394a3b8'%3EImg%3C/text%3E%3C/svg%3E";
-
 const Catalogo = {
     currentPage: 1,
     totalPages: 1,
@@ -184,8 +182,8 @@ const Catalogo = {
         const stockBadge = p.sin_stock
             ? '<span class="badge bg-danger stock-badge">Sin Stock</span>'
             : p.stock <= 5
-            ? '<span class="badge bg-warning text-dark stock-badge">Últimas ' + p.stock + ' unid.</span>'
-            : '';
+                ? '<span class="badge bg-warning text-dark stock-badge">Últimas ' + p.stock + ' unid.</span>'
+                : '';
 
         const addButton = p.sin_stock
             ? '<button class="btn btn-secondary btn-sm w-100" disabled>Sin Stock</button>'

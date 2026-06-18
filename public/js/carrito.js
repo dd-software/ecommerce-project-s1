@@ -4,8 +4,6 @@
  */
 
 // Placeholder SVG local — no requiere servicios externos
-const IMG_PLACEHOLDER_THUMB = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='9' fill='%2394a3b8'%3EImg%3C/text%3E%3C/svg%3E";
-
 const Carrito = {
     items: [],
 
@@ -47,21 +45,21 @@ const Carrito = {
      * Renderiza los ítems del carrito en el offcanvas
      */
     render() {
-        const cartEmpty   = document.getElementById('cart-empty');
-        const cartItems   = document.getElementById('cart-items');
+        const cartEmpty = document.getElementById('cart-empty');
+        const cartItems = document.getElementById('cart-items');
         const cartSummary = document.getElementById('cart-summary');
 
         if (!cartItems) return;
 
         if (this.items.length === 0) {
-            if (cartEmpty)   cartEmpty.classList.remove('d-none');
-            if (cartItems)   cartItems.classList.add('d-none');
+            if (cartEmpty) cartEmpty.classList.remove('d-none');
+            if (cartItems) cartItems.classList.add('d-none');
             if (cartSummary) cartSummary.classList.add('d-none');
             return;
         }
 
-        if (cartEmpty)   cartEmpty.classList.add('d-none');
-        if (cartItems)   cartItems.classList.remove('d-none');
+        if (cartEmpty) cartEmpty.classList.add('d-none');
+        if (cartItems) cartItems.classList.remove('d-none');
         if (cartSummary) cartSummary.classList.remove('d-none');
 
         // Renderizar items
@@ -148,7 +146,7 @@ const Carrito = {
         // Disminuir cantidad
         cartItems.querySelectorAll('.btn-qty-minus').forEach(btn => {
             btn.addEventListener('click', async () => {
-                const id  = btn.dataset.id;
+                const id = btn.dataset.id;
                 const qty = parseInt(btn.dataset.qty);
                 if (qty <= 1) {
                     await this.eliminar(id);
@@ -161,7 +159,7 @@ const Carrito = {
         // Aumentar cantidad
         cartItems.querySelectorAll('.btn-qty-plus').forEach(btn => {
             btn.addEventListener('click', async () => {
-                const id  = btn.dataset.id;
+                const id = btn.dataset.id;
                 const qty = parseInt(btn.dataset.qty);
                 await this.actualizarCantidad(id, qty + 1);
             });

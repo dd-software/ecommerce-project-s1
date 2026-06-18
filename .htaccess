@@ -1,12 +1,13 @@
-# Redirigir todo al public/ excepto archivos existentes en la raíz
 RewriteEngine On
 
-# Permitir acceso directo a archivos reales en la raíz del proyecto (ej: .env no debería estar aquí)
+# Archivos reales en la raíz → servirlos directamente
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteRule ^ - [L]
 
-# Redirigir raíz → public/index.php (para inyección de API URL)
+# Raíz → public/index.php
 RewriteRule ^$ public/index.php [QSA,L]
 
-# Redirigir todo lo demás → public/ manteniendo la ruta
+# El resto → public/ (solo si no es archivo ni directorio real)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ public/$1 [QSA,L]

@@ -2,6 +2,10 @@
  * app.js - Lógica principal de la aplicación
  * Manejo de autenticación, navegación, toast y utilidades
  */
+// app.js — constantes globales compartidas
+const IMG_PLACEHOLDER_THUMB = 'https://placehold.co/300x300?text=Sin+Imagen';
+const IMG_PLACEHOLDER_FULL = 'https://placehold.co/600x600?text=Sin+Imagen';
+
 const App = {
     apiBase: (() => {
         if (window.SERVER_API_BASE) return window.SERVER_API_BASE;
@@ -157,7 +161,7 @@ const App = {
         localStorage.setItem('uct_auth_token', token);
         localStorage.setItem('uct_user', JSON.stringify(user));
         this.updateNavbar();
-        
+
         // Sincronizar carrito si hay un sessionId
         const sessionId = this.getSessionId();
         if (sessionId) {
@@ -202,8 +206,8 @@ const App = {
 
         const toastEl = document.createElement('div');
         const bgClass = type === 'success' ? 'bg-success' :
-                        type === 'error' ? 'bg-danger' :
-                        type === 'warning' ? 'bg-warning text-dark' : 'bg-info';
+            type === 'error' ? 'bg-danger' :
+                type === 'warning' ? 'bg-warning text-dark' : 'bg-info';
 
         toastEl.className = `toast align-items-center text-white ${bgClass} border-0`;
         toastEl.setAttribute('role', 'alert');
