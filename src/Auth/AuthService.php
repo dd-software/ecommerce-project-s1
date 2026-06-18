@@ -54,24 +54,24 @@ class AuthService
         $usuario = $this->repository->buscarPorEmail($email);
 
         if (!$usuario) {
-            throw new \RuntimeException('Credenciales incorrectas o cuenta suspendida.');
+            throw new \RuntimeException('El correo electrónico no está registrado.');
         }
 
         // Verificar si la cuenta está activa (RN-004)
         if (!$usuario['activo']) {
-            throw new \RuntimeException('Credenciales incorrectas o cuenta suspendida.');
+            throw new \RuntimeException('Tu cuenta ha sido suspendida. Contacta al soporte.');
         }
 
         // Verificar bloqueo por intentos fallidos
         if ($usuario['bloqueado_hasta'] && strtotime($usuario['bloqueado_hasta']) > time()) {
-            throw new \RuntimeException('Cuenta temporalmente bloqueada. Intente nuevamente en 15 minutos.');
+            throw new \RuntimeException('Cuenta bloqueada por seguridad. Inténtalo en 15 minutos.');
         }
 
         // Verificar contraseña
         if (!password_verify($password, $usuario['password_hash'])) {
             // Incrementar intentos fallidos
             $this->repository->incrementarIntentos($usuario['id']);
-            throw new \RuntimeException('Credenciales incorrectas o cuenta suspendida.');
+            throw new \RuntimeException('La contraseña ingresada es incorrecta.');
         }
 
         // Resetear intentos fallidos y actualizar último login

@@ -45,7 +45,6 @@ class PagosService
         $monto = (int)$pedido['total'];
 
         // Simular procesamiento con pasarela de pago
-        // En entorno real, esto llamaría a Webpay/Stripe/MercadoPago
         $transaccionId = 'TX-' . strtoupper(bin2hex(random_bytes(6)));
         $respuestaPasarela = $this->simularPasarelaPago($tokenTarjeta, $monto);
 
@@ -54,14 +53,14 @@ class PagosService
         try {
             $db->beginTransaction();
 
-            // Registrar el intento de pago
+            // Registrar el intento de pago (Parámetros posicionales para PHP 7)
             $pagoId = $this->repository->registrarPago(
-                pedidoId: $pedidoId,
-                metodoPago: $metodoPago,
-                monto: $monto,
-                referenciaExterna: $transaccionId,
-                estado: $respuestaPasarela['estado'],
-                respuesta: json_encode($respuestaPasarela)
+                $pedidoId,
+                $metodoPago,
+                $monto,
+                $transaccionId,
+                $respuestaPasarela['estado'],
+                json_encode($respuestaPasarela)
             );
 
             if ($respuestaPasarela['estado'] === 'aprobado') {
@@ -70,10 +69,10 @@ class PagosService
 
                 // Actualizar estado del pedido
                 $this->checkoutService->actualizarEstado(
-                    pedidoId: $pedidoId,
-                    nuevoEstado: 'pagado',
-                    userId: $userId,
-                    comentario: 'Pago aprobado. Transacción: ' . $transaccionId
+                    $pedidoId,
+                    'pagado',
+                    $userId,
+                    'Pago aprobado. Transacción: ' . $transaccionId
                 );
 
                 // Registrar movimiento de inventario
@@ -81,20 +80,20 @@ class PagosService
                 $detalles = $pedido['detalle'] ?? [];
                 foreach ($detalles as $detalle) {
                     $inventarioService->registrarEgreso(
-                        productoId: (int)$detalle['id_producto'],
-                        cantidad: (int)$detalle['cantidad'],
-                        pedidoId: $pedidoId,
-                        motivo: 'Venta - Pedido #' . $pedidoId
+                        (int)$detalle['id_producto'],
+                        (int)$detalle['cantidad'],
+                        $pedidoId,
+                        'Venta - Pedido #' . $pedidoId
                     );
                 }
 
                 $mensaje = 'Pago aprobado exitosamente.';
             } else {
                 $this->checkoutService->actualizarEstado(
-                    pedidoId: $pedidoId,
-                    nuevoEstado: 'cancelado',
-                    userId: $userId,
-                    comentario: 'Pago rechazado: ' . $respuestaPasarela['mensaje']
+                    $pedidoId,
+                    'cancelado',
+                    $userId,
+                    'Pago rechazado: ' . $respuestaPasarela['mensaje']
                 );
                 $mensaje = 'Pago rechazado: ' . $respuestaPasarela['mensaje'];
             }
@@ -126,7 +125,7 @@ class PagosService
         usleep(100000); // 100ms
 
         // Tokens que empiezan con "fail_" simulan rechazo
-        if (str_starts_with($tokenTarjeta, 'fail_')) {
+        if (strpos($tokenTarjeta, 'fail_') === 0) {
             return [
                 'estado'  => 'rechazado',
                 'codigo'  => 'REJECTED',
@@ -169,12 +168,13 @@ class PagosService
             throw new \RuntimeException('No se encontró pago para este pedido.');
         }
 
-        $nuevoEstado = match ($estado) {
-            'approved', 'aprobado' => 'aprobado',
-            'rejected', 'rechazado' => 'rechazado',
-            'refunded', 'reembolsado' => 'reembolsado',
-            default => 'pendiente',
-        };
+        // Reemplazo de match por switch para compatibilidad PHP 7
+        switch ($estado) {
+            case 'approved': case 'aprobado':   $nuevoEstado = 'aprobado'; break;
+            case 'rejected': case 'rechazado':  $nuevoEstado = 'rechazado'; break;
+            case 'refunded': case 'reembolsado': $nuevoEstado = 'reembolsado'; break;
+            default:                            $nuevoEstado = 'pendiente'; break;
+        }
 
         $this->repository->actualizarEstadoPago((int)$pago['id'], $nuevoEstado, $transaccionId);
 

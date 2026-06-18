@@ -59,9 +59,9 @@ class InventarioController
             $porPagina = min(100, max(1, (int)($request->getQuery('por_pagina', 20))));
 
             $resultado = $this->service->listarMovimientos(
-                productoId: $productoId ? (int)$productoId : null,
-                pagina: $pagina,
-                porPagina: $porPagina
+                $productoId ? (int)$productoId : null,
+                $pagina,
+                $porPagina
             );
 
             $response->paginated($resultado['movimientos'], $resultado['total'], $pagina, $porPagina);
@@ -108,11 +108,11 @@ class InventarioController
             $request->validateRequired(['producto_id', 'cantidad', 'tipo', 'motivo']);
 
             $this->service->ajustarStock(
-                productoId: (int)$data['producto_id'],
-                cantidad: (int)$data['cantidad'],
-                tipo: $data['tipo'],
-                motivo: $data['motivo'],
-                userId: (int)$user['id']
+                (int)$data['producto_id'],
+                (int)$data['cantidad'],
+                $data['tipo'],
+                $data['motivo'],
+                (int)$user['id']
             );
 
             $response->json(['mensaje' => 'Stock ajustado exitosamente.'], 200);

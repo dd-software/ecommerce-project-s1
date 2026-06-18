@@ -56,11 +56,12 @@ class IntegracionService
             throw new \InvalidArgumentException('Email de destinatario inválido.');
         }
 
+        // Parámetros posicionales para compatibilidad PHP 7.x
         $id = $this->repository->encolarNotificacion(
-            destinatario: $destinatario,
-            asunto: $asunto,
-            cuerpo: $cuerpo,
-            tipo: $tipo
+            $destinatario,
+            $asunto,
+            $cuerpo,
+            $tipo
         );
 
         // Simular envío inmediato (en producción sería async mediante cola)

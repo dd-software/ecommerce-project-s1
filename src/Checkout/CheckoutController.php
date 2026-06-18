@@ -35,12 +35,12 @@ class CheckoutController
             $request->validateRequired(['carrito_id', 'direccion_envio']);
 
             $pedido = $this->service->crearPedido(
-                userId: (int)$user['id'],
-                carritoId: (int)$data['carrito_id'],
-                direccionEnvio: $data['direccion_envio'],
-                telefono: $data['telefono'] ?? '',
-                notas: $data['notas'] ?? '',
-                cuponCodigo: $data['cupon'] ?? null
+                (int)$user['id'],
+                (int)$data['carrito_id'],
+                $data['direccion_envio'],
+                $data['telefono'] ?? '',
+                $data['notas'] ?? '',
+                $data['cupon'] ?? null
             );
 
             $response->json($pedido, 201);
@@ -48,7 +48,7 @@ class CheckoutController
         } catch (\InvalidArgumentException $e) {
             $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
         } catch (\RuntimeException $e) {
-            $code = str_contains($e->getMessage(), 'stock') ? 'INSUFFICIENT_STOCK' : 'CHECKOUT_ERROR';
+            $code = (strpos($e->getMessage(), 'stock') !== false) ? 'INSUFFICIENT_STOCK' : 'CHECKOUT_ERROR';
             $response->error($code, $e->getMessage(), 422);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al crear el pedido.', 500);

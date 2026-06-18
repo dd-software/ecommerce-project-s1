@@ -34,15 +34,16 @@ class CatalogoController
             $pagina    = max(1, (int)($request->getQuery('pagina', 1)));
             $porPagina = min(100, max(1, (int)($request->getQuery('por_pagina', 20))));
 
+            // Versión compatible con PHP 7.x
             $resultado = $this->service->listarProductos(
-                categoriaId: $categoria ? (int)$categoria : null,
-                busqueda: $busqueda,
-                precioMin: $precioMin !== null ? (int)$precioMin : null,
-                precioMax: $precioMax !== null ? (int)$precioMax : null,
-                enStock: $enStock !== null ? filter_var($enStock, FILTER_VALIDATE_BOOLEAN) : null,
-                ordenar: $ordenar,
-                pagina: $pagina,
-                porPagina: $porPagina
+                $categoria ? (int)$categoria : null,
+                $busqueda,
+                $precioMin !== null ? (int)$precioMin : null,
+                $precioMax !== null ? (int)$precioMax : null,
+                $enStock !== null ? filter_var($enStock, FILTER_VALIDATE_BOOLEAN) : null,
+                $ordenar,
+                $pagina,
+                $porPagina
             );
 
             $response->paginated(

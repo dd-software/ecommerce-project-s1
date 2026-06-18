@@ -95,14 +95,15 @@ class CheckoutService
             }
 
             // Crear el pedido (RN-D03: estado inicial = pendiente)
+            // Versión compatible con PHP 7.x (bloques posicionales)
             $pedidoId = $this->repository->crearPedido(
-                userId: $userId,
-                subtotal: $subtotal,
-                iva: $iva,
-                total: $total,
-                direccionEnvio: $direccionEnvio,
-                telefono: $telefono,
-                notas: $notas
+                $userId,
+                $subtotal,
+                $iva,
+                $total,
+                $direccionEnvio,
+                $telefono,
+                $notas
             );
 
             // Registrar estado inicial (RN-005)
@@ -112,15 +113,12 @@ class CheckoutService
             foreach ($items as $item) {
                 $producto = (new CatalogoRepository())->buscarPorId((int)$item['id_producto']);
                 $this->repository->agregarDetalle(
-                    pedidoId: $pedidoId,
-                    productoId: (int)$item['id_producto'],
-                    nombreProducto: $producto ? $producto['nombre'] : ($item['nombre'] ?? 'Producto'),
-                    cantidad: (int)$item['cantidad'],
-                    precioUnitario: (int)$item['precio_unitario']
+                    $pedidoId,
+                    (int)$item['id_producto'],
+                    $producto ? $producto['nombre'] : ($item['nombre'] ?? 'Producto'),
+                    (int)$item['item_cantidad'] ?? (int)$item['cantidad'],
+                    (int)$item['precio_unitario']
                 );
-
-                // NO descontar stock aquí (RN-003: solo tras pago confirmado)
-                // El descuento de stock ocurre en el módulo de Pagos
             }
 
             // Aplicar cupón si se usó

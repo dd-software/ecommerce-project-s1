@@ -42,14 +42,15 @@ class InventarioService
     {
         $stockAnterior = $this->repository->obtenerStock($productoId);
 
+        // Parámetros posicionales para compatibilidad PHP 7.x
         $this->repository->registrarMovimiento(
-            productoId: $productoId,
-            cantidad: -$cantidad,
-            tipo: 'egreso',
-            motivo: $motivo,
-            pedidoId: $pedidoId,
-            stockAnterior: $stockAnterior,
-            stockNuevo: $stockAnterior - $cantidad
+            $productoId,
+            -$cantidad,
+            'egreso',
+            $motivo,
+            $pedidoId,
+            $stockAnterior,
+            $stockAnterior - $cantidad
         );
     }
 
@@ -97,16 +98,16 @@ class InventarioService
             // Actualizar stock en tabla productos
             $this->repository->actualizarStock($productoId, $nuevoStock);
 
-            // Registrar movimiento
+            // Registrar movimiento (Parámetros posicionales para compatibilidad PHP 7.x)
             $this->repository->registrarMovimiento(
-                productoId: $productoId,
-                cantidad: $cantidadMov,
-                tipo: $tipo,
-                motivo: $motivo,
-                pedidoId: null,
-                stockAnterior: $stockAnterior,
-                stockNuevo: $nuevoStock,
-                userId: $userId
+                $productoId,
+                $cantidadMov,
+                $tipo,
+                $motivo,
+                null,
+                $stockAnterior,
+                $nuevoStock,
+                $userId
             );
 
             $db->commit();

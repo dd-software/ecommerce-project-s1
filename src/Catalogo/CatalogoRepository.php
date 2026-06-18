@@ -56,14 +56,14 @@ class CatalogoRepository
         $whereSQL = implode(' AND ', $where);
 
         // Ordenamiento
-        $orderSQL = match ($ordenar) {
-            'precio_asc'  => 'p.precio ASC',
-            'precio_desc' => 'p.precio DESC',
-            'nombre_asc'  => 'p.nombre ASC',
-            'nombre_desc' => 'p.nombre DESC',
-            'nuevos'      => 'p.created_at DESC',
-            default       => 'p.nombre ASC',
-        };
+        switch ($ordenar) {
+            case 'precio_asc':  $orderSQL = 'p.precio ASC'; break;
+            case 'precio_desc': $orderSQL = 'p.precio DESC'; break;
+            case 'nombre_asc':  $orderSQL = 'p.nombre ASC'; break;
+            case 'nombre_desc': $orderSQL = 'p.nombre DESC'; break;
+            case 'nuevos':      $orderSQL = 'p.created_at DESC'; break;
+            default:            $orderSQL = 'p.nombre ASC'; break;
+        }
 
         // Contar total
         $countSQL = "SELECT COUNT(*) as total FROM productos p WHERE {$whereSQL}";

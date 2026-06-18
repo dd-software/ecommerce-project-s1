@@ -139,10 +139,10 @@ class AdminController
             $request->validateRequired(['estado']);
 
             $this->service->cambiarEstadoPedido(
-                pedidoId: $pedidoId,
-                nuevoEstado: $data['estado'],
-                userId: (int)$user['id'],
-                comentario: $data['comentario'] ?? ''
+                $pedidoId,
+                $data['estado'],
+                (int)$user['id'],
+                $data['comentario'] ?? ''
             );
 
             $response->json(['mensaje' => 'Estado actualizado exitosamente.']);

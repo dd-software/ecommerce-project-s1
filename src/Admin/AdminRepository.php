@@ -318,13 +318,13 @@ class AdminRepository
 
     public function obtenerReporteVentas(string $periodo): array
     {
-        $fechaInicio = match ($periodo) {
-            'hoy'     => "CURDATE()",
-            'semana'  => "DATE_SUB(CURDATE(), INTERVAL 7 DAY)",
-            'mes'     => "DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
-            'anio'    => "DATE_SUB(CURDATE(), INTERVAL 365 DAY)",
-            default   => "DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
-        };
+        switch ($periodo) {
+            case 'hoy':     $fechaInicio = "CURDATE()"; break;
+            case 'semana':  $fechaInicio = "DATE_SUB(CURDATE(), INTERVAL 7 DAY)"; break;
+            case 'mes':     $fechaInicio = "DATE_SUB(CURDATE(), INTERVAL 30 DAY)"; break;
+            case 'anio':    $fechaInicio = "DATE_SUB(CURDATE(), INTERVAL 365 DAY)"; break;
+            default:        $fechaInicio = "DATE_SUB(CURDATE(), INTERVAL 30 DAY)"; break;
+        }
 
         $stmt = $this->db->prepare(
             "SELECT DATE(created_at) as fecha,

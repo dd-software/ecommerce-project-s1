@@ -34,11 +34,12 @@ class PagosController
             $data = $request->getBody();
             $request->validateRequired(['pedido_id', 'metodo_pago']);
 
+            // Versión compatible con PHP 7.x (bloques posicionales)
             $resultado = $this->service->procesarPago(
-                pedidoId: (int)$data['pedido_id'],
-                metodoPago: $data['metodo_pago'],
-                tokenTarjeta: $data['token_tarjeta'] ?? 'sim_tok_' . bin2hex(random_bytes(8)),
-                userId: (int)$user['id']
+                (int)$data['pedido_id'],
+                $data['metodo_pago'],
+                $data['token_tarjeta'] ?? 'sim_tok_' . bin2hex(random_bytes(8)),
+                (int)$user['id']
             );
 
             $response->json($resultado);

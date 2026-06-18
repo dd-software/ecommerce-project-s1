@@ -39,10 +39,10 @@ class IntegracionController
             $request->validateRequired(['destinatario', 'asunto', 'cuerpo']);
 
             $resultado = $this->service->encolarEmail(
-                destinatario: $data['destinatario'],
-                asunto: $data['asunto'],
-                cuerpo: $data['cuerpo'],
-                tipo: $data['tipo'] ?? 'email'
+                $data['destinatario'],
+                $data['asunto'],
+                $data['cuerpo'],
+                $data['tipo'] ?? 'email'
             );
 
             $response->json($resultado, 201);
@@ -155,9 +155,9 @@ class IntegracionController
             $request->validateRequired(['pedido_id', 'email_cliente']);
 
             $this->service->notificarConfirmacionPedido(
-                pedidoId: (int)$data['pedido_id'],
-                emailCliente: $data['email_cliente'],
-                nombreCliente: $data['nombre_cliente'] ?? 'Cliente'
+                (int)$data['pedido_id'],
+                $data['email_cliente'],
+                $data['nombre_cliente'] ?? 'Cliente'
             );
 
             $response->json(['mensaje' => 'Notificación encolada exitosamente.']);
