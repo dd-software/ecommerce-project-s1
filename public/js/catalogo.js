@@ -12,6 +12,9 @@ const Catalogo = {
      * Inicializa la página de catálogo
      */
     async init() {
+        // Cargar productos destacados (KAN-104)
+        this.loadFeatured();
+
         // Cargar categorías
         await this.loadCategories();
 
@@ -20,6 +23,9 @@ const Catalogo = {
 
         // Event listeners de filtros
         this.initFilters();
+
+        // Inicializar Instant Search (KAN-105)
+        this.initInstantSearch();
     },
 
     /**
@@ -87,7 +93,23 @@ const Catalogo = {
         const container = document.getElementById('products-container');
         if (!container) return;
 
-        container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        container.innerHTML = Array(8).fill(0).map(() => `
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="product-card skeleton-card">
+                    <div class="skeleton skeleton-img"></div>
+                    <div class="card-body">
+                        <div class="skeleton skeleton-text skeleton-category"></div>
+                        <div class="skeleton skeleton-text skeleton-title font-weight-bold"></div>
+                        <div class="skeleton skeleton-text skeleton-description"></div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <div class="skeleton skeleton-text skeleton-price"></div>
+                        </div>
+                        <div class="skeleton skeleton-button mt-2"></div>
+                        <div class="skeleton skeleton-button mt-1"></div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
 
         const params = new URLSearchParams();
         if (this.filters.categoria) params.set('categoria', this.filters.categoria);
@@ -316,6 +338,182 @@ const Catalogo = {
                 btn.textContent = 'Agregar al Carrito';
             }
         });
+    },
+
+    /**
+     * KAN-104: Carga y renderiza productos destacados
+     */
+    async loadFeatured() {
+        const section = document.getElementById('destacados-section');
+        if (!section) return;
+
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo/destacados`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+
+            if (data.success && data.data && data.data.length > 0) {
+                this.renderFeatured(data.data);
+                section.classList.remove('d-none');
+            }
+        } catch (e) {
+            // silencioso: si destacados falla, el catálogo sigue funcionando
+        }
+    },
+
+    /**
+     * KAN-104: Renderiza cards de productos destacados
+     */
+    renderFeatured(products) {
+        const container = document.getElementById('destacados-container');
+        if (!container) return;
+
+        container.innerHTML = products.slice(0, 4).map(p => {
+            const addBtn = p.sin_stock
+                ? `<button class="btn btn-secondary btn-sm w-100" disabled>Sin Stock</button>`
+                : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
+
+            return `
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="featured-card position-relative">
+                    <span class="featured-badge"><i class="bi bi-star-fill me-1"></i>Destacado</span>
+                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x200?text=Sin+Imagen'}"
+                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
+                         onerror="this.src='https://via.placeholder.com/400x200?text=Sin+Imagen'">
+                    <div class="p-3">
+                        <span class="card-category d-block mb-1">${this.escapeHtml(p.categoria_nombre || '')}</span>
+                        <h6 class="fw-bold mb-1">${this.escapeHtml(p.nombre)}</h6>
+                        <p class="card-price mb-3">${p.precio_formateado || App.formatPrice(p.precio)}</p>
+                        <div class="d-grid gap-1">
+                            ${addBtn}
+                            <a href="producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm">Ver Detalle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    },
+
+    // ============================================================
+    // KAN-105: Instant Search
+    // ============================================================
+    _searchDebounce: null,
+
+    /**
+     * KAN-105: Inicializa el autocompletado de búsqueda en tiempo real
+     */
+    initInstantSearch() {
+        const input = document.getElementById('search-input-catalogo');
+        const suggestionsBox = document.getElementById('search-suggestions');
+        if (!input || !suggestionsBox) return;
+
+        // Input con debounce de 320ms
+        input.addEventListener('input', () => {
+            clearTimeout(this._searchDebounce);
+            const q = input.value.trim();
+
+            if (q.length < 2) {
+                this.hideSuggestions();
+                return;
+            }
+
+            this._searchDebounce = setTimeout(() => this.fetchSuggestions(q), 320);
+        });
+
+        // Cerrar sugerencias al hacer click fuera
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                this.hideSuggestions();
+            }
+        });
+
+        // Cerrar con Escape
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.hideSuggestions();
+        });
+    },
+
+    /**
+     * KAN-105: Consulta la API y muestra las sugerencias
+     */
+    async fetchSuggestions(q) {
+        const suggestionsBox = document.getElementById('search-suggestions');
+        if (!suggestionsBox) return;
+
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo?q=${encodeURIComponent(q)}&por_pagina=5&pagina=1`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+
+            if (data.success && data.data) {
+                this.renderSuggestions(data.data, q, data.meta?.pagination?.total || 0);
+            } else {
+                this.hideSuggestions();
+            }
+        } catch (e) {
+            this.hideSuggestions();
+        }
+    },
+
+    /**
+     * KAN-105: Renderiza el dropdown de sugerencias
+     */
+    renderSuggestions(products, query, total) {
+        const box = document.getElementById('search-suggestions');
+        if (!box) return;
+
+        if (products.length === 0) {
+            box.innerHTML = `<div class="search-suggestion-item text-muted"><i class="bi bi-search me-2"></i>Sin resultados para "${this.escapeHtml(query)}"</div>`;
+            box.classList.remove('d-none');
+            return;
+        }
+
+        // Resaltar coincidencia en nombre
+        const highlight = (str) => {
+            const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            return str.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="bg-warning bg-opacity-50 rounded px-0">$1</mark>');
+        };
+
+        const items = products.map(p => `
+            <a href="producto.html?id=${p.id}" class="search-suggestion-item">
+                <img src="${p.imagen_url || 'https://via.placeholder.com/42x42?text=P'}" class="suggestion-img"
+                     onerror="this.src='https://via.placeholder.com/42x42?text=P'" alt="">
+                <div class="suggestion-info flex-grow-1">
+                    <div class="name">${highlight(this.escapeHtml(p.nombre))}</div>
+                    <div class="cat">${this.escapeHtml(p.categoria_nombre || '')}</div>
+                    <div class="price">${p.precio_formateado || App.formatPrice(p.precio)}</div>
+                </div>
+                <i class="bi bi-arrow-right text-muted"></i>
+            </a>`).join('');
+
+        const footer = total > 5
+            ? `<div class="search-suggestions-footer" id="suggestion-see-all">
+                <i class="bi bi-search me-1"></i>Ver los ${total} resultados para "${this.escapeHtml(query)}"
+               </div>`
+            : '';
+
+        box.innerHTML = items + footer;
+        box.classList.remove('d-none');
+
+        // Click en "ver todos" aplica búsqueda
+        const seeAll = document.getElementById('suggestion-see-all');
+        if (seeAll) {
+            seeAll.addEventListener('click', () => {
+                this.filters.q = query;
+                this.currentPage = 1;
+                this.hideSuggestions();
+                this.loadProducts();
+                document.getElementById('catalog-main')?.scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+    },
+
+    /**
+     * KAN-105: Oculta el panel de sugerencias
+     */
+    hideSuggestions() {
+        const box = document.getElementById('search-suggestions');
+        if (box) box.classList.add('d-none');
     },
 
     /**
