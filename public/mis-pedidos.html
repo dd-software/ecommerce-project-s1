@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos | UCT Ecommerce</title>
+    <meta name="description" content="Historial completo de tus pedidos en la tienda UCT Ecommerce. Consulta el estado de tus compras en tiempo real.">
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* === Timeline de estado === */
+        .order-timeline {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-top: 0.75rem;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .timeline-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 60px;
+            position: relative;
+        }
+
+        .timeline-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: #dee2e6;
+            z-index: 0;
+        }
+
+        .timeline-step.done:not(:last-child)::after {
+            background-color: var(--uct-primary);
+        }
+
+        .timeline-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #dee2e6;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            position: relative;
+            z-index: 1;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #dee2e6;
+            transition: all 0.3s;
+        }
+
+        .timeline-step.done .timeline-icon {
+            background: var(--uct-primary);
+            color: white;
+            box-shadow: 0 0 0 2px var(--uct-primary);
+        }
+
+        .timeline-step.active .timeline-icon {
+            background: var(--uct-accent);
+            color: var(--uct-text-dark);
+            box-shadow: 0 0 0 2px var(--uct-accent);
+        }
+
+        .timeline-step.cancelled .timeline-icon {
+            background: var(--uct-danger);
+            color: white;
+            box-shadow: 0 0 0 2px var(--uct-danger);
+        }
+
+        .timeline-label {
+            font-size: 0.6rem;
+            color: var(--uct-text-muted);
+            text-align: center;
+            margin-top: 4px;
+            line-height: 1.2;
+            max-width: 55px;
+        }
+
+        .timeline-step.done .timeline-label,
+        .timeline-step.active .timeline-label {
+            color: var(--uct-text-dark);
+            font-weight: 600;
+        }
+
+        /* === Order Card === */
+        .order-card {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            transition: box-shadow 0.2s, transform 0.2s;
+            overflow: hidden;
+        }
+
+        .order-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 51, 102, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .order-card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 1.25rem;
+        }
+
+        .order-number {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--uct-primary);
+        }
+
+        .order-date {
+            font-size: 0.8rem;
+            color: var(--uct-text-muted);
+        }
+
+        /* === Hero de Mis Pedidos === */
+        .pedidos-hero {
+            background: linear-gradient(135deg, var(--uct-primary) 0%, var(--uct-primary-light) 100%);
+            color: white;
+            padding: 2.5rem 0;
+        }
+
+        /* === Empty State === */
+        .empty-orders {
+            text-align: center;
+            padding: 5rem 2rem;
+        }
+
+        .empty-orders .icon-wrapper {
+            width: 96px;
+            height: 96px;
+            background: rgba(0, 51, 102, 0.08);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* === Badge de estado === */
+        .status-pill {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* === Skeleton para mis pedidos === */
+        .order-skeleton-card {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+            background: white;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Navbar UCT Design System -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-uct sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="./">🛒 Ecommerce UCT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./"><i class="bi bi-shop"></i> Tienda</a>
+                    </li>
+                    <!-- Sin autenticar -->
+                    <li class="nav-item d-none" id="auth-links">
+                        <a class="nav-link" href="login"><i class="bi bi-person"></i> Iniciar Sesión</a>
+                    </li>
+                    <li class="nav-item dropdown d-none" id="user-links">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item d-none" href="admin" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
+                            <li><a class="dropdown-item active" href="mis-pedidos.html"><i class="bi bi-bag"></i> Mis Pedidos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="nav-link position-relative d-inline-flex align-items-center" href="./" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+                            <i class="bi bi-cart3 fs-5 me-1"></i> Carrito
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill badge-cart" id="cart-count">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="pedidos-hero">
+        <div class="container">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-white bg-opacity-10 rounded-3 p-3">
+                    <i class="bi bi-bag-heart-fill fs-3 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="fw-bold mb-1 fs-3">Mis Pedidos</h1>
+                    <p class="mb-0 opacity-75 small">Consulta el historial completo y estado de tus compras.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-5 flex-grow-1">
+
+        <!-- Filtros rápidos -->
+        <div class="d-flex flex-wrap gap-2 mb-4" id="status-filters">
+            <button class="btn btn-primary-uct btn-sm fw-semibold active" data-filter="" id="filter-all">
+                <i class="bi bi-grid-fill me-1"></i>Todos
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" data-filter="pendiente">
+                <i class="bi bi-clock me-1"></i>Pendientes
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" data-filter="pagado">
+                <i class="bi bi-credit-card me-1"></i>Pagados
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" data-filter="en_preparacion">
+                <i class="bi bi-box-seam me-1"></i>En Preparación
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" data-filter="enviado">
+                <i class="bi bi-truck me-1"></i>Enviados
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" data-filter="entregado">
+                <i class="bi bi-check-circle me-1"></i>Entregados
+            </button>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" data-filter="cancelado">
+                <i class="bi bi-x-circle me-1"></i>Cancelados
+            </button>
+        </div>
+
+        <!-- Contador de resultados -->
+        <p class="text-muted small mb-3" id="results-count"></p>
+
+        <!-- Lista de pedidos -->
+        <div id="orders-container">
+            <!-- Skeleton loading -->
+            <div id="orders-skeleton">
+                <div class="order-skeleton-card mb-4 p-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height:1.2rem;width:120px;border-radius:4px;"></div>
+                        <div class="skeleton" style="height:1.2rem;width:80px;border-radius:4px;"></div>
+                    </div>
+                    <div class="skeleton" style="height:0.9rem;width:200px;border-radius:4px;margin-bottom:0.75rem;"></div>
+                    <div class="skeleton" style="height:60px;width:100%;border-radius:8px;"></div>
+                </div>
+                <div class="order-skeleton-card mb-4 p-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height:1.2rem;width:150px;border-radius:4px;"></div>
+                        <div class="skeleton" style="height:1.2rem;width:90px;border-radius:4px;"></div>
+                    </div>
+                    <div class="skeleton" style="height:0.9rem;width:180px;border-radius:4px;margin-bottom:0.75rem;"></div>
+                    <div class="skeleton" style="height:60px;width:100%;border-radius:8px;"></div>
+                </div>
+                <div class="order-skeleton-card mb-4 p-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height:1.2rem;width:130px;border-radius:4px;"></div>
+                        <div class="skeleton" style="height:1.2rem;width:70px;border-radius:4px;"></div>
+                    </div>
+                    <div class="skeleton" style="height:0.9rem;width:210px;border-radius:4px;margin-bottom:0.75rem;"></div>
+                    <div class="skeleton" style="height:60px;width:100%;border-radius:8px;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+    <!-- Footer UCT Design System -->
+    <footer class="footer mt-auto text-white-50">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-md-start mb-3 mb-md-0">
+                    <h5 class="fw-bold text-white mb-1">🛒 Ecommerce UCT</h5>
+                    <p class="small mb-2 text-white-50">Plataforma académica modular de comercio electrónico.</p>
+                    <p class="small mb-0 text-white-50">&copy; 2026 Universidad Católica de Temuco. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="small mb-2 text-white-50">DDS + IA - Universidad Católica de Temuco</p>
+                    <p class="small mb-0">
+                        <a href="admin" class="text-accent fw-semibold text-decoration-none">
+                            <i class="bi bi-speedometer2"></i> Acceso Administrador
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // ======================================================
+        // Configuración de estados
+        // ======================================================
+        const ESTADOS = {
+            pendiente:      { label: 'Pendiente',       icon: 'clock',               bg: '#ffeaa7', color: '#856404' },
+            pagado:         { label: 'Pagado',           icon: 'credit-card',         bg: '#81ecec', color: '#006064' },
+            en_preparacion: { label: 'En Preparación',  icon: 'box-seam',            bg: '#a29bfe', color: '#3c1a9e' },
+            enviado:        { label: 'Enviado',          icon: 'truck',               bg: '#74b9ff', color: '#003d6b' },
+            entregado:      { label: 'Entregado',        icon: 'check-circle-fill',   bg: '#55efc4', color: '#006b3c' },
+            cancelado:      { label: 'Cancelado',        icon: 'x-circle-fill',       bg: '#fab1a0', color: '#8b0000' },
+        };
+
+        // Secuencia normal del timeline
+        const TIMELINE_STATES = ['pendiente', 'pagado', 'en_preparacion', 'enviado', 'entregado'];
+
+        let allOrders = [];
+        let activeFilter = '';
+
+        // ======================================================
+        // Inicialización
+        // ======================================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            App.init();
+
+            // Verificar autenticación
+            if (!App.user) {
+                window.location.href = 'login?redirect=mis-pedidos.html';
+                return;
+            }
+
+            await loadOrders();
+            initFilters();
+        });
+
+        // ======================================================
+        // Cargar pedidos desde la API
+        // ======================================================
+        async function loadOrders() {
+            try {
+                const resp = await App.fetchAuth(`${App.apiBase}/pedidos`);
+                const data = await resp.json();
+
+                document.getElementById('orders-skeleton').remove();
+
+                if (!data.success) {
+                    throw new Error(data.error?.message || 'Error al cargar pedidos.');
+                }
+
+                allOrders = data.data || [];
+                renderOrders(allOrders);
+
+            } catch (err) {
+                document.getElementById('orders-skeleton')?.remove();
+                document.getElementById('orders-container').innerHTML = `
+                    <div class="alert alert-danger text-center py-5">
+                        <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
+                        <h5>Error al cargar tus pedidos</h5>
+                        <p class="mb-0">${escapeHtml(err.message)}</p>
+                        <a href="./" class="btn btn-primary-uct mt-3">Volver a la Tienda</a>
+                    </div>`;
+            }
+        }
+
+        // ======================================================
+        // Filtros de estado
+        // ======================================================
+        function initFilters() {
+            document.querySelectorAll('#status-filters button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#status-filters button').forEach(b => {
+                        b.classList.remove('btn-primary-uct', 'active');
+                        b.classList.add('btn-outline-secondary');
+                    });
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-primary-uct', 'active');
+
+                    activeFilter = btn.dataset.filter;
+                    const filtered = activeFilter
+                        ? allOrders.filter(o => o.estado === activeFilter)
+                        : allOrders;
+                    renderOrders(filtered);
+                });
+            });
+        }
+
+        // ======================================================
+        // Renderizar lista de pedidos
+        // ======================================================
+        function renderOrders(orders) {
+            const container = document.getElementById('orders-container');
+            const countEl = document.getElementById('results-count');
+
+            if (countEl) {
+                countEl.textContent = orders.length === 0
+                    ? 'No se encontraron pedidos.'
+                    : `Mostrando ${orders.length} pedido${orders.length !== 1 ? 's' : ''}`;
+            }
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-orders">
+                        <div class="icon-wrapper">
+                            <i class="bi bi-bag-x fs-1 text-primary opacity-50"></i>
+                        </div>
+                        <h5 class="fw-bold text-muted mb-2">
+                            ${activeFilter ? 'No tienes pedidos con este estado' : '¡Aún no tienes pedidos!'}
+                        </h5>
+                        <p class="text-muted mb-4">
+                            ${activeFilter ? 'Prueba con otro filtro de estado.' : 'Explora nuestro catálogo y realiza tu primera compra.'}
+                        </p>
+                        <a href="./" class="btn btn-primary-uct px-4 py-2 fw-semibold">
+                            <i class="bi bi-cart me-2"></i>Ir a la Tienda
+                        </a>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => buildOrderCard(order)).join('');
+        }
+
+        // ======================================================
+        // Construir tarjeta de pedido
+        // ======================================================
+        function buildOrderCard(order) {
+            const estado = order.estado || 'pendiente';
+            const cfg = ESTADOS[estado] || ESTADOS.pendiente;
+            const fecha = order.created_at
+                ? new Date(order.created_at).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
+                : 'Fecha desconocida';
+
+            const isCancelled = estado === 'cancelado';
+
+            // Resumen de ítems
+            const itemsPreview = (order.items || []).slice(0, 3).map(item =>
+                `<span class="badge bg-light text-dark border me-1 mb-1">${escapeHtml(item.nombre || item.nombre_producto || 'Producto')} ×${item.cantidad}</span>`
+            ).join('');
+            const moreItems = (order.items || []).length > 3
+                ? `<span class="badge bg-secondary ms-1">+${order.items.length - 3} más</span>`
+                : '';
+
+            // Timeline
+            const timelineHTML = isCancelled
+                ? `<div class="mt-2">
+                    <span class="badge" style="background:${cfg.bg};color:${cfg.color};padding:0.4rem 1rem;border-radius:20px;font-size:0.8rem;">
+                        <i class="bi bi-x-circle me-1"></i>Pedido Cancelado
+                    </span>
+                   </div>`
+                : buildTimeline(estado);
+
+            // Total
+            const total = order.monto_total || order.total;
+            const totalFormatted = total ? App.formatPrice(total) : '—';
+
+            return `
+            <div class="order-card mb-4" id="order-${order.id}">
+                <div class="order-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <span class="order-number"><i class="bi bi-receipt me-1"></i>Pedido #${order.id}</span>
+                        <span class="order-date ms-2">· ${fecha}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="status-pill" style="background:${cfg.bg};color:${cfg.color};">
+                            <i class="bi bi-${cfg.icon} me-1"></i>${cfg.label}
+                        </span>
+                        <span class="fw-bold text-primary">${totalFormatted}</span>
+                    </div>
+                </div>
+                <div class="p-3 p-md-4">
+                    ${(order.items && order.items.length > 0) ? `
+                    <div class="mb-3">
+                        <small class="text-muted fw-semibold text-uppercase d-block mb-1" style="font-size:0.7rem;letter-spacing:0.5px;">Productos</small>
+                        <div>${itemsPreview}${moreItems}</div>
+                    </div>` : ''}
+
+                    <div class="mb-1">
+                        <small class="text-muted fw-semibold text-uppercase d-block mb-1" style="font-size:0.7rem;letter-spacing:0.5px;">Progreso del Pedido</small>
+                        ${timelineHTML}
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a href="pedido-confirmado.html?pedido_id=${order.id}"
+                           class="btn btn-outline-uct btn-sm fw-semibold"
+                           id="btn-ver-pedido-${order.id}">
+                            <i class="bi bi-eye me-1"></i>Ver Detalle
+                        </a>
+                        ${!isCancelled && (order.direccion_envio || order.direccion) ? `
+                        <span class="btn btn-light btn-sm text-muted pe-none">
+                            <i class="bi bi-geo-alt me-1"></i>${escapeHtml((order.direccion_envio || order.direccion || '').substring(0, 40))}${(order.direccion_envio || order.direccion || '').length > 40 ? '…' : ''}
+                        </span>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // ======================================================
+        // Construir timeline de estado
+        // ======================================================
+        function buildTimeline(currentState) {
+            const currentIndex = TIMELINE_STATES.indexOf(currentState);
+
+            const steps = TIMELINE_STATES.map((state, idx) => {
+                const cfg = ESTADOS[state];
+                let cssClass = '';
+                if (idx < currentIndex) cssClass = 'done';
+                else if (idx === currentIndex) cssClass = 'active';
+
+                return `
+                <div class="timeline-step ${cssClass}">
+                    <div class="timeline-icon">
+                        <i class="bi bi-${cfg.icon}"></i>
+                    </div>
+                    <span class="timeline-label">${cfg.label}</span>
+                </div>`;
+            });
+
+            return `<div class="order-timeline">${steps.join('')}</div>`;
+        }
+
+        // ======================================================
+        // Helper: escape HTML
+        // ======================================================
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
