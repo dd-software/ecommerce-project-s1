@@ -169,13 +169,29 @@ const Carrito = {
         // Proceder al pago (delegado)
         document.addEventListener('click', (e) => {
             if (e.target.id === 'btn-checkout') {
+                e.preventDefault();
+                if (!App.user) {
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+                    loginModal.show();
+                } else {
+                    Checkout.loadCart();
+                    const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+                    checkoutModal.show();
+                }
+            }
+        });
+
+
+        /* // Proceder al pago (delegado)
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'btn-checkout') {
                 if (!App.user) {
                     window.location.href = '/login.html';
                 } else {
                     window.location.href = '/checkout.html';
                 }
             }
-        });
+        }); */
 
         // Vaciar carrito (delegado)
         document.addEventListener('click', async (e) => {

@@ -173,7 +173,7 @@
               <textarea class="form-control" id="order-notes" rows="2"></textarea>
             </div>
             <div id="checkout-error" class="alert alert-danger d-none"></div>
-            <button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Confirmar
+            <button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" enable>Confirmar
               Pedido</button>
           </form>
         </div>
@@ -193,8 +193,21 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       Catalogo.init();
+      Carrito.init();
+
+      // Inicializar eventos del checkout (formulario, cupón, etc.)
+      Checkout.initEventListeners();
+
+      // Al abrir modal checkout, cargar datos del carrito
+      const checkoutModal = document.getElementById('checkoutModal');
+      if (checkoutModal) {
+        checkoutModal.addEventListener('show.bs.modal', () => {
+          Checkout.loadCart();
+        });
+      }
     });
   </script>
+
 </body>
 
 </html>
