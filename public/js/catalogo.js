@@ -15,11 +15,25 @@ const Catalogo = {
         // Cargar categorías
         await this.loadCategories();
 
-        // Cargar productos iniciales
-        await this.loadProducts();
+        // Verificar si hay una búsqueda activa o filtro en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasSearch = urlParams.has('search') || urlParams.has('q') || urlParams.has('categoria');
+
+        if (hasSearch) {
+            // Mostrar la vista de búsqueda/filtros
+            document.getElementById('catalog-search-view')?.classList.remove('d-none');
+            document.getElementById('catalog-home-view')?.classList.add('d-none');
+            await this.loadProducts();
+        } else {
+            // Mostrar la vista de secciones
+            document.getElementById('catalog-search-view')?.classList.add('d-none');
+            document.getElementById('catalog-home-view')?.classList.remove('d-none');
+            await this.loadHomeSections();
+        }
 
         // Event listeners de filtros
         this.initFilters();
+        this.initHomeEvents();
     },
 
     /**
@@ -162,7 +176,7 @@ const Catalogo = {
             : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
 
         return `
-            <div class="col-md-4 col-lg-3 mb-4">
+            <div class="col-md-6 col-lg-3 mb-4">
                 <div class="product-card position-relative">
                     ${stockBadge}
                     <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
@@ -435,5 +449,98 @@ const Catalogo = {
                 }
             });
         });
+    },
+
+    /**
+     * Carga los productos para las secciones principales de la home
+     */
+    async loadHomeSections() {
+        await Promise.all([
+            this.loadSectionProducts(1, 'tech-section-container', 4),
+            this.loadSectionProducts(8, 'sports-section-container', 4),
+            this.loadSectionProducts(5, 'fashion-section-container', 4),
+            this.loadSectionProducts(10, 'books-section-container', 4)
+        ]);
+    },
+
+    /**
+     * Carga productos de una sección específica
+     */
+    async loadSectionProducts(catId, containerId, limit = 4) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo?categoria=${catId}&por_pagina=${limit}`);
+            const data = await resp.json();
+
+            if (data.success && data.data && data.data.length > 0) {
+                container.innerHTML = data.data.map(p => this.productCard(p)).join('');
+                this.applyImageFallbacks(container);
+            } else {
+                container.innerHTML = '<div class="col-12 text-center py-4 text-muted">No hay productos en esta categoría.</div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="col-12 text-center py-4 text-danger">Error al cargar productos.</div>';
+        }
+    },
+
+    /**
+     * Configura eventos de navegación y vista de la home categorizada
+     */
+    initHomeEvents() {
+        // Clic en píldoras o ver todo
+        document.querySelectorAll('.view-category-btn-home').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const catId = link.dataset.cat;
+                if (!catId) return;
+
+                this.filters.categoria = catId;
+                this.currentPage = 1;
+
+                // Cambiar visualización
+                document.getElementById('catalog-home-view')?.classList.add('d-none');
+                document.getElementById('catalog-search-view')?.classList.remove('d-none');
+
+                // Título descriptivo
+                let catName = link.textContent.trim();
+                // Limpiar emoticonos o textos adicionales
+                if (link.classList.contains('view-category-btn-home') && link.closest('section')) {
+                    catName = link.closest('section').querySelector('h3').textContent.trim();
+                }
+
+                const titleEl = document.getElementById('search-results-title');
+                if (titleEl) titleEl.textContent = 'Productos en ' + catName;
+
+                this.loadProducts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Clic en volver al inicio
+        const btnClear = document.getElementById('btn-clear-search-filters');
+        if (btnClear) {
+            btnClear.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.filters = {};
+                this.currentPage = 1;
+
+                // Limpiar barra de búsqueda global
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) searchInput.value = '';
+
+                // Limpiar URL query params
+                window.history.pushState({}, '', window.location.pathname);
+
+                // Alternar visualización
+                document.getElementById('catalog-search-view')?.classList.add('d-none');
+                document.getElementById('catalog-home-view')?.classList.remove('d-none');
+
+                this.loadHomeSections();
+            });
+        }
     }
 };

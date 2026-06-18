@@ -148,6 +148,21 @@ Este documento detalla todos los problemas identificados y corregidos en la plat
 * **Problema:** Al intentar probar el flujo del checkout tras remover la redirección a `/login.html`, el navegador seguía redirigiendo automáticamente a esa ruta inexistente. Esto se debía a que el navegador mantenía guardada en su caché local una copia obsoleta de los archivos HTML y JS, ignorando los cambios realizados en el código local de `checkout.js`.
 * **Solución:** Se agregaron parámetros de versión (`?v=2`) a las llamadas de scripts en [`public/index.html`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/index.html) y se añadieron directivas en el archivo [`.htaccess`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/.htaccess) para indicarle al navegador que nunca almacene en caché las páginas HTML, garantizando que el usuario siempre reciba los últimos scripts de frontend.
 
+---
+
+## 13. Reorganización de la Landing Page por Categorías y Soporte de Jerarquía de Productos
+* **Problema:**
+  * **Visualización Mezclada:** Por defecto, la landing page mostraba un grid genérico con todos los productos mezclados sin ningún criterio (celulares, libros, ropa de verano), lo cual hacía ver al sitio desorganizado y poco profesional.
+  * **Filtros por Categoría Padre Incompletos:** Al intentar filtrar por una categoría principal (como *Tecnología*), la API del catálogo no asociaba jerárquicamente a sus subcategorías (*Computadores*, *Celulares*, *Audio*), mostrando 0 productos al usuario al seleccionar la categoría padre.
+* **Solución:**
+  * **Secciones Separadas por Categorías:** Se reestructuró [`public/index.html`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/index.html) y [`public/js/catalogo.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/catalogo.js) para dividir la Landing Page por departamentos de forma nativa (*Tecnología*, *Deportes/Actividad Física*, *Moda y Ropa*, *Libros*), cargando una fila organizada de hasta 4 productos para cada categoría.
+  * **Píldoras de Acceso Rápido y Alternancia:** Se incorporaron botones/píldoras de categoría al inicio. Al hacer clic en una píldora o en "Ver Todo", la página oculta la Landing Page categorizada y despliega una vista de filtrado tradicional con la opción de "Volver al Inicio" en tiempo real sin recargar la página.
+  * **Soporte Jerárquico en Backend:** Se optimizó la consulta SQL en [`src/Catalogo/CatalogoRepository.php`](file:///c:/xampp/htdocs/ecommerce-project-s1/src/Catalogo/CatalogoRepository.php) para resolver la herencia de categorías, listando productos de la categoría seleccionada o de cualquiera de sus categorías hijas:
+    ```sql
+    (p.id_categoria = :categoria_id OR p.id_categoria IN (SELECT id FROM categorias WHERE id_padre = :categoria_id_parent))
+    ```
+
+
 
 
 

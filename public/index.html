@@ -51,8 +51,78 @@
 </nav>
 
 <main class="container mt-4">
-  <div id="products-container" class="row"></div>
-  <div id="pagination-container" class="d-flex justify-content-center mt-4"></div>
+  <!-- Vista de Búsqueda / Filtros (Oculta por defecto) -->
+  <div id="catalog-search-view" class="d-none">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 id="search-results-title" class="fw-bold text-dark">Resultados de búsqueda</h3>
+      <button class="btn btn-outline-secondary btn-sm" id="btn-clear-search-filters">Volver al Inicio</button>
+    </div>
+    <div id="products-container" class="row"></div>
+    <div id="pagination-container" class="d-flex justify-content-center mt-4"></div>
+  </div>
+
+  <!-- Vista por Defecto: Secciones Separadas por Categorías -->
+  <div id="catalog-home-view">
+    <!-- Hero Banner / Promociones -->
+    <div class="p-5 mb-5 bg-dark text-white rounded-3 position-relative overflow-hidden shadow-sm hero-banner-home" style="background: linear-gradient(135deg, var(--uct-primary) 0%, #0c2340 100%);">
+      <div class="row align-items-center">
+        <div class="col-md-7 position-relative z-index-1">
+          <span class="badge bg-warning text-dark mb-2 fw-bold px-3 py-2 text-uppercase">Novedades de la Semana</span>
+          <h1 class="display-4 fw-bold">Los mejores gadgets de Tecnología</h1>
+          <p class="lead">Encuentra notebooks, celulares y accesorios con descuentos exclusivos e IVA incluido.</p>
+          <a href="#" class="btn btn-accent btn-lg px-4 me-2 view-category-btn-home" data-cat="1">Ver Tecnología</a>
+        </div>
+        <div class="col-md-5 d-none d-md-block text-end">
+          <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=450" class="img-fluid rounded shadow-lg banner-img" alt="Tecnología" style="max-height: 200px; object-fit: cover;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Categorías Destacadas (Píldoras) -->
+    <div class="d-flex justify-content-center gap-2 mb-5 flex-wrap" id="home-category-pills">
+      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="1">💻 Tecnología</a>
+      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="8">🚴 Deportes</a>
+      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="5">👕 Moda y Ropa</a>
+      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="9">🏠 Hogar</a>
+      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="10">📚 Libros</a>
+    </div>
+
+    <!-- Sección Tecnología -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-laptop me-2"></i> Tecnología y Dispositivos</h3>
+        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="1">Ver todo <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div id="tech-section-container" class="row"></div>
+    </section>
+
+    <!-- Sección Deportes / Actividad Física -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-bicycle me-2"></i> Deportes y Actividad Física</h3>
+        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="8">Ver todo <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div id="sports-section-container" class="row"></div>
+    </section>
+
+    <!-- Sección Moda / Vestuario -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-bag-heart me-2"></i> Moda y Vestuario</h3>
+        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="5">Ver todo <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div id="fashion-section-container" class="row"></div>
+    </section>
+
+    <!-- Sección Libros e Insumos -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-book me-2"></i> Libros y Lectura</h3>
+        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="10">Ver todo <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div id="books-section-container" class="row"></div>
+    </section>
+  </div>
 </main>
 
 <!-- Detalle de producto -->
@@ -134,11 +204,11 @@
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app.js?v=2"></script>
-<script src="js/auth.js?v=2"></script>
-<script src="js/catalogo.js?v=2"></script>
-<script src="js/carrito.js?v=2"></script>
-<script src="js/checkout.js?v=2"></script>
+<script src="js/app.js?v=3"></script>
+<script src="js/auth.js?v=3"></script>
+<script src="js/catalogo.js?v=3"></script>
+<script src="js/carrito.js?v=3"></script>
+<script src="js/checkout.js?v=3"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     App.init();

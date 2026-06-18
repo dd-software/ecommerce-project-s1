@@ -29,8 +29,9 @@ class CatalogoRepository
         $params = [];
 
         if (isset($filtros['categoria_id'])) {
-            $where[] = "p.id_categoria = :categoria_id";
+            $where[] = "(p.id_categoria = :categoria_id OR p.id_categoria IN (SELECT id FROM categorias WHERE id_padre = :categoria_id_parent))";
             $params[':categoria_id'] = $filtros['categoria_id'];
+            $params[':categoria_id_parent'] = $filtros['categoria_id'];
         }
 
         if (isset($filtros['busqueda'])) {

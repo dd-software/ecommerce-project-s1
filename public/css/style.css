@@ -472,4 +472,36 @@ body {
     appearance: textfield;
 }
 
+/* === Home Banner and Category Pills === */
+.hero-banner-home {
+    background: linear-gradient(135deg, var(--uct-primary) 0%, #05162b 100%) !important;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hero-banner-home .banner-img {
+    transition: transform 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-banner-home:hover .banner-img {
+    transform: scale(1.03);
+}
+
+#home-category-pills .btn-outline-primary {
+    border-color: rgba(0, 51, 102, 0.15);
+    color: var(--uct-primary);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#home-category-pills .btn-outline-primary:hover {
+    background-color: var(--uct-primary);
+    border-color: var(--uct-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 51, 102, 0.1);
+}
+
+
 
