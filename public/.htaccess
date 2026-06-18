@@ -1,41 +1,43 @@
 Options -MultiViews -Indexes
 RewriteEngine On
 
-# IMPORTANTE: RewriteBase debe coincidir con la ruta del subdirectorio
-# Si el proyecto está en /~mvaldebenito2025/public/, usar ese path
+# Base del subdirectorio público
 RewriteBase /~mvaldebenito2025/public/
 
-<IfModule headers_module>
+<IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "DENY"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    # CSP ampliado para permitir Bootstrap CDN y Google Fonts
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://teclab.uct.cl"
+    
+    # CSP ampliado para permitir Bootstrap CDN, Google Fonts y cualquier imagen HTTPS/data URI
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://teclab.uct.cl https://cdn.jsdelivr.net"
+    
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Authorization, Content-Type, X-Request-ID, X-Session-Id"
     Header always set Access-Control-Max-Age "86400"
 </IfModule>
 
-<IfModule !headers_module>
-    # Si mod_headers no está disponible, se omite (seguridad básica igual funciona)
-</IfModule>
-
-# Manejo de preflight OPTIONS
+# Preflight OPTIONS
 RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^ - [R=200,L]
 
-# -------------------------------------------------------
-# Servir archivos HTML estáticos directamente (sin pasar por index.php)
-# Esto permite que admin.html, producto.html, etc. se sirvan como estáticos
-# -------------------------------------------------------
-RewriteRule ^(index|admin|producto|pedido-confirmado|catalogo|carrito|checkout|login)\.html$ - [L,NC]
+# ─────────────────────────────────────────────────────────────────────────────
+# CRÍTICO: Las páginas HTML principales pasan por index.php
+# para inyectar window.SERVER_API_BASE.
+# Sin esto Apache sirve los HTML directamente y el JS no recibe la URL base.
+# ─────────────────────────────────────────────────────────────────────────────
 
-# Permitir acceso directo a archivos y directorios existentes (assets, imágenes, css, js)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# Petición a raíz vacía → index.php
+RewriteRule ^$ index.php [QSA,L]
 
-# Enrutar el resto al front controller (API)
+# HTMLs específicos → index.php (inyección de API URL)
+RewriteRule ^(index|login|admin|producto|pedido-confirmado)\.html$ index.php [QSA,L]
+
+# Archivos estáticos existentes → servir directamente (css, js, img...)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Todo lo demás (API, rutas) → front controller
 RewriteRule ^ index.php [QSA,L]
-
