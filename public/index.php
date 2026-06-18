@@ -1,9 +1,38 @@
 <?php
+// Iniciar buffer de salida INMEDIATAMENTE para capturar cualquier output inesperado
+ob_start();
+// Desactivar display_errors de inmediato - los errores se manejan por JSON, no HTML
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
 declare(strict_types=1);
 /**
  * Front Controller - Punto de entrada único de la aplicación
  * Maneja todas las peticiones HTTP y enruta a los controladores correspondientes
  */
+
+// Capturar errores y convertirlos en JSON para evitar romper el frontend
+set_exception_handler(function ($e) {
+    // Limpiar TODOS los niveles de buffer para no corromper el JSON con warnings anteriores
+    while (ob_get_level() > 0) ob_end_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => [
+            'code' => 'SERVER_ERROR',
+            'message' => $e->getMessage(),
+            'file'    => basename($e->getFile()),
+            'line'    => $e->getLine()
+        ]
+    ]);
+    exit;
+});
+
+set_error_handler(function ($severity, $message, $file, $line) {
+    if (!(error_reporting() & $severity)) return;
+    throw new \ErrorException($message, 0, $severity, $file, $line);
+});
+
 // Cargar configuración
 require_once __DIR__ . '/../config/app.php';
 // Cargar autoloader
@@ -24,12 +53,18 @@ $request = new Request();
 $response = new Response();
 // Aplicar middleware JWT (adjunta usuario autenticado si hay token válido)
 JwtMiddleware::procesar($request);
-// Configurar CORS para requests cross-origin
+// Configurar CORS
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-if (APP_ENV === 'development') {
-    header("Access-Control-Allow-Origin: *");
-} else {
-    header("Access-Control-Allow-Origin: " . APP_URL);
+header("Access-Control-Allow-Origin: {$origin}");
+header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Session-Id, X-HTTP-Method-Override");
+header("Access-Control-Allow-Credentials: true");
+
+// Manejar preflight OPTIONS
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    while (ob_get_level() > 0) ob_end_clean();
+    http_response_code(204);
+    exit;
 }
 // Crear router y registrar rutas
 $router = new Router();
