@@ -39,6 +39,7 @@ Este documento detalla todos los problemas identificados y corregidos en la plat
   * **Error de Sintaxis en phpMyAdmin (`SOURCE`):** El script `database/setup.sql` utilizaba el comando `SOURCE database/schema.sql;` para enlazar los archivos. Sin embargo, `SOURCE` es un comando de la interfaz de línea de comandos (CLI) de MySQL y no es una sentencia SQL estándar, por lo que al importar el archivo en phpMyAdmin arrojaba el error: `You have an error in your SQL syntax... near 'SOURCE database/schema.sql'`.
 * **Solución:**
   * Se multiplicaron todos los precios de los productos y valores de cupones por 100 en el script semilla para que correspondan a centavos.
+  * Se corrigió la clase [`src/Catalogo/CatalogoRepository.php`](file:///c:/xampp/htdocs/ecommerce-project-s1/src/Catalogo/CatalogoRepository.php) para dividir los precios por 100 antes de aplicar el formato de moneda chilena (evitando que los productos se vieran 100 veces más caros).
   * Se modificó `database/setup.sql` agregando `DROP DATABASE IF EXISTS uct_ecommerce` al inicio para limpiar ejecuciones anteriores.
   * **Consolidación en setup.sql:** Se eliminaron las sentencias `SOURCE` de `database/setup.sql` y se compilaron los contenidos completos de `database/schema.sql` y `database/seed.sql` directamente dentro de este archivo único. De esta forma, el archivo `setup.sql` es ahora **completamente autocontenido** y puede importarse vía phpMyAdmin sin ningún error de sintaxis.
 
