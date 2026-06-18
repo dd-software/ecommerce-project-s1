@@ -13,7 +13,7 @@ if (!defined('APP_ENV')) {
 
 function obtenerConexionPDO(): PDO
 {
-    $host = $_ENV['DB_HOST'] ?? 'teclab.uct.cl';
+    $host = $_ENV['DB_HOST'] ?? 'localhost';
     $port = $_ENV['DB_PORT'] ?? '3306';
     $dbname = $_ENV['DB_NAME'] ?? 'mvaldebenito_db2';
     $user = $_ENV['DB_USER'] ?? 'mvaldebenito';
