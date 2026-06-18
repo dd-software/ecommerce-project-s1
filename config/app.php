@@ -62,14 +62,13 @@ define('SMTP_PASS', $_ENV['SMTP_PASS'] ?? '');
 define('SMTP_FROM', $_ENV['SMTP_FROM'] ?? 'noreply@example.com');
 
 // Configuración de error según entorno
-if (APP_DEBUG) {
-    error_reporting(E_ALL);
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-} else {
+// IMPORTANTE: display_errors siempre OFF para no corromper respuestas JSON
+// Los errores se manejan via set_error_handler/set_exception_handler en index.php
+error_reporting(E_ALL);
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+if (!APP_DEBUG) {
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
-    ini_set('display_errors', '0');
-    ini_set('display_startup_errors', '0');
 }
 
 // Zona horaria
