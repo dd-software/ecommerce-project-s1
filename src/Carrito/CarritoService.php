@@ -28,8 +28,11 @@ class CarritoService
                 'session_id' => $sessionId,
                 'items' => [],
                 'subtotal' => 0,
+                'subtotal_formateado' => '$0',
                 'iva' => 0,
+                'iva_formateado' => '$0',
                 'total' => 0,
+                'total_formateado' => '$0',
             ];
         }
 
@@ -40,7 +43,9 @@ class CarritoService
             $item['cantidad'] = (int)$item['cantidad'];
             $item['precio_unitario'] = (int)$item['precio_unitario'];
             $item['total'] = $item['cantidad'] * $item['precio_unitario'];
-            $item['precio_formateado'] = '$' . number_format($item['precio_unitario'], 0, ',', '.');
+            $item['precio_formateado'] = '$' . number_format($item['precio_unitario'] / 100, 0, ',', '.');
+            $item['subtotal'] = $item['total']; // Compatibilidad con frontend
+            $item['subtotal_formateado'] = '$' . number_format($item['total'] / 100, 0, ',', '.');
             $item['sin_stock'] = isset($item['stock']) && (int)$item['stock'] <= 0;
             $subtotal += $item['total'];
         }
@@ -49,14 +54,21 @@ class CarritoService
         $iva = (int)round($subtotal * 0.19);
         $total = $subtotal + $iva;
 
+        $subtotalFormateado = '$' . number_format($subtotal / 100, 0, ',', '.');
+        $ivaFormateado = '$' . number_format($iva / 100, 0, ',', '.');
+        $totalFormateado = '$' . number_format($total / 100, 0, ',', '.');
+
         return [
             'id' => (int)$carrito['id'],
             'user_id' => isset($carrito['id_usuario']) ? (int)$carrito['id_usuario'] : null,
             'session_id' => $carrito['session_id'] ?? null,
             'items' => $items,
             'subtotal' => $subtotal,
+            'subtotal_formateado' => $subtotalFormateado,
             'iva' => $iva,
+            'iva_formateado' => $ivaFormateado,
             'total' => $total,
+            'total_formateado' => $totalFormateado,
         ];
     }
 

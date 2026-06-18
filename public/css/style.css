@@ -431,3 +431,45 @@ body {
 .badge-estado.enviado { background: #74b9ff; color: #003d6b; }
 .badge-estado.entregado { background: #55efc4; color: #006b3c; }
 .badge-estado.cancelado { background: #fab1a0; color: #8b0000; }
+
+/* === Custom Offcanvas Cart Styling === */
+#cartOffcanvas {
+    width: 420px;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+    border-left: none;
+}
+
+#cartOffcanvas .offcanvas-header {
+    background-color: var(--uct-primary);
+    color: white;
+}
+
+#cartOffcanvas .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.8;
+}
+
+#cartOffcanvas .btn-close:hover {
+    opacity: 1;
+}
+
+.cart-item {
+    transition: background-color 0.2s;
+}
+
+.cart-item:hover {
+    background-color: rgba(0, 51, 102, 0.02);
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qty-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+
