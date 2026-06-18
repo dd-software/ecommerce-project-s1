@@ -161,7 +161,6 @@
             border-radius: 10px;
             font-size: 0.85rem;
             margin-bottom: 20px;
-            display: none;
             border: 1px solid rgba(220, 53, 69, 0.2);
             animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
@@ -214,7 +213,7 @@
             <div class="tab-content" id="authTabContent">
                 <!-- Login Pane -->
                 <div class="tab-pane fade show active" id="login-pane" role="tabpanel">
-                    <div id="login-error" class="error-message"></div>
+                    <div id="login-error" class="error-message d-none"></div>
                     <form id="login-form">
                         <div class="form-floating mb-3">
                             <input type="email" class="form-control" id="login-email" placeholder="nombre@ejemplo.com" required>
@@ -232,7 +231,7 @@
 
                 <!-- Register Pane -->
                 <div class="tab-pane fade" id="register-pane" role="tabpanel">
-                    <div id="register-error" class="error-message"></div>
+                    <div id="register-error" class="error-message d-none"></div>
                     <form id="register-form">
                         <div class="row g-2">
                             <div class="col-md-6 mb-3">
@@ -268,7 +267,7 @@
             </div>
 
             <div class="back-to-home">
-                <a href="/"><i class="bi bi-house-door me-1"></i> Volver a la tienda</a>
+                <a href="./"><i class="bi bi-house-door me-1"></i> Volver a la tienda</a>
             </div>
         </div>
     </div>
@@ -280,25 +279,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             Auth.init();
-            
-            // Si hay un error, mostrarlo con animación
-            const errorDivs = document.querySelectorAll('.error-message');
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.attributeName === 'class') {
-                        const target = mutation.target;
-                        if (!target.classList.contains('d-none')) {
-                            target.style.display = 'block';
-                        } else {
-                            target.style.display = 'none';
-                        }
-                    }
-                });
-            });
-
-            errorDivs.forEach(div => {
-                observer.observe(div, { attributes: true });
-            });
         });
     </script>
 </body>
