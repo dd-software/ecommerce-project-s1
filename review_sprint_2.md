@@ -130,15 +130,17 @@ Este documento detalla todos los problemas identificados y corregidos en la plat
 
 ---
 
-## 11. Integración de Carrito Dinámico y Flujo de Checkout en Modales
+## 11. Integración de Carrito Dinámico, Formato de Precios y Flujo de Checkout en Modales
 * **Problema:**
-  * **Actualización del Carrito:** Al agregar productos al carrito de compras desde el catálogo, el contador de la barra de navegación se actualizaba correctamente, pero el listado detallado dentro del panel lateral (`cartOffcanvas`) no se regeneraba dinámicamente, dando la falsa impresión de que no se agregaban elementos.
+  * **Actualización del Carrito:** Al agregar productos al carrito de compras desde el catálogo, el listado detallado dentro del panel lateral (`cartOffcanvas`) no se regeneraba dinámicamente, dando la falsa impresión de que no se agregaban elementos.
+  * **Precios y Totales ausentes o incorrectos:** Los montos de Subtotal, IVA y Total se visualizaban en blanco o como valores inválidos porque el backend retornaba montos crudos en centavos sin formatear, y el frontend usaba claves inconsistentes.
   * **Redireccionamiento Inexistente:** Al presionar "Proceder al Pago", el sistema intentaba redirigir a los archivos inexistentes `/checkout.html` y `/login.html?redirect=checkout.html`, rompiendo el flujo.
+  * **Punto Verde Desalineado:** El indicador verde con el conteo de ítems del carrito flotaba desalineado y alejado del texto "Carrito" en pantallas móviles, posicionándose a la extrema derecha porque el enlace ocupaba todo el ancho del menú móvil.
 * **Solución:**
-  * Se vinculó el evento `show.bs.offcanvas` del elemento `#cartOffcanvas` en [`public/js/carrito.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/carrito.js) para recargar y renderizar los ítems en tiempo real cada vez que el panel se desliza en pantalla. Además, se agregaron llamadas explícitas a `Carrito.loadCart()` desde [`public/js/catalogo.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/catalogo.js) al añadir elementos con éxito.
-  * Se eliminó el redireccionamiento a páginas HTML externas. Ahora, al hacer clic en el botón de pago:
-    * Se oculta el offcanvas del carrito y se levanta en su lugar el modal nativo `#checkoutModal`.
-    * En [`public/js/checkout.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/checkout.js), se configuró un interceptor en el evento `show.bs.modal`. Si el usuario no está logueado, se previene la apertura del modal de pago, se muestra un mensaje explicativo tipo *Toast*, y se despliega directamente el modal de inicio de sesión (`#loginModal`) sin romper la navegación.
+  * **Carga en tiempo real:** Se vinculó el evento `show.bs.offcanvas` en [`public/js/carrito.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/carrito.js) para recargar y renderizar los ítems dinámicamente cada vez que se despliega el menú lateral.
+  * **Cálculo y Formato de Cifras:** Se modificó [`src/Carrito/CarritoService.php`](file:///c:/xampp/htdocs/ecommerce-project-s1/src/Carrito/CarritoService.php) para dividir los montos en centavos por 100 y retornar claves formateadas listas para el frontend (`subtotal_formateado`, `iva_formateado`, `total_formateado`), además de refactorizar la estructura de renderizado HTML a un estilo tipo Flexbox mucho más cómodo.
+  * **Checkout e Inicio de Sesión In-place:** Se reemplazó el redireccionamiento HTML externo por el modal `#checkoutModal`. Si el usuario no está logueado, se bloquea la compra temporalmente y se levanta automáticamente el modal de inicio de sesión (`#loginModal`).
+  * **Alineación del Punto Verde:** Se envolvió el ícono y la palabra "Carrito" dentro de un contenedor inline relativo (`<span class="position-relative d-inline-block">`) en [`public/index.html`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/index.html) para que el indicador verde se posicione estrictamente adyacente al texto en todas las resoluciones.
 
 ---
 
