@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecommerce UCT - Tienda Online</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <div id="loading-spinner" class="d-none text-center mt-5">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+
+    <!-- Navbar UCT Design System -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-uct sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="./">
+                <i class="bi bi-bag-heart-fill text-warning"></i>
+                <span>Ecommerce UCT</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <!-- Sin autenticar -->
+                    <li class="nav-item" id="auth-links">
+                        <a class="nav-link" href="login"><i class="bi bi-person"></i> Iniciar Sesión</a>
+                    </li>
+                    <li class="nav-item dropdown d-none" id="user-links">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item d-none" href="admin" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
+                            <li><a class="dropdown-item" href="perfil.html"><i class="bi bi-person-gear"></i> Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="mis-pedidos.html"><i class="bi bi-bag"></i> Mis Pedidos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link position-relative d-inline-flex align-items-center" href="#" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+                            <i class="bi bi-cart3 fs-5 me-1"></i> Carrito
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill badge-cart" id="cart-count">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-section position-relative overflow-hidden">
+        <!-- Decorative blobs -->
+        <div class="hero-blob hero-blob-1"></div>
+        <div class="hero-blob hero-blob-2"></div>
+        <div class="container position-relative py-2">
+            <div class="row align-items-center gy-5">
+                <!-- Left: copy + search -->
+                <div class="col-lg-7 text-white">
+                    <div class="d-inline-flex align-items-center hero-badge mb-3">
+                        <i class="bi bi-patch-check-fill text-warning me-2"></i>
+                        Tienda oficial UCT · Temuco, Chile
+                    </div>
+                    <h1 class="display-3 fw-black lh-sm mb-3">
+                        Tu catálogo<br>
+                        <span class="hero-highlight">universitario</span>
+                    </h1>
+                    <p class="hero-lead mb-4">
+                        Productos con el sello de calidad UCT. Paga seguro y recibe en casa.
+                    </p>
+                    <!-- Search -->
+                    <form id="search-form-catalogo" class="hero-search-form mb-4">
+                        <div class="hero-search-wrap">
+                            <i class="bi bi-search hero-search-icon"></i>
+                            <input type="search" id="search-input-catalogo"
+                                   class="form-control form-control-lg"
+                                   placeholder="Busca laptops, libros, ropa..."
+                                   autocomplete="off">
+                            <button type="submit" class="btn btn-accent hero-search-btn fw-semibold">
+                                Buscar
+                            </button>
+                        </div>
+                        <div id="search-suggestions" class="search-suggestions d-none"></div>
+                    </form>
+                    <!-- Category pills -->
+                    <div class="d-flex flex-wrap gap-2" id="hero-category-pills">
+                        <span class="hero-pill-sm text-white-50">
+                            <i class="bi bi-hourglass-split me-1"></i>Cargando...
+                        </span>
+                    </div>
+                </div>
+                <!-- Right: High-End Stats Grid -->
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="hero-stats-grid">
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon icon-blue"><i class="bi bi-box-seam"></i></div>
+                            <div class="hero-stat-content">
+                                <div class="hero-stat-value" id="stat-products">20+</div>
+                                <div class="hero-stat-label">Productos</div>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon icon-gold"><i class="bi bi-grid"></i></div>
+                            <div class="hero-stat-content">
+                                <div class="hero-stat-value" id="stat-categories">5+</div>
+                                <div class="hero-stat-label">Categorías</div>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon icon-green"><i class="bi bi-shield-check"></i></div>
+                            <div class="hero-stat-content">
+                                <div class="hero-stat-value">100%</div>
+                                <div class="hero-stat-label">Seguro</div>
+                            </div>
+                        </div>
+                        <div class="hero-stat-card">
+                            <div class="hero-stat-icon icon-orange"><i class="bi bi-truck"></i></div>
+                            <div class="hero-stat-content">
+                                <div class="hero-stat-value">Garantía</div>
+                                <div class="hero-stat-label">UCT Tech</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Wave divider -->
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0,40 C360,90 1080,-10 1440,40 L1440,80 L0,80 Z" fill="#F8F9FA"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Sección Productos Destacados -->
+    <section id="destacados-section" class="my-5 d-none">
+        <div class="container">
+            <div class="section-header mb-4">
+                <div class="section-header-left">
+                    <span class="section-eyebrow"><i class="bi bi-star-fill me-1"></i>Destacados</span>
+                    <h2 class="section-title">Los más populares</h2>
+                </div>
+                <a href="#catalog-main" class="btn btn-outline-uct btn-sm fw-semibold">
+                    Ver catálogo completo <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div id="destacados-container" class="row"></div>
+        </div>
+    </section>
+
+    <!-- Main Content with Sidebar Filters -->
+    <main class="container my-5" id="catalog-main">
+        <!-- Section header -->
+        <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+            <i class="bi bi-grid-3x3-gap-fill text-primary me-2 fs-5"></i>
+            <h2 class="fw-bold mb-0" style="font-size:1.2rem;">Todos los Productos</h2>
+            <span class="ms-auto badge bg-light text-dark border" id="product-count-badge" style="font-size:.8rem;">Cargando...</span>
+        </div>
+        <div class="row">
+            <!-- Sidebar de filtros -->
+            <aside class="col-md-4 col-lg-3 mb-4">
+                <!-- Categorías -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-tag-fill me-2"></i>Categorías</h6>
+                    </div>
+                    <ul class="list-group list-group-flush" id="category-list">
+                        <!-- Carga dinámica por catalogo.js -->
+                    </ul>
+                </div>
+
+                <!-- Filtros adicionales -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-sliders me-2"></i>Filtros de Búsqueda</h6>
+                    </div>
+                    <div class="card-body">
+                        <!-- Ordenamiento -->
+                        <div class="mb-4">
+                            <label for="sort-select" class="form-label small fw-bold text-uppercase text-muted">Ordenar por</label>
+                            <select class="form-select" id="sort-select">
+                                <option value="relevancia">Relevancia</option>
+                                <option value="nombre_asc">Nombre: A - Z</option>
+                                <option value="nombre_desc">Nombre: Z - A</option>
+                                <option value="precio_asc">Precio: Menor a Mayor</option>
+                                <option value="precio_desc">Precio: Mayor a Menor</option>
+                                <option value="nuevos">Novedades</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Precio -->
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Precio (en pesos)</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="filter-price-min" class="form-control" placeholder="Mín" min="0">
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="filter-price-max" class="form-control" placeholder="Máx" min="0">
+                            </div>
+                            <button type="button" id="btn-filter-price" class="btn btn-primary-uct w-100 btn-sm fw-semibold">Aplicar Filtro</button>
+                        </div>
+
+                        <!-- Filtro Stock -->
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="filter-stock">
+                            <label class="form-check-label fw-semibold text-muted small" for="filter-stock">Solo productos en stock</label>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Listado de productos -->
+            <section class="col-md-8 col-lg-9">
+                <div id="products-container" class="row">
+                    <!-- Cargando productos... -->
+                </div>
+                <div id="pagination-container" class="d-flex justify-content-center mt-5"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Offcanvas Carrito -->
+    <div class="offcanvas offcanvas-end border-0 shadow" tabindex="-1" id="cartOffcanvas">
+        <div class="offcanvas-header bg-light border-bottom">
+            <h5 class="offcanvas-title fw-bold"><i class="bi bi-cart3 text-primary me-2"></i>Tu Carrito</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div id="cart-empty" class="text-center py-5">
+                <i class="bi bi-cart-x display-3 text-muted"></i>
+                <p class="mt-3 mb-0 text-muted">Tu carrito está actualmente vacío.</p>
+                <a href="#" class="btn btn-primary-uct btn-sm mt-3 fw-semibold" data-bs-dismiss="offcanvas">Explorar Catálogo</a>
+            </div>
+            <div id="cart-items" class="d-none"></div>
+            <div id="cart-summary" class="d-none border-top pt-3 mt-3">
+                <div id="cart-summary-content"></div>
+                <!-- Override redirect button -->
+                <button class="btn btn-primary-uct w-100 mt-3 py-2 fw-bold" id="btn-checkout">Proceder al Pago</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-check me-2"></i>Finalizar Pedido</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <!-- Izquierda: Formulario -->
+                        <div class="col-lg-7">
+                            <h6 class="fw-bold mb-3 text-uppercase small text-muted">Información de Envío</h6>
+                            <form id="checkout-form">
+                                <div class="mb-3">
+                                    <label for="shipping-address" class="form-label small fw-semibold">Dirección Completa</label>
+                                    <input type="text" class="form-control" id="shipping-address" placeholder="Av. Alemania 123, Depto 402..." required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="shipping-phone" class="form-label small fw-semibold">Teléfono de Contacto</label>
+                                        <input type="tel" class="form-control" id="shipping-phone" placeholder="+56 9 ...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="coupon-code" class="form-label small fw-semibold">Código de Cupón</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="coupon-code" placeholder="Opcional">
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="order-notes" class="form-label small fw-semibold">Notas del Pedido (opcional)</label>
+                                    <textarea class="form-control" id="order-notes" rows="2" placeholder="Instrucciones especiales para la entrega..."></textarea>
+                                </div>
+                                
+                                <div id="checkout-error" class="alert alert-danger d-none small py-2"></div>
+                                
+                                <button type="submit" class="btn btn-accent w-100 py-3 fw-bold mt-2 shadow-sm" id="btn-place-order">
+                                    Confirmar Pedido y Pagar
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Derecha: Resumen -->
+                        <div class="col-lg-5">
+                            <div class="card border-0 bg-light rounded-4 shadow-sm h-100">
+                                <div class="card-body p-4">
+                                    <h6 class="fw-bold mb-3 text-uppercase small text-muted">Resumen del Pedido</h6>
+                                    <div id="checkout-items" class="mb-3" style="max-height: 250px; overflow-y: auto;">
+                                        <!-- Items cargados dinámicamente -->
+                                    </div>
+                                    <div id="checkout-totals" class="pt-3 border-top">
+                                        <!-- Totales cargados dinámicamente -->
+                                    </div>
+                                    <div class="mt-4 p-3 bg-white rounded-3 border border-warning-subtle d-flex align-items-center gap-2 small">
+                                        <i class="bi bi-info-circle-fill text-warning fs-5"></i>
+                                        <span class="text-muted">El pago se procesa de forma segura a través de nuestra pasarela cifrada UCT-Pay.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+    <!-- Footer UCT Design System -->
+    <footer class="footer mt-auto text-white-50">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-md-start mb-3 mb-md-0">
+                    <h5 class="fw-bold text-white mb-1">🛒 Ecommerce UCT</h5>
+                    <p class="small mb-2 text-white-50">Plataforma académica modular de comercio electrónico.</p>
+                    <p class="small mb-0 text-white-50">&copy; 2026 Universidad Católica de Temuco. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="small mb-2 text-white-50">DDS + IA - Universidad Católica de Temuco</p>
+                    <p class="small mb-0">
+                        <a href="login" class="text-accent fw-semibold text-decoration-none">
+                            <i class="bi bi-speedometer2"></i> Acceso Administrador
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/catalogo.js"></script>
+    <script src="js/carrito.js"></script>
+    <script src="js/checkout.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            Carrito.init();
+            Catalogo.init();
+        });
+    </script>
+</body>
+</html>
