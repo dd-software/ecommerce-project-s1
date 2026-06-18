@@ -4,7 +4,7 @@
  */
 
 const App = {
-    apiBase: window.location.pathname.replace(/\/+$/, '') + '/public/api',
+    apiBase: new URL('api/', document.baseURI).href.replace(/\/$/, ''),
     token: null,
     user: null,
     cartCount: 0,

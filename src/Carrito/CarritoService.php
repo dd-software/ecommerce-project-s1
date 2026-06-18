@@ -2,182 +2,215 @@
 
 declare(strict_types=1);
 
-/**
- * CarritoRepository - Acceso a datos del carrito de compras
- * REFACTORIZADO:
- * - Eliminado método duplicado desactivarParaCheckout()
- * - Mantener solo desactivarCarrito() que cumple ambas funciones
- */
 namespace App\Carrito;
 
-use App\Core\Database;
-use PDO;
+use App\Catalogo\CatalogoService;
 
-class CarritoRepository
+class CarritoService
 {
-    private PDO $db;
+    private CarritoRepository $repository;
+    private CatalogoService $catalogoService;
 
-    public function __construct()
+    public function __construct(CarritoRepository $repository, CatalogoService $catalogoService)
     {
-        $this->db = Database::getInstance()->getConnection();
+        $this->repository = $repository;
+        $this->catalogoService = $catalogoService;
     }
 
-    /**
-     * Crea un nuevo carrito
-     */
-    public function crearCarrito(?int $userId, ?string $sessionId): int
+    public function obtenerCarrito(?int $userId = null, ?string $sessionId = null): array
     {
-        $stmt = $this->db->prepare(
-            "INSERT INTO carritos (id_usuario, session_id, activo) VALUES (:usuario, :session, 1)"
-        );
-        $stmt->execute([
-            ':usuario' => $userId,
-            ':session' => $sessionId,
-        ]);
-        return (int)$this->db->lastInsertId();
+        $carrito = $this->obtenerCarritoActivo($userId, $sessionId);
+
+        if (!$carrito) {
+            return [
+                'id' => null,
+                'user_id' => $userId,
+                'session_id' => $sessionId,
+                'items' => [],
+                'subtotal' => 0,
+                'iva' => 0,
+                'total' => 0,
+            ];
+        }
+
+        $items = $this->repository->obtenerItems((int)$carrito['id']);
+        $subtotal = 0;
+
+        foreach ($items as &$item) {
+            $item['cantidad'] = (int)$item['cantidad'];
+            $item['precio_unitario'] = (int)$item['precio_unitario'];
+            $item['total'] = $item['cantidad'] * $item['precio_unitario'];
+            $item['precio_formateado'] = '$' . number_format($item['precio_unitario'], 0, ',', '.');
+            $item['sin_stock'] = isset($item['stock']) && (int)$item['stock'] <= 0;
+            $subtotal += $item['total'];
+        }
+        unset($item);
+
+        $iva = (int)round($subtotal * 0.19);
+        $total = $subtotal + $iva;
+
+        return [
+            'id' => (int)$carrito['id'],
+            'user_id' => isset($carrito['id_usuario']) ? (int)$carrito['id_usuario'] : null,
+            'session_id' => $carrito['session_id'] ?? null,
+            'items' => $items,
+            'subtotal' => $subtotal,
+            'iva' => $iva,
+            'total' => $total,
+        ];
     }
 
-    /**
-     * Obtiene el carrito activo de un usuario
-     */
-    public function obtenerCarritoActivoPorUsuario(int $userId): ?array
+    public function agregarItem(int $productoId, int $cantidad, ?int $userId = null, ?string $sessionId = null): void
     {
-        $stmt = $this->db->prepare(
-            "SELECT id, id_usuario, session_id, activo, created_at
-             FROM carritos
-             WHERE id_usuario = :uid AND activo = 1
-             ORDER BY created_at DESC LIMIT 1"
-        );
-        $stmt->execute([':uid' => $userId]);
-        return $stmt->fetch() ?: null;
+        if ($cantidad < 1) {
+            throw new \InvalidArgumentException('La cantidad debe ser mayor a cero.');
+        }
+
+        $producto = $this->catalogoService->obtenerProducto($productoId);
+        if (!$producto) {
+            throw new \RuntimeException('Producto no encontrado.');
+        }
+
+        if ($producto['stock'] < $cantidad) {
+            throw new \RuntimeException('Stock insuficiente para el producto solicitado.');
+        }
+
+        $carrito = $this->getOrCreateCarrito($userId, $sessionId);
+        $item = $this->repository->buscarItem((int)$carrito['id'], $productoId);
+
+        if ($item) {
+            $nuevoCantidad = (int)$item['cantidad'] + $cantidad;
+            if ($nuevoCantidad > $producto['stock']) {
+                throw new \RuntimeException('No hay stock suficiente para la cantidad solicitada.');
+            }
+            $this->repository->actualizarItem((int)$item['id'], $nuevoCantidad);
+        } else {
+            $this->repository->agregarItem(
+                (int)$carrito['id'],
+                $productoId,
+                $cantidad,
+                (int)$producto['precio']
+            );
+        }
     }
 
-    /**
-     * Obtiene el carrito activo de una sesión de visitante
-     */
-    public function obtenerCarritoActivoPorSession(string $sessionId): ?array
+    public function actualizarCantidad(int $itemId, int $cantidad): void
     {
-        $stmt = $this->db->prepare(
-            "SELECT id, id_usuario, session_id, activo, created_at
-             FROM carritos
-             WHERE session_id = :sid AND id_usuario IS NULL AND activo = 1
-             ORDER BY created_at DESC LIMIT 1"
-        );
-        $stmt->execute([':sid' => $sessionId]);
-        return $stmt->fetch() ?: null;
+        if ($cantidad < 0) {
+            throw new \InvalidArgumentException('La cantidad no puede ser negativa.');
+        }
+
+        $item = $this->repository->buscarItemPorId($itemId);
+        if (!$item) {
+            throw new \RuntimeException('Item de carrito no encontrado.');
+        }
+
+        if ($cantidad === 0) {
+            $this->repository->eliminarItem($itemId);
+            return;
+        }
+
+        $producto = $this->catalogoService->obtenerProducto((int)$item['id_producto']);
+        if (!$producto) {
+            throw new \RuntimeException('Producto no disponible.');
+        }
+
+        if ($cantidad > $producto['stock']) {
+            throw new \RuntimeException('Stock insuficiente para la cantidad solicitada.');
+        }
+
+        $this->repository->actualizarItem($itemId, $cantidad);
     }
 
-    /**
-     * Obtiene los items de un carrito con datos del producto
-     */
-    public function obtenerItems(int $carritoId): array
-    {
-        $stmt = $this->db->prepare(
-            "SELECT ic.id, ic.id_carrito, ic.id_producto, ic.cantidad, ic.precio_unitario,
-                    p.nombre, p.imagen_url, p.stock, p.slug, p.id_categoria
-             FROM items_carrito ic
-             INNER JOIN productos p ON ic.id_producto = p.id AND p.activo = 1 AND p.deleted_at IS NULL
-             WHERE ic.id_carrito = :carrito_id"
-        );
-        $stmt->execute([':carrito_id' => $carritoId]);
-        return $stmt->fetchAll();
-    }
-
-    /**
-     * Busca un item existente en el carrito
-     */
-    public function buscarItem(int $carritoId, int $productoId): ?array
-    {
-        $stmt = $this->db->prepare(
-            "SELECT id, id_carrito, id_producto, cantidad, precio_unitario
-             FROM items_carrito
-             WHERE id_carrito = :carrito_id AND id_producto = :producto_id"
-        );
-        $stmt->execute([
-            ':carrito_id'  => $carritoId,
-            ':producto_id' => $productoId,
-        ]);
-        return $stmt->fetch() ?: null;
-    }
-
-    /**
-     * Busca un item por su ID
-     */
-    public function buscarItemPorId(int $itemId): ?array
-    {
-        $stmt = $this->db->prepare(
-            "SELECT id, id_carrito, id_producto, cantidad, precio_unitario
-             FROM items_carrito WHERE id = :id"
-        );
-        $stmt->execute([':id' => $itemId]);
-        return $stmt->fetch() ?: null;
-    }
-
-    /**
-     * Agrega un nuevo item al carrito
-     */
-    public function agregarItem(int $carritoId, int $productoId, int $cantidad, int $precioUnitario): void
-    {
-        $stmt = $this->db->prepare(
-            "INSERT INTO items_carrito (id_carrito, id_producto, cantidad, precio_unitario)
-             VALUES (:carrito_id, :producto_id, :cantidad, :precio)"
-        );
-        $stmt->execute([
-            ':carrito_id'  => $carritoId,
-            ':producto_id' => $productoId,
-            ':cantidad'    => $cantidad,
-            ':precio'      => $precioUnitario,
-        ]);
-    }
-
-    /**
-     * Actualiza la cantidad de un item
-     */
-    public function actualizarItem(int $itemId, int $cantidad): void
-    {
-        $stmt = $this->db->prepare(
-            "UPDATE items_carrito SET cantidad = :cantidad, updated_at = NOW() WHERE id = :id"
-        );
-        $stmt->execute([':cantidad' => $cantidad, ':id' => $itemId]);
-    }
-
-    /**
-     * Elimina un item del carrito
-     */
     public function eliminarItem(int $itemId): void
     {
-        $stmt = $this->db->prepare("DELETE FROM items_carrito WHERE id = :id");
-        $stmt->execute([':id' => $itemId]);
+        $this->repository->eliminarItem($itemId);
     }
 
-    /**
-     * Elimina todos los items de un carrito
-     */
     public function vaciarCarrito(int $carritoId): void
     {
-        $stmt = $this->db->prepare("DELETE FROM items_carrito WHERE id_carrito = :carrito_id");
-        $stmt->execute([':carrito_id' => $carritoId]);
+        $this->repository->vaciarCarrito($carritoId);
     }
 
-    /**
-     * Asigna un carrito de visitante a un usuario (sincronización login)
-     */
-    public function asignarCarritoAUsuario(int $carritoId, int $userId): void
+    public function sincronizarCarrito(int $userId, string $sessionId): void
     {
-        $stmt = $this->db->prepare(
-            "UPDATE carritos SET id_usuario = :uid, session_id = NULL WHERE id = :id"
-        );
-        $stmt->execute([':uid' => $userId, ':id' => $carritoId]);
+        $sessionCart = $this->repository->obtenerCarritoActivoPorSession($sessionId);
+        if (!$sessionCart) {
+            return;
+        }
+
+        $userCart = $this->repository->obtenerCarritoActivoPorUsuario($userId);
+        if (!$userCart) {
+            $this->repository->asignarCarritoAUsuario((int)$sessionCart['id'], $userId);
+            return;
+        }
+
+        if ((int)$sessionCart['id'] === (int)$userCart['id']) {
+            return;
+        }
+
+        $sessionItems = $this->repository->obtenerItems((int)$sessionCart['id']);
+        foreach ($sessionItems as $sessionItem) {
+            $productoId = (int)$sessionItem['id_producto'];
+            $cantidad = (int)$sessionItem['cantidad'];
+            $producto = $this->catalogoService->obtenerProducto($productoId);
+            $stockDisponible = $producto ? (int)$producto['stock'] : 0;
+            $cantidad = min($cantidad, $stockDisponible);
+
+            if ($cantidad <= 0) {
+                continue;
+            }
+
+            $existingItem = $this->repository->buscarItem((int)$userCart['id'], $productoId);
+            if ($existingItem) {
+                $nuevaCantidad = min((int)$existingItem['cantidad'] + $cantidad, $stockDisponible);
+                $this->repository->actualizarItem((int)$existingItem['id'], $nuevaCantidad);
+            } else {
+                $this->repository->agregarItem(
+                    (int)$userCart['id'],
+                    $productoId,
+                    $cantidad,
+                    (int)$sessionItem['precio_unitario']
+                );
+            }
+        }
+
+        $this->repository->desactivarCarrito((int)$sessionCart['id']);
     }
 
-    /**
-     * Desactiva un carrito
-     * ✅ REFACTOR: Método único para desactivar (antes había dos duplicados)
-     * Se usa tanto en sincronización como en checkout
-     */
-    public function desactivarCarrito(int $carritoId): void
+    public function obtenerItemsParaCheckout(int $carritoId): array
     {
-        $stmt = $this->db->prepare("UPDATE carritos SET activo = 0 WHERE id = :id");
-        $stmt->execute([':id' => $carritoId]);
+        return $this->repository->obtenerItems($carritoId);
+    }
+
+    private function obtenerCarritoActivo(?int $userId, ?string $sessionId): ?array
+    {
+        if ($userId !== null) {
+            $carrito = $this->repository->obtenerCarritoActivoPorUsuario($userId);
+            if ($carrito) {
+                return $carrito;
+            }
+        }
+
+        if ($sessionId !== null) {
+            return $this->repository->obtenerCarritoActivoPorSession($sessionId);
+        }
+
+        return null;
+    }
+
+    private function getOrCreateCarrito(?int $userId, ?string $sessionId): array
+    {
+        $carrito = $this->obtenerCarritoActivo($userId, $sessionId);
+        if ($carrito) {
+            return $carrito;
+        }
+
+        $carritoId = $this->repository->crearCarrito($userId, $sessionId);
+        return [
+            'id' => $carritoId,
+            'id_usuario' => $userId,
+            'session_id' => $sessionId,
+        ];
     }
 }

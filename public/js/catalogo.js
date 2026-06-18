@@ -142,6 +142,7 @@ const Catalogo = {
         }
 
         container.innerHTML = products.map(p => this.productCard(p)).join('');
+        this.applyImageFallbacks(container);
     },
 
     /**
@@ -163,8 +164,7 @@ const Catalogo = {
                 <div class="product-card position-relative">
                     ${stockBadge}
                     <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
-                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/400x220?text=Sin+Imagen'">
+                         class="card-img-top product-image" alt="${this.escapeHtml(p.nombre)}">
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
@@ -413,5 +413,19 @@ const Catalogo = {
                 btnDetail.textContent = 'Agregar al Carrito';
             });
         }
+    },
+
+    /**
+     * Aplica fallback a imágenes rotas
+     */
+    applyImageFallbacks(container) {
+        const fallback = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22220%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22400%22%20height%3D%22220%22%20fill%3D%22%23f0f0f0%22/%3E%3Ctext%20x%3D%2220%22%20y%3D%22120%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2220%22%20fill%3D%22%23757575%22%3ESin%20Imagen%3C/text%3E%3C/svg%3E';
+        container.querySelectorAll('img.product-image').forEach(img => {
+            img.addEventListener('error', () => {
+                if (img.src !== fallback) {
+                    img.src = fallback;
+                }
+            });
+        });
     }
 };
