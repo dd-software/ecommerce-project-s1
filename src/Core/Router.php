@@ -17,7 +17,7 @@ class Router
     /**
      * Registra una ruta GET
      */
-    public function get(string $path, callable|array $handler, bool $auth = false, bool $admin = false): self
+    public function get(string $path, $handler, bool $auth = false, bool $admin = false): self
     {
         return $this->addRoute('GET', $path, $handler, $auth, $admin);
     }
@@ -25,7 +25,7 @@ class Router
     /**
      * Registra una ruta POST
      */
-    public function post(string $path, callable|array $handler, bool $auth = false, bool $admin = false): self
+    public function post(string $path, $handler, bool $auth = false, bool $admin = false): self
     {
         return $this->addRoute('POST', $path, $handler, $auth, $admin);
     }
@@ -33,7 +33,7 @@ class Router
     /**
      * Registra una ruta PUT
      */
-    public function put(string $path, callable|array $handler, bool $auth = false, bool $admin = false): self
+    public function put(string $path, $handler, bool $auth = false, bool $admin = false): self
     {
         return $this->addRoute('PUT', $path, $handler, $auth, $admin);
     }
@@ -41,7 +41,7 @@ class Router
     /**
      * Registra una ruta PATCH
      */
-    public function patch(string $path, callable|array $handler, bool $auth = false, bool $admin = false): self
+    public function patch(string $path, $handler, bool $auth = false, bool $admin = false): self
     {
         return $this->addRoute('PATCH', $path, $handler, $auth, $admin);
     }
@@ -49,7 +49,7 @@ class Router
     /**
      * Registra una ruta DELETE
      */
-    public function delete(string $path, callable|array $handler, bool $auth = false, bool $admin = false): self
+    public function delete(string $path, $handler, bool $auth = false, bool $admin = false): self
     {
         return $this->addRoute('DELETE', $path, $handler, $auth, $admin);
     }
@@ -57,7 +57,7 @@ class Router
     /**
      * Agrega una ruta al registro
      */
-    private function addRoute(string $method, string $path, callable|array $handler, bool $auth, bool $admin): self
+    private function addRoute(string $method, string $path, $handler, bool $auth, bool $admin): self
     {
         // Normalizar path
         $path = '/' . trim($path, '/');

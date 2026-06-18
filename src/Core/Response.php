@@ -12,7 +12,7 @@ class Response
 {
     private int $statusCode = 200;
     private array $headers = [];
-    private mixed $body = null;
+    private $body = null;
 
     /**
      * Establece el código de estado HTTP
@@ -35,7 +35,7 @@ class Response
     /**
      * Envía una respuesta JSON exitosa
      */
-    public function json(mixed $data, int $statusCode = 200, array $meta = []): void
+    public function json($data, int $statusCode = 200, array $meta = []): void
     {
         $this->statusCode = $statusCode;
         $this->setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -93,10 +93,17 @@ class Response
     }
 
     /**
-     * Envía la respuesta al cliente
+     * Envía la respuesta al cliente.
+     * Limpia TODOS los niveles de output buffering para garantizar que
+     * ningún warning/notice de PHP corrompa la respuesta JSON.
      */
     private function send(): void
     {
+        // Limpiar TODOS los niveles de output buffer para garantizar JSON limpio
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
         // Establecer código de estado
         http_response_code($this->statusCode);
 
@@ -118,6 +125,10 @@ class Response
      */
     public function redirect(string $url, int $statusCode = 302): void
     {
+        // Limpiar buffers antes de redirigir
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         http_response_code($statusCode);
         header("Location: {$url}");
         exit;
@@ -128,12 +139,13 @@ class Response
      */
     public function html(string $html, int $statusCode = 200): void
     {
-        $this->statusCode = $statusCode;
-        $this->setHeader('Content-Type', 'text/html; charset=utf-8');
-        http_response_code($this->statusCode);
-        foreach ($this->headers as $name => $value) {
-            header("{$name}: {$value}");
+        // Limpiar buffers de errores PHP antes de enviar HTML
+        while (ob_get_level() > 0) {
+            ob_end_clean();
         }
+
+        http_response_code($statusCode);
+        header('Content-Type: text/html; charset=utf-8');
         echo $html;
         exit;
     }

@@ -88,8 +88,9 @@ class Database
 
     /**
      * Obtiene el último ID insertado.
+     * @return string|false
      */
-    public function lastInsertId(): string|false
+    public function lastInsertId()
     {
         return $this->pdo->lastInsertId();
     }

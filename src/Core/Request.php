@@ -11,9 +11,9 @@ namespace App\Core;
 class Request
 {
     private array $queryParams;
-    private array $body;
-    private array $headers;
-    private array $attributes = [];
+    private $body;
+    private $headers;
+    private $attributes = [];
     private string $method;
     private string $uri;
 
@@ -21,11 +21,17 @@ class Request
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
+        // Soporte para Method Override (útil en servidores que bloquean PATCH/DELETE)
+        $override = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? null;
+        if ($this->method === 'POST' && $override) {
+            $this->method = strtoupper($override);
+        }
+
         $fullUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 
         $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
         while ($scriptDir !== '' && $scriptDir !== '/') {
-            if (str_starts_with($fullUri, $scriptDir)) {
+            if (strpos($fullUri, $scriptDir) === 0) {
                 $fullUri = substr($fullUri, strlen($scriptDir));
                 break;
             }
@@ -42,7 +48,7 @@ class Request
 
         // Parsear body según Content-Type
         $contentType = $this->getHeader('Content-Type') ?? '';
-        if (str_contains($contentType, 'application/json')) {
+        if (strpos($contentType, 'application/json') !== false) {
             $rawBody = file_get_contents('php://input');
             $this->body = json_decode($rawBody ?: '{}', true) ?: [];
         } else {
@@ -57,7 +63,7 @@ class Request
     {
         $headers = [];
         foreach ($_SERVER as $key => $value) {
-            if (str_starts_with($key, 'HTTP_')) {
+            if (strpos($key, 'HTTP_') === 0) {
                 $headerName = str_replace('_', '-', substr($key, 5));
                 $headers[$headerName] = $value;
             }
@@ -88,7 +94,7 @@ class Request
     /**
      * Obtiene un parámetro de query string sanitizado
      */
-    public function getQuery(string $key, mixed $default = null): mixed
+    public function getQuery(string $key, $default = null)
     {
         return $this->queryParams[$key] ?? $default;
     }
@@ -104,7 +110,7 @@ class Request
     /**
      * Obtiene un campo del body de la petición
      */
-    public function getBody(string $key = '', mixed $default = null): mixed
+    public function getBody(string $key = '', $default = null)
     {
         if ($key === '') {
             return $this->body;
@@ -117,7 +123,7 @@ class Request
      */
     public function getHeader(string $name): ?string
     {
-        $name = strtoupper(str_replace('-', '-', $name));
+        $name = strtoupper(str_replace('_', '-', $name));
         return $this->headers[$name] ?? null;
     }
 
@@ -127,7 +133,7 @@ class Request
     public function getBearerToken(): ?string
     {
         $auth = $this->getHeader('Authorization');
-        if ($auth && str_starts_with($auth, 'Bearer ')) {
+        if ($auth && strpos($auth, 'Bearer ') === 0) {
             return substr($auth, 7);
         }
         return null;
@@ -136,7 +142,7 @@ class Request
     /**
      * Establece un atributo en la request (útil para middleware)
      */
-    public function setAttribute(string $key, mixed $value): void
+    public function setAttribute(string $key, $value): void
     {
         $this->attributes[$key] = $value;
     }
@@ -144,7 +150,7 @@ class Request
     /**
      * Obtiene un atributo de la request
      */
-    public function getAttribute(string $key, mixed $default = null): mixed
+    public function getAttribute(string $key, $default = null)
     {
         return $this->attributes[$key] ?? $default;
     }

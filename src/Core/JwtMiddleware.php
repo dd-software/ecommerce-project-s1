@@ -34,7 +34,7 @@ class JwtMiddleware
 
         // Extraer información del usuario desde el payload
         $userId = null;
-        if (isset($payload['sub']) && str_starts_with($payload['sub'], 'user_id:')) {
+        if (isset($payload['sub']) && strpos($payload['sub'], 'user_id:') === 0) {
             $userId = (int) substr($payload['sub'], 8);
         }
 

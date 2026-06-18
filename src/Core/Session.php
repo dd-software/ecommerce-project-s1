@@ -41,7 +41,7 @@ class Session
     /**
      * Establece un valor en la sesión
      */
-    public static function set(string $key, mixed $value): void
+    public static function set(string $key, $value): void
     {
         self::iniciar();
         $_SESSION[$key] = $value;
@@ -50,7 +50,7 @@ class Session
     /**
      * Obtiene un valor de la sesión
      */
-    public static function get(string $key, mixed $default = null): mixed
+    public static function get(string $key, $default = null)
     {
         self::iniciar();
         return $_SESSION[$key] ?? $default;
@@ -104,7 +104,7 @@ class Session
     /**
      * Establece un mensaje flash (vive solo una petición)
      */
-    public static function flash(string $key, mixed $value): void
+    public static function flash(string $key, $value): void
     {
         self::iniciar();
         $_SESSION['_flash'][$key] = $value;
@@ -113,7 +113,7 @@ class Session
     /**
      * Obtiene y limpia un mensaje flash
      */
-    public static function getFlash(string $key, mixed $default = null): mixed
+    public static function getFlash(string $key, $default = null)
     {
         self::iniciar();
         $value = $_SESSION['_flash'][$key] ?? $default;
