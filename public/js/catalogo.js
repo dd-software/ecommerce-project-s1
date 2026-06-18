@@ -3,6 +3,11 @@
  * Búsqueda, filtros, listado y detalle de productos
  */
 
+// Placeholder SVG local (no depende de servicios externos)
+const IMG_PLACEHOLDER_CARD   = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='14' fill='%2394a3b8'%3ESin Imagen%3C/text%3E%3C/svg%3E";
+const IMG_PLACEHOLDER_DETAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='18' fill='%2394a3b8'%3ESin Imagen%3C/text%3E%3C/svg%3E";
+const IMG_PLACEHOLDER_THUMB  = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%23e2e8f0'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' font-family='sans-serif' font-size='9' fill='%2394a3b8'%3EImg%3C/text%3E%3C/svg%3E";
+
 const Catalogo = {
     currentPage: 1,
     totalPages: 1,
@@ -190,9 +195,9 @@ const Catalogo = {
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="product-card position-relative">
                     ${stockBadge}
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
+                    <img src="${p.imagen_url || IMG_PLACEHOLDER_CARD}"
                          class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/400x220?text=Sin+Imagen'">
+                         onerror="this.onerror=null;this.src=IMG_PLACEHOLDER_CARD">
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
@@ -203,7 +208,7 @@ const Catalogo = {
                         <div class="mt-2">
                             ${addButton}
                         </div>
-                        <a href="/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
+                        <a href="producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
                     </div>
                 </div>
             </div>`;
@@ -560,9 +565,9 @@ const Catalogo = {
         container.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
+                    <img src="${product.imagen_url || IMG_PLACEHOLDER_DETAIL}"
                          class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'">
+                         onerror="this.onerror=null;this.src=IMG_PLACEHOLDER_DETAIL">
                 </div>
                 <div class="col-md-6">
                     <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
