@@ -174,8 +174,8 @@ const App = {
 
         const toastEl = document.createElement('div');
         const bgClass = type === 'success' ? 'bg-success' :
-                        type === 'error' ? 'bg-danger' :
-                        type === 'warning' ? 'bg-warning text-dark' : 'bg-info';
+            type === 'error' ? 'bg-danger' :
+                type === 'warning' ? 'bg-warning text-dark' : 'bg-info';
 
         toastEl.className = `toast align-items-center text-white ${bgClass} border-0`;
         toastEl.setAttribute('role', 'alert');

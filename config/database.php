@@ -16,7 +16,7 @@ function obtenerConexionPDO(): PDO
     $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
     $port = $_ENV['DB_PORT'] ?? '3306';
     $dbname = $_ENV['DB_NAME'] ?? 'uct_ecommerce';
-    $user = $_ENV['DB_USER'] ?? 'ecommerce_app';
+    $user = $_ENV['DB_USER'] ?? 'root';
     $pass = $_ENV['DB_PASS'] ?? '';
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
