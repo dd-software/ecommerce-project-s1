@@ -206,7 +206,7 @@ const Checkout = {
                 App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
                 // Redirigir a confirmación
                 setTimeout(() => {
-                    window.location.href = `/pedido-confirmado.html?pedido_id=${pedido.id || pedido.pedido_id}`;
+                    window.location.href = `pedido-confirmado.html?pedido_id=${pedido.id || pedido.pedido_id}`;
                 }, 2000);
             } else {
                 App.showToast('Pago rechazado: ' + (paymentData.data?.mensaje || 'Error'), 'error');
