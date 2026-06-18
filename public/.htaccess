@@ -12,6 +12,13 @@ RewriteEngine On
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Authorization, Content-Type, X-Request-ID"
     Header always set Access-Control-Max-Age "86400"
+    
+    # Evitar el caché de archivos HTML para prevenir redirecciones obsoletas guardadas en caché
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
 </IfModule>
 
 <IfModule !headers_module>

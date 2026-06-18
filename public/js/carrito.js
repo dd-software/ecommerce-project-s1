@@ -11,6 +11,14 @@ const Carrito = {
     async init() {
         await this.loadCart();
         this.initEventListeners();
+
+        // Escuchar cuando se abre el offcanvas del carrito para recargar los datos
+        const offcanvasEl = document.getElementById('cartOffcanvas');
+        if (offcanvasEl) {
+            offcanvasEl.addEventListener('show.bs.offcanvas', () => {
+                this.loadCart();
+            });
+        }
     },
 
     /**
@@ -169,10 +177,18 @@ const Carrito = {
         // Proceder al pago (delegado)
         document.addEventListener('click', (e) => {
             if (e.target.id === 'btn-checkout') {
-                if (!App.user) {
-                    window.location.href = '/login.html';
-                } else {
-                    window.location.href = '/checkout.html';
+                // Cerrar offcanvas del carrito
+                const offcanvasEl = document.getElementById('cartOffcanvas');
+                if (offcanvasEl) {
+                    const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
+                    if (offcanvas) offcanvas.hide();
+                }
+
+                // Abrir modal de checkout
+                const modalEl = document.getElementById('checkoutModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.show();
                 }
             }
         });

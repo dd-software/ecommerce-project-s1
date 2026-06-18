@@ -30,7 +30,7 @@ function cargarEnv(string $ruta): void
             $valor = trim($valor, '"\'');
             $valor = trim($valor);
 
-            if (!array_key_exists($clave, $_ENV) && getenv($clave) === false) {
+            if (!array_key_exists($clave, $_ENV)) {
                 $_ENV[$clave] = $valor;
                 putenv("{$clave}={$valor}");
             }

@@ -301,6 +301,9 @@ const Catalogo = {
                         App.cartCount = data.data.items ? data.data.items.length : 0;
                         App.updateCartBadge();
                         App.showToast(`${nombre} agregado al carrito`, 'success');
+                        if (typeof Carrito !== 'undefined') {
+                            Carrito.loadCart();
+                        }
                     } else {
                         App.showToast(data.error?.message || 'Error al agregar', 'error');
                     }
@@ -404,6 +407,9 @@ const Catalogo = {
                         App.cartCount = data.data.items ? data.data.items.length : 0;
                         App.updateCartBadge();
                         App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
+                        if (typeof Carrito !== 'undefined') {
+                            Carrito.loadCart();
+                        }
                     } else {
                         App.showToast(data.error?.message || 'Error', 'error');
                     }

@@ -122,5 +122,31 @@ Este documento detalla todos los problemas identificados y corregidos en la plat
 * **Solución:**
   Se modificó la línea 7 del archivo [`public/js/app.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/app.js) para concatenar `/public/api` en lugar de `/api` (posteriormente refinado utilizando la API `URL` y `document.baseURI` para mayor dinamismo y robustez).
 
+---
+
+## 10. Error 500 Intermitente de Base de Datos al Agregar Productos al Carrito
+* **Problema:** Mientras probábamos la inserción de productos en el carrito, la API comenzó a retornar errores `500 Internal Server Error` de forma intermitente. Esto ocurría porque los procesos persistentes de Apache en XAMPP compartían variables de entorno globales; el validador `getenv()` en [`config/app.php`](file:///c:/xampp/htdocs/ecommerce-project-s1/config/app.php) leía credenciales obsoletas de solicitudes previas, bloqueando la carga del archivo `.env` correcto y rechazando el acceso a la base de datos.
+* **Solución:** Se modificó la validación para verificar únicamente la súperglobal `$_ENV` (`!array_key_exists($clave, $_ENV)`) en lugar de `getenv()`, asegurando una lectura limpia de credenciales en cada petición.
+
+---
+
+## 11. Integración de Carrito Dinámico y Flujo de Checkout en Modales
+* **Problema:**
+  * **Actualización del Carrito:** Al agregar productos al carrito de compras desde el catálogo, el contador de la barra de navegación se actualizaba correctamente, pero el listado detallado dentro del panel lateral (`cartOffcanvas`) no se regeneraba dinámicamente, dando la falsa impresión de que no se agregaban elementos.
+  * **Redireccionamiento Inexistente:** Al presionar "Proceder al Pago", el sistema intentaba redirigir a los archivos inexistentes `/checkout.html` y `/login.html?redirect=checkout.html`, rompiendo el flujo.
+* **Solución:**
+  * Se vinculó el evento `show.bs.offcanvas` del elemento `#cartOffcanvas` en [`public/js/carrito.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/carrito.js) para recargar y renderizar los ítems en tiempo real cada vez que el panel se desliza en pantalla. Además, se agregaron llamadas explícitas a `Carrito.loadCart()` desde [`public/js/catalogo.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/catalogo.js) al añadir elementos con éxito.
+  * Se eliminó el redireccionamiento a páginas HTML externas. Ahora, al hacer clic en el botón de pago:
+    * Se oculta el offcanvas del carrito y se levanta en su lugar el modal nativo `#checkoutModal`.
+    * En [`public/js/checkout.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/checkout.js), se configuró un interceptor en el evento `show.bs.modal`. Si el usuario no está logueado, se previene la apertura del modal de pago, se muestra un mensaje explicativo tipo *Toast*, y se despliega directamente el modal de inicio de sesión (`#loginModal`) sin romper la navegación.
+
+---
+
+## 12. Bucle de Redirección Inesperado al Intentar Probar el Checkout del Carrito
+* **Problema:** Al intentar probar el flujo del checkout tras remover la redirección a `/login.html`, el navegador seguía redirigiendo automáticamente a esa ruta inexistente. Esto se debía a que el navegador mantenía guardada en su caché local una copia obsoleta de los archivos HTML y JS, ignorando los cambios realizados en el código local de `checkout.js`.
+* **Solución:** Se agregaron parámetros de versión (`?v=2`) a las llamadas de scripts en [`public/index.html`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/index.html) y se añadieron directivas en el archivo [`.htaccess`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/.htaccess) para indicarle al navegador que nunca almacene en caché las páginas HTML, garantizando que el usuario siempre reciba los últimos scripts de frontend.
+
+
+
 
 

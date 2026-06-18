@@ -7,16 +7,35 @@ const Checkout = {
     cart: null,
     cuponAplicado: false,
 
-    /**
-     * Inicializa la página de checkout
-     */
-    async init() {
-        if (!App.user) {
-            window.location.href = '/login.html?redirect=checkout.html';
-            return;
-        }
+    init() {
+        const modalEl = document.getElementById('checkoutModal');
+        if (modalEl) {
+            modalEl.addEventListener('show.bs.modal', async (e) => {
+                if (!App.user) {
+                    e.preventDefault(); // Evitar que abra el modal
+                    
+                    // Cerrar offcanvas si está abierto
+                    const offcanvasEl = document.getElementById('cartOffcanvas');
+                    if (offcanvasEl) {
+                        const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                        if (offcanvas) offcanvas.hide();
+                    }
 
-        await this.loadCart();
+                    App.showToast('Inicia sesión para continuar con la compra', 'warning');
+                    
+                    // Mostrar modal de login
+                    const loginModalEl = document.getElementById('loginModal');
+                    if (loginModalEl) {
+                        const loginModal = bootstrap.Modal.getInstance(loginModalEl) || new bootstrap.Modal(loginModalEl);
+                        loginModal.show();
+                    }
+                    return;
+                }
+                
+                // Si está autenticado, cargar el carrito
+                await this.loadCart();
+            });
+        }
         this.initEventListeners();
     },
 
