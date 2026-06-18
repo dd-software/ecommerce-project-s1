@@ -478,7 +478,7 @@ const Admin = {
         if (id) {
             title = 'Editar Producto';
             try {
-                const resp = await fetch(`${App.apiBase}/catalogo/${id}`);
+                const resp = await App.fetchAuth(`${App.apiBase}/catalogo/${id}`);
                 const data = await resp.json();
                 if (data.success) product = data.data;
             } catch (e) { /* fallback */ }
@@ -487,7 +487,7 @@ const Admin = {
         // Cargar categorías
         let catOptions = '';
         try {
-            const resp = await fetch(`${App.apiBase}/catalogo/categorias`);
+            const resp = await App.fetchAuth(`${App.apiBase}/catalogo/categorias`);
             const data = await resp.json();
             if (data.success) {
                 catOptions = data.data.map(c => `
@@ -595,17 +595,21 @@ const Admin = {
 
         try {
             const resp = await App.fetchAuth(url, { method, body: JSON.stringify(body) });
-            const data = await resp.json();
+            
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.error?.message || 'Error al guardar producto');
+            }
 
+            const data = await resp.json();
             if (data.success) {
                 App.showToast(id ? 'Producto actualizado' : 'Producto creado', 'success');
                 bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
                 this.loadProductos();
-            } else {
-                App.showToast(data.error?.message || 'Error', 'error');
             }
         } catch (e) {
-            App.showToast('Error de conexión', 'error');
+            console.error('Admin Error:', e);
+            App.showToast(e.message || 'Error de conexión', 'error');
         }
     },
 
@@ -642,19 +646,26 @@ const Admin = {
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/admin/pedidos/${orderId}/estado`, {
                 method: 'PATCH',
-                body: JSON.stringify({ estado: newStatus, comentario: 'Cambio manual por administrador' })
+                body: JSON.stringify({ 
+                    estado: newStatus, 
+                    comentario: 'Cambio manual por administrador' 
+                })
             });
-            const data = await resp.json();
 
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.error?.message || 'Error al cambiar estado');
+            }
+
+            const data = await resp.json();
             if (data.success) {
                 App.showToast('Estado actualizado', 'success');
                 this.loadPedidos();
-            } else {
-                App.showToast(data.error?.message || 'Error al cambiar estado', 'error');
-                this.loadPedidos();
             }
         } catch (e) {
-            App.showToast('Error de conexión', 'error');
+            console.error('Admin Error:', e);
+            App.showToast(e.message || 'Error de conexión', 'error');
+            this.loadPedidos();
         }
     },
 

@@ -258,10 +258,19 @@ const App = {
      * Realiza una petición fetch con headers de auth
      */
     async fetchAuth(url, options = {}) {
+        const method = (options.method || 'GET').toUpperCase();
         const headers = {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             ...options.headers
         };
+
+        // Algunos servidores bloquean PATCH/DELETE, usamos Method Override
+        const finalOptions = { ...options };
+        if (['PATCH', 'PUT', 'DELETE'].includes(method)) {
+            headers['X-HTTP-Method-Override'] = method;
+            finalOptions.method = 'POST'; 
+        }
 
         if (this.token) {
             headers['Authorization'] = `Bearer ${this.token}`;
@@ -272,7 +281,8 @@ const App = {
             headers['X-Session-Id'] = sessionId;
         }
 
-        return fetch(url, { ...options, headers });
+        finalOptions.headers = headers;
+        return fetch(url, finalOptions);
     }
 };
 

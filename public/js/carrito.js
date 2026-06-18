@@ -128,10 +128,26 @@ const Carrito = {
             cartToggle.addEventListener('click', () => this.cargar());
         }
 
-        // Vaciar carrito
-        document.addEventListener('click', async (e) => {
-            if (e.target.id === 'btn-vaciar-carrito') {
-                await this.vaciar();
+        // Proceder al pago (Checkout)
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'btn-checkout') {
+                if (!App.user) {
+                    App.showToast('Inicia sesión para finalizar tu compra', 'warning');
+                    setTimeout(() => window.location.href = 'login.html', 1500);
+                    return;
+                }
+                
+                // Cerrar offcanvas del carrito
+                const cartOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
+                if (cartOffcanvas) cartOffcanvas.hide();
+
+                // Abrir modal de checkout e inicializar
+                const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+                checkoutModal.show();
+                
+                if (typeof Checkout !== 'undefined') {
+                    Checkout.init();
+                }
             }
         });
     },
@@ -177,22 +193,31 @@ const Carrito = {
      * Actualiza la cantidad de un ítem
      */
     async actualizarCantidad(itemId, nuevaCantidad) {
+        // Test edit
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/carrito/${itemId}`, {
                 method: 'PATCH',
-                body: JSON.stringify({ cantidad: nuevaCantidad, session_id: App.getSessionId() })
+                body: JSON.stringify({ 
+                    cantidad: nuevaCantidad, 
+                    session_id: App.getSessionId() 
+                })
             });
+            
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.error?.message || 'Error al actualizar');
+            }
+
             const data = await resp.json();
             if (data.success) {
                 this.items = data.data.items || [];
                 App.cartCount = this.items.length;
                 App.updateCartBadge();
                 this.render();
-            } else {
-                App.showToast(data.error?.message || 'Error al actualizar', 'error');
             }
         } catch (e) {
-            App.showToast('Error de conexión', 'error');
+            console.error('Carrito Error:', e);
+            App.showToast(e.message || 'Error de conexión', 'error');
         }
     },
 
@@ -205,6 +230,12 @@ const Carrito = {
                 method: 'DELETE',
                 body: JSON.stringify({ session_id: App.getSessionId() })
             });
+
+            if (!resp.ok) {
+                const errorData = await resp.json();
+                throw new Error(errorData.error?.message || 'Error al eliminar');
+            }
+
             const data = await resp.json();
             if (data.success) {
                 this.items = data.data.items || [];
@@ -214,7 +245,8 @@ const Carrito = {
                 App.showToast('Producto eliminado del carrito', 'info');
             }
         } catch (e) {
-            App.showToast('Error de conexión', 'error');
+            console.error('Carrito Error:', e);
+            App.showToast(e.message || 'Error de conexión', 'error');
         }
     },
 

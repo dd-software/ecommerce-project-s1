@@ -77,7 +77,32 @@ const Catalogo = {
 
         container.innerHTML = html;
 
-        // Event listeners
+        // Llenar hero pills con categorías padre
+        const pillsContainer = document.getElementById('hero-category-pills');
+        if (pillsContainer && padres.length > 0) {
+            const icons = ['bi-laptop', 'bi-book', 'bi-bag', 'bi-cup-hot', 'bi-tools', 'bi-star', 'bi-grid'];
+            pillsContainer.innerHTML = padres.slice(0, 6).map((cat, i) =>
+                `<span class="badge rounded-pill hero-pill" data-cat="${cat.id}" role="button">
+                    <i class="bi ${icons[i % icons.length]} me-1"></i>${this.escapeHtml(cat.nombre)}
+                </span>`
+            ).join('');
+
+            // Click en pills → filtra y baja al catálogo
+            pillsContainer.querySelectorAll('.hero-pill[data-cat]').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    this.filters.categoria = pill.dataset.cat || null;
+                    this.currentPage = 1;
+                    this.loadProducts();
+                    document.getElementById('catalog-main')?.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        }
+
+        // Actualizar stat de categorías
+        const statCat = document.getElementById('stat-categories');
+        if (statCat) statCat.textContent = padres.length;
+
+        // Event listeners del sidebar
         container.querySelectorAll('a[data-cat]').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -146,6 +171,12 @@ const Catalogo = {
             if (data.success) {
                 this.renderProducts(data.data);
                 this.renderPagination(data.meta?.pagination);
+                // Actualizar stats y badge del encabezado
+                const total = data.meta?.pagination?.total ?? data.data.length;
+                const statP = document.getElementById('stat-products');
+                if (statP) statP.textContent = total;
+                const badge = document.getElementById('product-count-badge');
+                if (badge) badge.textContent = `${total} producto${total !== 1 ? 's' : ''}`;
             }
         } catch (e) {
             console.error('Error cargando productos:', e);
@@ -186,27 +217,30 @@ const Catalogo = {
                 : '';
 
         const addButton = p.sin_stock
-            ? '<button class="btn btn-secondary btn-sm w-100" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
+            ? '<button class="btn btn-secondary btn-sm w-100 py-2" disabled>Sin Stock</button>'
+            : `<button class="btn btn-primary-uct btn-sm w-100 py-2 add-to-cart-btn mb-2" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">
+                <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
+               </button>`;
 
         return `
             <div class="col-md-4 col-lg-3 mb-4">
-                <div class="product-card position-relative">
+                <div class="product-card position-relative h-100 shadow-sm border-0">
                     ${stockBadge}
-                    <img src="${p.imagen_url || IMG_PLACEHOLDER_CARD}"
-                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.onerror=null;this.src=IMG_PLACEHOLDER_CARD">
+                    <div class="card-img-container">
+                        <img src="${p.imagen_url || IMG_PLACEHOLDER_CARD}"
+                             class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
+                             onerror="this.onerror=null;this.src=IMG_PLACEHOLDER_CARD">
+                    </div>
                     <div class="card-body">
-                        <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
-                        <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
-                        <p class="card-text small text-muted">${this.escapeHtml((p.descripcion || '').substring(0, 80))}${p.descripcion && p.descripcion.length > 80 ? '...' : ''}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-auto">
-                            <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>
-                        </div>
-                        <div class="mt-2">
+                        <span class="card-category d-block mb-1">${this.escapeHtml(p.categoria_nombre || 'General')}</span>
+                        <h5 class="card-title mb-2">${this.escapeHtml(p.nombre)}</h5>
+                        <div class="card-price mb-3">${p.precio_formateado || App.formatPrice(p.precio)}</div>
+                        <div class="mt-auto">
                             ${addButton}
+                            <a href="producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 py-2">
+                                <i class="bi bi-eye me-1"></i> Ver Detalle
+                            </a>
                         </div>
-                        <a href="producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
                     </div>
                 </div>
             </div>`;
@@ -264,12 +298,30 @@ const Catalogo = {
         const btnFilterPrice = document.getElementById('btn-filter-price');
         if (btnFilterPrice) {
             btnFilterPrice.addEventListener('click', () => {
-                this.filters.precio_min = document.getElementById('filter-price-min')?.value || null;
-                this.filters.precio_max = document.getElementById('filter-price-max')?.value || null;
+                const minVal = document.getElementById('filter-price-min')?.value;
+                const maxVal = document.getElementById('filter-price-max')?.value;
+                // Los precios en la BD están en centavos → multiplicamos por 100
+                this.filters.precio_min = minVal ? Math.round(parseFloat(minVal) * 100) : null;
+                this.filters.precio_max = maxVal ? Math.round(parseFloat(maxVal) * 100) : null;
                 this.currentPage = 1;
                 this.loadProducts();
             });
         }
+
+        // Limpiar filtro de precio si ambos campos están vacíos al perder el foco
+        ['filter-price-min', 'filter-price-max'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => {
+                    const minEl = document.getElementById('filter-price-min');
+                    const maxEl = document.getElementById('filter-price-max');
+                    if (!minEl?.value && !maxEl?.value) {
+                        this.filters.precio_min = null;
+                        this.filters.precio_max = null;
+                    }
+                });
+            }
+        });
 
         // Filtro solo en stock
         const filterStock = document.getElementById('filter-stock');
@@ -284,8 +336,10 @@ const Catalogo = {
         // Ordenamiento
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) {
+            // Restaurar valor actual si ya hay un filtro
+            if (this.filters.ordenar) sortSelect.value = this.filters.ordenar;
             sortSelect.addEventListener('change', () => {
-                this.filters.ordenar = sortSelect.value;
+                this.filters.ordenar = sortSelect.value || 'relevancia';
                 this.currentPage = 1;
                 this.loadProducts();
             });
@@ -371,30 +425,8 @@ const Catalogo = {
         const container = document.getElementById('destacados-container');
         if (!container) return;
 
-        container.innerHTML = products.slice(0, 4).map(p => {
-            const addBtn = p.sin_stock
-                ? `<button class="btn btn-secondary btn-sm w-100" disabled>Sin Stock</button>`
-                : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
-
-            return `
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="featured-card position-relative">
-                    <span class="featured-badge"><i class="bi bi-star-fill me-1"></i>Destacado</span>
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x200?text=Sin+Imagen'}"
-                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/400x200?text=Sin+Imagen'">
-                    <div class="p-3">
-                        <span class="card-category d-block mb-1">${this.escapeHtml(p.categoria_nombre || '')}</span>
-                        <h6 class="fw-bold mb-1">${this.escapeHtml(p.nombre)}</h6>
-                        <p class="card-price mb-3">${p.precio_formateado || App.formatPrice(p.precio)}</p>
-                        <div class="d-grid gap-1">
-                            ${addBtn}
-                            <a href="producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm">Ver Detalle</a>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
+        // Usamos el mismo componente de card premium para consistencia
+        container.innerHTML = products.slice(0, 4).map(p => this.productCard(p)).join('');
     },
 
     // ============================================================
