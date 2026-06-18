@@ -99,9 +99,9 @@ const Catalogo = {
         params.set('pagina', this.currentPage);
         params.set('por_pagina', 12);
 
-        // Leer búsqueda de URL
+        // Leer búsqueda de URL (acepta 'q' y 'search' del navbar)
         const urlParams = new URLSearchParams(window.location.search);
-        const searchQuery = urlParams.get('q');
+        const searchQuery = urlParams.get('q') || urlParams.get('search');
         if (searchQuery && !this.filters.q) {
             this.filters.q = searchQuery;
             params.set('q', searchQuery);
@@ -116,6 +116,8 @@ const Catalogo = {
             if (data.success) {
                 this.renderProducts(data.data);
                 this.renderPagination(data.meta?.pagination);
+            } else {
+                container.innerHTML = `<div class="col-12 text-center py-5 text-danger">${this.escapeHtml(data.error?.message || 'Error al cargar productos.')}</div>`;
             }
         } catch (e) {
             container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';

@@ -117,7 +117,7 @@ class CatalogoRepository
         $producto = $stmt->fetch();
 
         if ($producto) {
-            $p['precio_formateado'] = '$' . number_format((float)$p['precio'], 0, ',', '.');
+            $producto['precio_formateado'] = '$' . number_format((float)$producto['precio'], 0, ',', '.');
             $producto['precio'] = (int)$producto['precio'];
             $producto['stock'] = (int)$producto['stock'];
             $producto['sin_stock'] = (int)$producto['stock'] <= 0;
