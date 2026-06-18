@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil | UCT Ecommerce</title>
+    <meta name="description" content="Gestiona tu información personal y cambia tu contraseña en UCT Ecommerce.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .profile-hero {
+            background: linear-gradient(135deg, var(--uct-primary) 0%, var(--uct-primary-light) 100%);
+            color: white;
+            padding: 2.5rem 0;
+        }
+
+        .avatar-circle {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+
+        .profile-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 51, 102, 0.08);
+        }
+
+        .profile-card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #e9ecef;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .profile-card-header h5 {
+            margin: 0;
+            font-weight: 700;
+            color: var(--uct-primary);
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--uct-text-dark);
+        }
+
+        .field-readonly {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: var(--uct-text-muted);
+            cursor: not-allowed;
+        }
+
+        /* Password strength indicator */
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: #e9ecef;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+
+        .strength-text {
+            font-size: 0.72rem;
+            margin-top: 3px;
+        }
+
+        /* Success banner */
+        .save-success-banner {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--uct-success);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 1100;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .save-success-banner.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--uct-text-muted);
+            font-weight: 600;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--uct-primary);
+            border-bottom-color: var(--uct-primary);
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: var(--uct-primary);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Success Banner -->
+    <div id="save-success-banner" class="save-success-banner">
+        <i class="bi bi-check-circle me-2"></i><span id="banner-text">¡Cambios guardados con éxito!</span>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-uct sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="./">🛒 Ecommerce UCT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./"><i class="bi bi-shop"></i> Tienda</a>
+                    </li>
+                    <li class="nav-item d-none" id="auth-links">
+                        <a class="nav-link" href="login"><i class="bi bi-person"></i> Iniciar Sesión</a>
+                    </li>
+                    <li class="nav-item dropdown d-none" id="user-links">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item d-none" href="admin" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
+                            <li><a class="dropdown-item active" href="perfil.html"><i class="bi bi-person-gear"></i> Mi Perfil</a></li>
+                            <li><a class="dropdown-item" href="mis-pedidos.html"><i class="bi bi-bag"></i> Mis Pedidos</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="nav-link position-relative d-inline-flex align-items-center" href="./">
+                            <i class="bi bi-cart3 fs-5 me-1"></i> Carrito
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill badge-cart d-none" id="cart-count">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Hero -->
+    <div class="profile-hero">
+        <div class="container">
+            <div class="d-flex align-items-center gap-4">
+                <div class="avatar-circle" id="avatar-initials">?</div>
+                <div>
+                    <h1 class="fw-bold mb-1 fs-3" id="hero-name">Cargando...</h1>
+                    <p class="mb-0 opacity-75 small" id="hero-email">—</p>
+                    <span class="badge bg-warning text-dark mt-1 d-none" id="hero-role-badge">Administrador</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-5 flex-grow-1">
+        <div class="row g-4">
+
+            <!-- Left: Tabs -->
+            <div class="col-12">
+                <ul class="nav nav-tabs border-0 mb-4" id="profile-tabs">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="tab-datos" data-bs-toggle="tab" data-bs-target="#panel-datos">
+                            <i class="bi bi-person me-1"></i>Datos Personales
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="tab-password" data-bs-toggle="tab" data-bs-target="#panel-password">
+                            <i class="bi bi-shield-lock me-1"></i>Contraseña
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+
+                    <!-- Panel: Datos Personales -->
+                    <div class="tab-pane fade show active" id="panel-datos">
+                        <div class="profile-card">
+                            <div class="profile-card-header d-flex justify-content-between align-items-center">
+                                <h5><i class="bi bi-person-vcard me-2"></i>Información Personal</h5>
+                            </div>
+                            <div class="p-4">
+                                <div id="profile-loading" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                    <p class="mt-2 text-muted">Cargando perfil...</p>
+                                </div>
+                                <form id="form-perfil" class="d-none" novalidate>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="perfil-nombre">Nombre</label>
+                                            <input type="text" class="form-control" id="perfil-nombre" required placeholder="Tu nombre">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="perfil-apellido">Apellido</label>
+                                            <input type="text" class="form-control" id="perfil-apellido" required placeholder="Tu apellido">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label" for="perfil-email">Correo Electrónico</label>
+                                            <input type="email" class="form-control field-readonly" id="perfil-email" readonly placeholder="ejemplo@correo.cl">
+                                            <small class="text-muted">El correo no puede ser modificado.</small>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label" for="perfil-telefono">Teléfono de Contacto <span class="text-muted fw-normal">(opcional)</span></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                                <input type="tel" class="form-control" id="perfil-telefono" placeholder="9 1234 5678">
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label" for="perfil-direccion">Dirección por Defecto <span class="text-muted fw-normal">(opcional)</span></label>
+                                            <textarea class="form-control" id="perfil-direccion" rows="2" placeholder="Calle, Número, Ciudad"></textarea>
+                                        </div>
+                                    </div>
+                                    <div id="perfil-error" class="alert alert-danger d-none mt-3"></div>
+                                    <div class="d-flex justify-content-end mt-4 gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" id="btn-cancelar-perfil">Descartar Cambios</button>
+                                        <button type="submit" class="btn btn-primary-uct px-4 fw-semibold" id="btn-guardar-perfil">
+                                            <i class="bi bi-floppy me-1"></i>Guardar Cambios
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel: Contraseña -->
+                    <div class="tab-pane fade" id="panel-password">
+                        <div class="profile-card">
+                            <div class="profile-card-header">
+                                <h5><i class="bi bi-shield-lock me-2"></i>Cambiar Contraseña</h5>
+                            </div>
+                            <div class="p-4">
+                                <form id="form-password" novalidate>
+                                    <div class="mb-3" style="max-width: 480px;">
+                                        <label class="form-label" for="pwd-actual">Contraseña Actual</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="pwd-actual" required placeholder="••••••••">
+                                            <button class="btn btn-outline-secondary toggle-pwd" type="button" data-target="pwd-actual">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3" style="max-width: 480px;">
+                                        <label class="form-label" for="pwd-nueva">Nueva Contraseña</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="pwd-nueva" required minlength="8" placeholder="Mínimo 8 caracteres">
+                                            <button class="btn btn-outline-secondary toggle-pwd" type="button" data-target="pwd-nueva">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="strength-bar">
+                                            <div class="strength-fill" id="strength-fill"></div>
+                                        </div>
+                                        <p class="strength-text text-muted" id="strength-text"></p>
+                                    </div>
+                                    <div class="mb-3" style="max-width: 480px;">
+                                        <label class="form-label" for="pwd-confirmar">Confirmar Nueva Contraseña</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="pwd-confirmar" required placeholder="Repite la nueva contraseña">
+                                            <button class="btn btn-outline-secondary toggle-pwd" type="button" data-target="pwd-confirmar">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="pwd-error" class="alert alert-danger d-none" style="max-width:480px;"></div>
+                                    <button type="submit" class="btn btn-primary-uct px-4 fw-semibold" id="btn-cambiar-pwd">
+                                        <i class="bi bi-shield-check me-1"></i>Actualizar Contraseña
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /tab-content -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto text-white-50">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-md-start mb-3 mb-md-0">
+                    <h5 class="fw-bold text-white mb-1">🛒 Ecommerce UCT</h5>
+                    <p class="small mb-2 text-white-50">Plataforma académica modular de comercio electrónico.</p>
+                    <p class="small mb-0 text-white-50">&copy; 2026 Universidad Católica de Temuco. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="small mb-0 text-white-50">DDS + IA - Universidad Católica de Temuco</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let perfilOriginal = {};
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            App.init();
+
+            // Verificar autenticación
+            if (!App.user) {
+                window.location.href = 'login?redirect=perfil.html';
+                return;
+            }
+
+            updateHero(App.user);
+            await loadPerfil();
+            initForms();
+            initPasswordToggles();
+            initStrengthMeter();
+        });
+
+        // ============================================================
+        // Hero
+        // ============================================================
+        function updateHero(user) {
+            const nombre = user.nombre || user.email || 'Usuario';
+            const initials = nombre.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('avatar-initials').textContent = initials;
+            document.getElementById('hero-name').textContent = nombre;
+            document.getElementById('hero-email').textContent = user.email || '';
+            if (user.rol === 'admin') {
+                document.getElementById('hero-role-badge').classList.remove('d-none');
+            }
+        }
+
+        // ============================================================
+        // Cargar perfil desde API
+        // ============================================================
+        async function loadPerfil() {
+            try {
+                const resp = await App.fetchAuth(`${App.apiBase}/auth/perfil`);
+                const data = await resp.json();
+
+                if (!data.success) throw new Error(data.error?.message || 'Error al cargar perfil');
+
+                const perfil = data.data;
+                perfilOriginal = { ...perfil };
+
+                document.getElementById('perfil-nombre').value   = perfil.nombre || '';
+                document.getElementById('perfil-apellido').value = perfil.apellido || '';
+                document.getElementById('perfil-email').value    = perfil.email || '';
+                document.getElementById('perfil-telefono').value = perfil.telefono || '';
+                document.getElementById('perfil-direccion').value = perfil.direccion || '';
+
+                document.getElementById('profile-loading').classList.add('d-none');
+                document.getElementById('form-perfil').classList.remove('d-none');
+
+            } catch (err) {
+                document.getElementById('profile-loading').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>${escapeHtml(err.message)}
+                    </div>`;
+            }
+        }
+
+        // ============================================================
+        // Formularios
+        // ============================================================
+        function initForms() {
+            // Guardar perfil
+            document.getElementById('form-perfil').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-guardar-perfil');
+                const errDiv = document.getElementById('perfil-error');
+                errDiv.classList.add('d-none');
+
+                const nombre   = document.getElementById('perfil-nombre').value.trim();
+                const apellido = document.getElementById('perfil-apellido').value.trim();
+                const telefono = document.getElementById('perfil-telefono').value.trim();
+                const direccion = document.getElementById('perfil-direccion').value.trim();
+
+                if (!nombre || !apellido) {
+                    errDiv.textContent = 'Nombre y apellido son obligatorios.';
+                    errDiv.classList.remove('d-none');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...';
+
+                try {
+                    const resp = await App.fetchAuth(`${App.apiBase}/auth/perfil`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ nombre, apellido, telefono, direccion })
+                    });
+                    const data = await resp.json();
+
+                    if (!data.success) throw new Error(data.error?.message || 'Error al guardar');
+
+                    // Actualizar localStorage
+                    const updatedUser = { ...App.user, nombre: nombre + ' ' + apellido };
+                    localStorage.setItem('uct_user', JSON.stringify(updatedUser));
+                    App.user = updatedUser;
+                    App.updateNavbar();
+                    updateHero(updatedUser);
+                    perfilOriginal = { nombre, apellido, telefono, direccion };
+
+                    showSuccessBanner('¡Perfil actualizado con éxito!');
+                } catch (err) {
+                    errDiv.textContent = err.message;
+                    errDiv.classList.remove('d-none');
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-floppy me-1"></i>Guardar Cambios';
+            });
+
+            // Descartar cambios
+            document.getElementById('btn-cancelar-perfil').addEventListener('click', () => {
+                document.getElementById('perfil-nombre').value    = perfilOriginal.nombre || '';
+                document.getElementById('perfil-apellido').value  = perfilOriginal.apellido || '';
+                document.getElementById('perfil-telefono').value  = perfilOriginal.telefono || '';
+                document.getElementById('perfil-direccion').value = perfilOriginal.direccion || '';
+                document.getElementById('perfil-error').classList.add('d-none');
+                App.showToast('Cambios descartados', 'info');
+            });
+
+            // Cambiar contraseña
+            document.getElementById('form-password').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-cambiar-pwd');
+                const errDiv = document.getElementById('pwd-error');
+                errDiv.classList.add('d-none');
+
+                const actual    = document.getElementById('pwd-actual').value;
+                const nueva     = document.getElementById('pwd-nueva').value;
+                const confirmar = document.getElementById('pwd-confirmar').value;
+
+                if (nueva !== confirmar) {
+                    errDiv.textContent = 'Las contraseñas nuevas no coinciden.';
+                    errDiv.classList.remove('d-none');
+                    return;
+                }
+                if (nueva.length < 8) {
+                    errDiv.textContent = 'La nueva contraseña debe tener al menos 8 caracteres.';
+                    errDiv.classList.remove('d-none');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Actualizando...';
+
+                try {
+                    const resp = await App.fetchAuth(`${App.apiBase}/auth/perfil`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ password_actual: actual, password_nueva: nueva })
+                    });
+                    const data = await resp.json();
+
+                    if (!data.success) throw new Error(data.error?.message || 'Error al cambiar contraseña');
+
+                    document.getElementById('form-password').reset();
+                    document.getElementById('strength-fill').style.width = '0%';
+                    document.getElementById('strength-text').textContent = '';
+                    showSuccessBanner('¡Contraseña actualizada con éxito!');
+                } catch (err) {
+                    errDiv.textContent = err.message;
+                    errDiv.classList.remove('d-none');
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-shield-check me-1"></i>Actualizar Contraseña';
+            });
+        }
+
+        // ============================================================
+        // Toggle visibilidad de contraseña
+        // ============================================================
+        function initPasswordToggles() {
+            document.querySelectorAll('.toggle-pwd').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const inputId = btn.dataset.target;
+                    const input = document.getElementById(inputId);
+                    const icon  = btn.querySelector('i');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.className = 'bi bi-eye-slash';
+                    } else {
+                        input.type = 'password';
+                        icon.className = 'bi bi-eye';
+                    }
+                });
+            });
+        }
+
+        // ============================================================
+        // Medidor de fortaleza de contraseña
+        // ============================================================
+        function initStrengthMeter() {
+            document.getElementById('pwd-nueva').addEventListener('input', function () {
+                const val = this.value;
+                const fill = document.getElementById('strength-fill');
+                const text = document.getElementById('strength-text');
+
+                let score = 0;
+                if (val.length >= 8)  score++;
+                if (/[A-Z]/.test(val)) score++;
+                if (/[0-9]/.test(val)) score++;
+                if (/[^A-Za-z0-9]/.test(val)) score++;
+
+                const levels = [
+                    { pct: '0%',   color: '#e9ecef', label: '' },
+                    { pct: '25%',  color: '#dc3545', label: 'Muy débil' },
+                    { pct: '50%',  color: '#fd7e14', label: 'Débil' },
+                    { pct: '75%',  color: '#ffc107', label: 'Moderada' },
+                    { pct: '100%', color: '#198754', label: '¡Contraseña fuerte!' },
+                ];
+
+                const lvl = val.length === 0 ? levels[0] : levels[score] || levels[score > 4 ? 4 : score];
+                fill.style.width = lvl.pct;
+                fill.style.background = lvl.color;
+                text.textContent = lvl.label;
+                text.style.color = lvl.color;
+            });
+        }
+
+        // ============================================================
+        // Banner de éxito
+        // ============================================================
+        function showSuccessBanner(msg) {
+            const banner = document.getElementById('save-success-banner');
+            document.getElementById('banner-text').textContent = msg;
+            banner.classList.add('show');
+            setTimeout(() => banner.classList.remove('show'), 2800);
+        }
+
+        // ============================================================
+        // Helper
+        // ============================================================
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
