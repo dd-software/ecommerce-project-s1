@@ -20,36 +20,23 @@ class Request
     public function __construct()
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        
-        // Obtener URI original
-        $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-        
-        // El base path es el directorio donde está index.php
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $baseDir = str_replace('\\', '/', dirname($scriptName));
-        
-        // Intentamos limpiar la URI basándonos en el directorio del script
-        $uri = $rawUri;
-        
-        // Primero probamos con el directorio completo (ej: /~mvaldebenito2025/public)
-        if ($baseDir !== '/' && $baseDir !== '' && strpos($uri, $baseDir) === 0) {
-            $uri = substr($uri, strlen($baseDir));
-        } 
-        // Si no coincide, probamos con el padre (ej: /~mvaldebenito2025)
-        else {
-            $parentDir = str_replace('\\', '/', dirname($baseDir));
-            if ($parentDir !== '/' && $parentDir !== '' && strpos($uri, $parentDir) === 0) {
-                $uri = substr($uri, strlen($parentDir));
-                // Si después de limpiar el padre, empieza por /public, lo quitamos también
-                if (strpos($uri, '/public') === 0) {
-                    $uri = substr($uri, 7);
-                }
-            }
-        }
 
-        // Asegurar que comience con /
-        $this->uri = '/' . ltrim($uri, '/');
-        
+        $fullUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+
+        $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
+        while ($scriptDir !== '' && $scriptDir !== '/') {
+            if (str_starts_with($fullUri, $scriptDir)) {
+                $fullUri = substr($fullUri, strlen($scriptDir));
+                break;
+            }
+            $lastSlash = strrpos($scriptDir, '/');
+            if ($lastSlash === false) {
+                break;
+            }
+            $scriptDir = substr($scriptDir, 0, $lastSlash);
+        }
+        $this->uri = '/' . ltrim($fullUri, '/');
+
         $this->queryParams = $_GET;
         $this->headers = $this->parseHeaders();
 
