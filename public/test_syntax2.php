@@ -6,12 +6,18 @@ echo "=== RECURSIVE PHP LINT ===\n";
 function scanDirRecursive($dir, &$results = []) {
     $files = scandir($dir);
     foreach ($files as $key => $value) {
+        if ($value === "." || $value === "..") {
+            continue;
+        }
+        if ($value === ".git" || $value === "node_modules" || $value === "vendor") {
+            continue;
+        }
         $path = realpath($dir . DIRECTORY_SEPARATOR . $value);
         if (!is_dir($path)) {
             if (pathinfo($path, PATHINFO_EXTENSION) === 'php') {
                 $results[] = $path;
             }
-        } else if ($value != "." && $value != "..") {
+        } else {
             scanDirRecursive($path, $results);
         }
     }
