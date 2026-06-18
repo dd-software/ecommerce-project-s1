@@ -114,4 +114,13 @@ Este documento detalla todos los problemas identificados y corregidos en la plat
   * Se añadió una estructura `else` al condicional de `data.success` en `catalogo.js` para limpiar el spinner y renderizar un mensaje de error limpio en caso de fallo del backend.
   * Se actualizó la lectura de URL en el catálogo para soportar tanto `q` como `search` de forma transparente.
 
+---
+
+## 9. Solución de Enrutamiento Base de la API en el Frontend (`app.js`)
+* **Problema:** 
+  Al intentar conectar el frontend con los endpoints del backend, las llamadas AJAX fallaban con error `404 Not Found` debido a que la ruta configurada en la constante `apiBase` apuntaba a `/api` directamente en lugar de pasar a través de `/public/api`. Esto impedía el correcto consumo de servicios al no estar alineados a la estructura del servidor Apache en subdirectorios.
+* **Solución:**
+  Se modificó la línea 7 del archivo [`public/js/app.js`](file:///c:/xampp/htdocs/ecommerce-project-s1/public/js/app.js) para concatenar `/public/api` en lugar de `/api` (posteriormente refinado utilizando la API `URL` y `document.baseURI` para mayor dinamismo y robustez).
+
+
 
