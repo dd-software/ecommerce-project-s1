@@ -487,13 +487,12 @@ const Admin = {
         // Cargar categorías
         let catOptions = '';
         try {
-            const resp = await App.fetchAuth(`${App.apiBase}/catalogo/categorias`);
+            const resp = await fetch(`${App.apiBase}/catalogo/categorias`);
             const data = await resp.json();
             if (data.success) {
-                catOptions = data.data.map(c => `
-                    <option value="${c.id}" ${product && product.id_categoria == c.id ? 'selected' : ''}>
-                        ${Catalogo.escapeHtml(c.nombre)}
-                    </option>`).join('');
+                catOptions = data.data.map(c =>
+                    `<option value="${c.id}" ${product && product.id_categoria == c.id ? 'selected' : ''}>${Admin.escapeHtml(c.nombre)}</option>`
+                ).join('');
             }
         } catch (e) { }
 
@@ -511,7 +510,7 @@ const Admin = {
                             <div class="row">
                                 <div class="col-md-8 mb-3">
                                     <label class="form-label">Nombre *</label>
-                                    <input type="text" class="form-control" id="prod-nombre" value="${product ? Catalogo.escapeHtml(product.nombre) : ''}" required>
+                                    <input type="text" class="form-control" id="prod-nombre" value="${product ? Admin.escapeHtml(product.nombre) : ''}" required>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Categoría *</label>
@@ -523,7 +522,7 @@ const Admin = {
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Descripción</label>
-                                <textarea class="form-control" id="prod-descripcion" rows="3">${product ? Catalogo.escapeHtml(product.descripcion || '') : ''}</textarea>
+                                <textarea class="form-control" id="prod-descripcion" rows="3">${product ? Admin.escapeHtml(product.descripcion || '') : ''}</textarea>
                             </div>
                             <div class="row">
                                 <div class="col-md-4 mb-3">
