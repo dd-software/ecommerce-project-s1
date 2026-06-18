@@ -173,6 +173,6 @@ $router->get('/api/exportar/reporte-ventas', [IntegracionController::class, 'exp
 // ============================================
 try {
     $router->dispatch($request, $response);
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     $response->error('SERVER_ERROR', 'Error interno del servidor: ' . $e->getMessage(), 500);
 }
