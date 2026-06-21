@@ -191,13 +191,34 @@ const Catalogo = {
         this.loadProducts();
     },
 
-    /** Íconos por slug de categoría (decorativo para los tiles del home) */
+    /**
+     * Mapa centralizado slug de categoría → ícono de Bootstrap Icons (la librería
+     * del proyecto). Agregar una categoría nueva = una línea acá.
+     */
+    categoryIconMap: {
+        'componentes-pc':     'bi-cpu',
+        'tarjetas-video':     'bi-gpu-card',
+        'almacenamiento':     'bi-hdd',
+        'redes':              'bi-router',
+        'notebooks':          'bi-laptop',
+        'computadores':       'bi-pc-display',
+        'monitores':          'bi-display',
+        'celulares':          'bi-phone',
+        'tv-audio':           'bi-tv',
+        'consolas':           'bi-controller',
+        'videojuegos':        'bi-dpad',
+        'controles-gaming':   'bi-joystick',
+        'accesorios':         'bi-mouse',
+        'cables':             'bi-plug',
+        'bolsos-fundas':      'bi-backpack',
+        'sillas-escritorios': 'bi-person-workspace',
+        'limpieza-cuidado':   'bi-stars',
+        'herramientas':       'bi-tools',
+        'repuestos':          'bi-gear-wide-connected',
+        'servicios-tecnicos': 'bi-wrench-adjustable',
+    },
     catIcon(slug) {
-        const m = {
-            'componentes-pc': 'bi-cpu', accesorios: 'bi-mouse', cables: 'bi-plug',
-            herramientas: 'bi-tools', repuestos: 'bi-gear-wide-connected', 'servicios-tecnicos': 'bi-wrench-adjustable'
-        };
-        return m[slug] || 'bi-box-seam';
+        return this.categoryIconMap[slug] || 'bi-box-seam';
     },
 
     /**
@@ -309,11 +330,11 @@ const Catalogo = {
                         <span class="card-category">${this.escapeHtml(p.marca || p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
                         <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>${precioAnterior}
-                        <div class="mt-2">
+                        <div class="card-actions">
                             ${addButton}
+                            <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver detalle</a>
+                            ${extra}
                         </div>
-                        <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver detalle</a>
-                        ${extra}
                     </div>
                 </div>
             </div>`;

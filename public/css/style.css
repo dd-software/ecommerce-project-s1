@@ -386,7 +386,13 @@ a:hover { color: var(--qc-red-hover); }
     background: #fff;
     height: 100%;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
+/* el cuerpo crece y empuja los botones al fondo → todas las cards alineadas
+   tengan oferta (precio tachado) o no */
+.product-card .card-body { flex: 1 1 auto; }
+.product-card .card-actions { margin-top: auto; padding-top: 10px; }
 .product-card:hover { transform: scale(1.02); box-shadow: var(--qc-shadow-lg); }
 .product-card .card-img-top {
     width: 100%;
