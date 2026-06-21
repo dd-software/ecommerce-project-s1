@@ -114,8 +114,8 @@ const Admin = {
             const stock = (d.alertas_stock && d.alertas_stock.length)
                 ? d.alertas_stock.map(a => `
                     <div class="admin-stock-item">
-                        <span class="text-truncate">${this.escapeHtml(a.nombre)}</span>
-                        <span class="pedido-badge danger"><span class="pedido-dot"></span>${a.stock} u.</span>
+                        <span class="admin-stock-name">${this.escapeHtml(a.nombre)}</span>
+                        ${this.stockBadge(a.stock, a.stock_minimo)}
                     </div>`).join('')
                 : '<p class="text-success mb-0"><i class="bi bi-check-circle"></i> Stock al día.</p>';
 
@@ -176,53 +176,35 @@ const Admin = {
             const pag = data.meta?.pagination;
 
             let html = `
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4>Gestión de Productos</h4>
+                <div class="admin-page-head">
+                    <h1 class="admin-page-title mb-0">Gestión de productos</h1>
                     <button class="btn btn-accent" id="btn-new-product" onclick="Admin.showProductForm()">
-                        <i class="bi bi-plus-lg"></i> Nuevo Producto
+                        <i class="bi bi-plus-lg"></i> Nuevo producto
                     </button>
                 </div>`;
 
             if (productos && productos.length > 0) {
-                html += `<div class="table-responsive">
-                    <table class="table table-admin table-hover">
+                html += `<div class="cart-table-card">
+                    <table class="cart-table admin-table">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Imagen</th>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Precio</th>
-                                <th>Stock</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
+                            <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th class="text-end">Acciones</th></tr>
                         </thead>
                         <tbody>
                             ${productos.map(p => `
                                 <tr>
-                                    <td>${p.id}</td>
-                                    <td><img src="${p.imagen_url || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src='https://via.placeholder.com/40'"></td>
-                                    <td>${this.escapeHtml(p.nombre)}</td>
-                                    <td>${this.escapeHtml(p.categoria_nombre || '-')}</td>
-                                    <td>${p.precio_formateado || App.formatPrice(p.precio)}</td>
                                     <td>
-                                        <span class="badge ${p.stock <= 0 ? 'bg-danger' : p.stock <= (p.stock_minimo || 5) ? 'bg-warning text-dark' : 'bg-success'}">
-                                            ${p.stock}
-                                        </span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            ${p.imagen_url ? `<img src="${p.imagen_url}" class="admin-thumb">` : '<div class="qc-img-ph admin-thumb"><i class="bi bi-cpu"></i></div>'}
+                                            <span class="cart-row-name">${this.escapeHtml(p.nombre)}</span>
+                                        </div>
                                     </td>
-                                    <td>
-                                        <span class="badge ${p.activo == 1 ? 'bg-success' : 'bg-secondary'}">
-                                            ${p.activo == 1 ? 'Activo' : 'Inactivo'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action me-1" onclick="Admin.showProductForm(${p.id})" title="Editar">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-action" onclick="Admin.deleteProduct(${p.id})" title="Eliminar">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                    <td class="text-muted">${this.escapeHtml(p.categoria_nombre || '-')}</td>
+                                    <td class="fw-bold">${p.precio_formateado || App.formatPrice(p.precio)}</td>
+                                    <td>${this.stockBadge(p.stock, p.stock_minimo)}</td>
+                                    <td>${this.activoBadge(p.activo)}</td>
+                                    <td class="text-end">
+                                        <button class="admin-action" onclick="Admin.showProductForm(${p.id})" title="Editar"><i class="bi bi-pencil"></i></button>
+                                        <button class="admin-action danger" onclick="Admin.deleteProduct(${p.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -265,36 +247,28 @@ const Admin = {
             const pedidos = data.data;
             const pag = data.meta?.pagination;
 
-            let html = `<h4 class="mb-4">Gestión de Pedidos</h4>`;
+            let html = `<h1 class="admin-page-title">Gestión de pedidos</h1>`;
 
             if (pedidos && pedidos.length > 0) {
-                html += `<div class="table-responsive">
-                    <table class="table table-admin table-hover">
+                html += `<div class="cart-table-card">
+                    <table class="cart-table admin-table">
                         <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Cliente</th>
-                                <th>Items</th>
-                                <th>Total</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                                <th>Acciones</th>
-                            </tr>
+                            <tr><th>Orden</th><th>Cliente</th><th>Items</th><th>Total</th><th>Estado</th><th>Fecha</th><th class="text-end">Cambiar estado</th></tr>
                         </thead>
                         <tbody>
                             ${pedidos.map(p => `
                                 <tr>
-                                    <td>#${p.id}</td>
+                                    <td class="fw-bold">${ordenNumero(p.id, p.created_at)}</td>
                                     <td>${this.escapeHtml(p.cliente_nombre)} ${this.escapeHtml(p.apellido || '')}</td>
                                     <td>${p.total_items}</td>
-                                    <td>${p.total_formateado}</td>
-                                    <td><span class="badge-estado ${p.estado}">${p.estado}</span></td>
-                                    <td>${new Date(p.created_at).toLocaleDateString('es-CL')}</td>
-                                    <td>
-                                        <select class="form-select form-select-sm" onchange="Admin.changeOrderStatus(${p.id}, this.value)" style="width:150px">
-                                            <option value="">Cambiar estado</option>
+                                    <td class="text-primary fw-bold">${p.total_formateado}</td>
+                                    <td>${badgeEstado(p.estado)}</td>
+                                    <td class="text-muted">${(p.created_at || '').slice(0, 10)}</td>
+                                    <td class="text-end">
+                                        <select class="form-select form-select-sm admin-status-select" onchange="Admin.changeOrderStatus(${p.id}, this.value)">
+                                            <option value="">—</option>
                                             <option value="pagado">Pagado</option>
-                                            <option value="en_preparacion">En Preparación</option>
+                                            <option value="en_preparacion">En preparación</option>
                                             <option value="enviado">Enviado</option>
                                             <option value="entregado">Entregado</option>
                                             <option value="cancelado">Cancelado</option>
@@ -329,25 +303,25 @@ const Admin = {
             if (!data.success) throw new Error('Error');
 
             const usuarios = data.data;
-            let html = `<h4 class="mb-4">Gestión de Usuarios</h4>`;
+            let html = `<h1 class="admin-page-title">Gestión de usuarios</h1>`;
 
             if (usuarios && usuarios.length > 0) {
-                html += `<div class="table-responsive">
-                    <table class="table table-admin table-hover">
-                        <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Último Login</th><th>Acciones</th></tr></thead>
+                html += `<div class="cart-table-card">
+                    <table class="cart-table admin-table">
+                        <thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th><th>Último acceso</th><th class="text-end">Acción</th></tr></thead>
                         <tbody>
                             ${usuarios.map(u => `
                                 <tr>
-                                    <td>${u.id}</td>
-                                    <td>${this.escapeHtml(u.nombre)} ${this.escapeHtml(u.apellido)}</td>
-                                    <td>${this.escapeHtml(u.email)}</td>
-                                    <td><span class="badge bg-info">${u.rol}</span></td>
-                                    <td><span class="badge ${u.activo == 1 ? 'bg-success' : 'bg-danger'}">${u.activo == 1 ? 'Activo' : 'Deshabilitado'}</span></td>
-                                    <td>${u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-CL') : 'Nunca'}</td>
-                                    <td>
-                                        <button class="btn btn-sm ${u.activo == 1 ? 'btn-outline-danger' : 'btn-outline-success'} btn-action"
-                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})">
-                                            ${u.activo == 1 ? 'Deshabilitar' : 'Activar'}
+                                    <td class="cart-row-name">${this.escapeHtml(u.nombre)} ${this.escapeHtml(u.apellido)}</td>
+                                    <td class="text-muted">${this.escapeHtml(u.email)}</td>
+                                    <td><span class="qc-chip">${this.escapeHtml(u.rol)}</span></td>
+                                    <td>${this.activoBadge(u.activo, 'Deshabilitado')}</td>
+                                    <td class="text-muted">${u.ultimo_login ? (u.ultimo_login || '').slice(0, 10) : 'Nunca'}</td>
+                                    <td class="text-end">
+                                        <button class="admin-action ${u.activo == 1 ? 'danger' : ''}"
+                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})"
+                                                title="${u.activo == 1 ? 'Deshabilitar' : 'Activar'}">
+                                            <i class="bi ${u.activo == 1 ? 'bi-person-slash' : 'bi-person-check'}"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -381,32 +355,31 @@ const Admin = {
             const ventas = await ventasResp.json();
             const top = await topResp.json();
 
-            let html = `<h4 class="mb-4">Reportes</h4>`;
+            let html = `<h1 class="admin-page-title">Reportes</h1>`;
 
             // Productos más vendidos
-            html += `<div class="card mb-4"><div class="card-header bg-primary text-white">
-                <i class="bi bi-star me-2"></i>Productos Más Vendidos</div><div class="card-body">`;
-
+            html += `<div class="cart-table-card mb-4">
+                <div class="admin-card-head"><h6>Productos más vendidos</h6></div>`;
             if (top.success && top.data && top.data.length > 0) {
-                html += `<table class="table table-hover">
-                    <thead><tr><th>#</th><th>Producto</th><th>Unidades Vendidas</th><th>Recaudación</th></tr></thead>
+                html += `<table class="cart-table admin-table">
+                    <thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th class="text-end">Recaudación</th></tr></thead>
                     <tbody>${top.data.map((p, i) => `
                         <tr>
-                            <td>${i + 1}</td>
-                            <td>${this.escapeHtml(p.nombre_producto)}</td>
-                            <td><strong>${p.total_vendido}</strong></td>
-                            <td>$ ${new Intl.NumberFormat('es-CL').format(Math.round(p.total_recaudado))}</td>
+                            <td class="text-muted">${i + 1}</td>
+                            <td class="cart-row-name">${this.escapeHtml(p.nombre_producto)}</td>
+                            <td class="fw-bold">${p.total_vendido}</td>
+                            <td class="text-primary fw-bold text-end">$${new Intl.NumberFormat('es-CL').format(Math.round(p.total_recaudado))}</td>
                         </tr>`).join('')}</tbody></table>`;
             } else {
-                html += '<p class="text-muted">No hay datos de ventas aún.</p>';
+                html += '<p class="text-muted mb-0">No hay datos de ventas aún.</p>';
             }
-            html += '</div></div>';
+            html += '</div>';
 
             // Ventas por día
-            html += `<div class="card"><div class="card-header bg-primary text-white">
-                <i class="bi bi-graph-up me-2"></i>Ventas Últimos 30 Días</div><div class="card-body">
-                <canvas id="sales-chart" height="200"></canvas>
-            </div></div>`;
+            html += `<div class="cart-table-card">
+                <div class="admin-card-head"><h6>Ventas últimos 30 días</h6></div>
+                <div id="sales-chart"></div>
+            </div>`;
 
             container.innerHTML = html;
 
@@ -434,7 +407,7 @@ const Admin = {
         let html = '<div class="d-flex align-items-end" style="height:200px;gap:2px">';
         ventasData.forEach((v, i) => {
             const height = Math.max(4, (values[i] / maxVal) * 180);
-            html += `<div class="flex-fill bg-primary" style="height:${height}px;min-width:6px;border-radius:2px 2px 0 0"
+            html += `<div class="flex-fill admin-bar" style="height:${height}px;min-width:6px;border-radius:3px 3px 0 0"
                         title="${v.fecha}: $${new Intl.NumberFormat('es-CL').format(values[i])}"></div>`;
         });
         html += '</div>';
@@ -660,6 +633,20 @@ const Admin = {
         } catch (e) {
             App.showToast('Error', 'error');
         }
+    },
+
+    /** Badge de stock con punto de color (coherente con los estados) */
+    stockBadge(stock, min) {
+        const color = stock <= 0 ? 'danger' : stock <= (min || 5) ? 'warning' : 'success';
+        const label = stock <= 0 ? 'Agotado' : `${stock} u.`;
+        return `<span class="pedido-badge ${color}"><span class="pedido-dot"></span>${label}</span>`;
+    },
+
+    /** Badge activo/inactivo con punto de color */
+    activoBadge(activo, inactivoLabel = 'Inactivo') {
+        return activo == 1
+            ? '<span class="pedido-badge success"><span class="pedido-dot"></span>Activo</span>'
+            : `<span class="pedido-badge secondary"><span class="pedido-dot"></span>${inactivoLabel}</span>`;
     },
 
     escapeHtml(str) {

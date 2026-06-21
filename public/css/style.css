@@ -608,6 +608,21 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 .admin-card-head h6 { font-weight: 700; margin: 0; }
 .admin-stock-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--qc-border); font-size: 14px; }
 .admin-stock-item:last-child { border-bottom: none; }
+.admin-stock-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-stock-item .pedido-badge { flex-shrink: 0; }
+
+/* Tablas y controles del admin (coherentes con la tienda) */
+.admin-page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.admin-thumb { width: 40px; height: 40px; flex: 0 0 40px; object-fit: cover; border-radius: 8px; font-size: 16px; }
+.admin-table td { font-size: 14px; }
+.admin-action { width: 32px; height: 32px; border: 1px solid var(--qc-border); background: #fff; border-radius: 8px; color: var(--qc-gray); cursor: pointer; transition: .12s; }
+.admin-action:hover { border-color: var(--qc-red); color: var(--qc-red); }
+.admin-action.danger:hover { border-color: #dc2626; color: #dc2626; }
+.admin-action + .admin-action { margin-left: 6px; }
+.qc-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--qc-gray-light); color: var(--qc-gray); font-size: 12px; font-weight: 600; text-transform: capitalize; }
+.admin-status-select { width: auto; min-width: 130px; display: inline-block; }
+.admin-bar { background: var(--qc-red); transition: opacity .15s; }
+.admin-bar:hover { opacity: .7; }
 @media (max-width: 992px) { .qc-stats-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 520px) { .qc-stats-grid { grid-template-columns: 1fr; } }
 @media (max-width: 768px) {

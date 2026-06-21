@@ -5,11 +5,12 @@
 
 // Estado de pedido → etiqueta + color + ícono (badge)
 const ESTADOS_PEDIDO = {
-    pendiente: ['Procesando', 'warning', 'bi-hourglass-split'],
-    pagado:    ['Pagado', 'success', 'bi-check-circle'],
-    enviado:   ['Enviado', 'info', 'bi-truck'],
-    entregado: ['Entregado', 'success', 'bi-check2-all'],
-    cancelado: ['Cancelado', 'danger', 'bi-x-circle'],
+    pendiente:      ['Procesando', 'warning', 'bi-hourglass-split'],
+    pagado:         ['Pagado', 'success', 'bi-check-circle'],
+    en_preparacion: ['En preparación', 'info', 'bi-gear'],
+    enviado:        ['Enviado', 'info', 'bi-truck'],
+    entregado:      ['Entregado', 'success', 'bi-check2-all'],
+    cancelado:      ['Cancelado', 'danger', 'bi-x-circle'],
 };
 
 function ordenNumero(id, fecha) {
