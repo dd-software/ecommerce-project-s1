@@ -44,3 +44,26 @@ UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1556644304-
 
 -- Servicios Técnicos
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1604754742629-3e5728249d73?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' WHERE slug = 'diagnostico-tecnico-profesional';
+
+-- ── Catálogo ampliado (notebooks, computadores, consolas, celulares, TV, monitores) ──
+-- URLs verificadas con curl (HTTP 200 + image/*). Dominios permitidos por el CSP.
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600' WHERE slug = 'notebook-asus-vivobook-15-i5';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600' WHERE slug = 'notebook-lenovo-ideapad-gaming-3';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600' WHERE slug = 'notebook-hp-pavilion-14';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600' WHERE slug = 'macbook-air-m2-13';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=600' WHERE slug = 'pc-gamer-quadcore-ryzen5-rtx4060';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=600' WHERE slug = 'pc-oficina-quadcore-i3';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1591488320449-011701bb6704?w=600' WHERE slug = 'pc-gamer-pro-quadcore-i7-rtx4070';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600' WHERE slug = 'playstation-5-slim';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=600' WHERE slug = 'xbox-series-x';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=600' WHERE slug = 'nintendo-switch-oled';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600' WHERE slug = 'iphone-15-128gb';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600' WHERE slug = 'samsung-galaxy-s24-256gb';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600' WHERE slug = 'xiaomi-redmi-note-13-pro';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600' WHERE slug = 'motorola-moto-g54-5g';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600' WHERE slug = 'smart-tv-samsung-55-crystal-4k';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' WHERE slug = 'audifonos-sony-wh-1000xm5';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600' WHERE slug = 'parlante-jbl-charge-5';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=600' WHERE slug = 'monitor-lg-ultragear-27-165hz';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?w=600' WHERE slug = 'monitor-samsung-essential-24';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600' WHERE slug = 'monitor-aoc-gaming-27-144hz';
