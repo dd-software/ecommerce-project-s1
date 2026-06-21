@@ -58,6 +58,7 @@ $router->patch('/api/auth/perfil', [AuthController::class, 'actualizarPerfil'], 
 // --- Módulo A: Catálogo ---
 $router->get('/api/catalogo', [CatalogoController::class, 'listar']);
 $router->get('/api/catalogo/categorias', [CatalogoController::class, 'categorias']);
+$router->get('/api/catalogo/marcas', [CatalogoController::class, 'marcas']);
 $router->get('/api/catalogo/destacados', [CatalogoController::class, 'destacados']);
 $router->get('/api/catalogo/{id}', [CatalogoController::class, 'detalle']);
 

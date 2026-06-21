@@ -27,13 +27,21 @@ class CatalogoService
         ?bool $enStock = null,
         string $ordenar = 'relevancia',
         int $pagina = 1,
-        int $porPagina = 20
+        int $porPagina = 20,
+        ?array $categoriaIds = null,
+        ?array $marcas = null
     ): array {
         // Solo productos activos (RN-A01)
         $filtros = ['activo' => true];
 
         if ($categoriaId !== null) {
             $filtros['categoria_id'] = $categoriaId;
+        }
+        if (!empty($categoriaIds)) {
+            $filtros['categoria_ids'] = $categoriaIds;
+        }
+        if (!empty($marcas)) {
+            $filtros['marcas'] = $marcas;
         }
         if ($busqueda !== null && trim($busqueda) !== '') {
             $filtros['busqueda'] = trim($busqueda);
@@ -65,6 +73,14 @@ class CatalogoService
     public function listarCategorias(): array
     {
         return $this->repository->obtenerCategorias();
+    }
+
+    /**
+     * Lista marcas activas con conteo
+     */
+    public function listarMarcas(): array
+    {
+        return $this->repository->obtenerMarcas();
     }
 
     /**

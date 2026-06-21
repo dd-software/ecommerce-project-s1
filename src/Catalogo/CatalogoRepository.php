@@ -33,6 +33,24 @@ class CatalogoRepository
             $params[':categoria_id'] = $filtros['categoria_id'];
         }
 
+        if (!empty($filtros['categoria_ids']) && is_array($filtros['categoria_ids'])) {
+            $ph = [];
+            foreach (array_values($filtros['categoria_ids']) as $i => $cid) {
+                $ph[] = ":cat_$i";
+                $params[":cat_$i"] = (int)$cid;
+            }
+            $where[] = "p.id_categoria IN (" . implode(',', $ph) . ")";
+        }
+
+        if (!empty($filtros['marcas']) && is_array($filtros['marcas'])) {
+            $ph = [];
+            foreach (array_values($filtros['marcas']) as $i => $m) {
+                $ph[] = ":marca_$i";
+                $params[":marca_$i"] = $m;
+            }
+            $where[] = "p.marca IN (" . implode(',', $ph) . ")";
+        }
+
         if (isset($filtros['busqueda'])) {
             $where[] = "(p.nombre LIKE :busqueda OR p.descripcion LIKE :busqueda2)";
             $params[':busqueda'] = '%' . $filtros['busqueda'] . '%';
@@ -76,7 +94,7 @@ class CatalogoRepository
 
         // Consulta paginada
         $sql = "SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio, p.stock,
-                       p.imagen_url, p.id_categoria, c.nombre as categoria_nombre,
+                       p.imagen_url, p.id_categoria, c.nombre as categoria_nombre, p.marca,
                        p.created_at
                 FROM productos p
                 LEFT JOIN categorias c ON p.id_categoria = c.id
@@ -90,7 +108,7 @@ class CatalogoRepository
 
         // Formatear precios para el frontend
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format($p['precio'] , 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = $p['stock'] <= 0; // RN-A02
@@ -117,7 +135,7 @@ class CatalogoRepository
         $producto = $stmt->fetch();
 
         if ($producto) {
-            $producto['precio_formateado'] = '$' . number_format($producto['precio'] / 100, 0, ',', '.');
+            $producto['precio_formateado'] = '$' . number_format($producto['precio'] , 0, ',', '.');
             $producto['precio'] = (int)$producto['precio'];
             $producto['stock'] = (int)$producto['stock'];
             $producto['sin_stock'] = (int)$producto['stock'] <= 0;
@@ -160,12 +178,30 @@ class CatalogoRepository
     }
 
     /**
+     * Obtiene marcas activas con conteo de productos
+     */
+    public function obtenerMarcas(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT p.marca, COUNT(*) as total
+             FROM productos p
+             WHERE p.activo = 1 AND p.deleted_at IS NULL AND p.marca IS NOT NULL AND p.marca <> ''
+             GROUP BY p.marca
+             ORDER BY p.marca ASC"
+        );
+        return array_map(
+            fn($r) => ['marca' => $r['marca'], 'total' => (int)$r['total']],
+            $stmt->fetchAll()
+        );
+    }
+
+    /**
      * Obtiene productos destacados (los más recientes)
      */
     public function obtenerDestacados(int $limite = 8): array
     {
         $stmt = $this->db->prepare(
-            "SELECT id, nombre, slug, descripcion, precio, stock, imagen_url, id_categoria, created_at
+            "SELECT id, nombre, slug, descripcion, precio, stock, imagen_url, id_categoria, marca, created_at
              FROM productos
              WHERE activo = 1 AND deleted_at IS NULL
              ORDER BY created_at DESC
@@ -176,7 +212,7 @@ class CatalogoRepository
         $productos = $stmt->fetchAll();
 
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format($p['precio'] , 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = (int)$p['stock'] <= 0;

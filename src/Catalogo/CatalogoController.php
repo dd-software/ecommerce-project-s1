@@ -34,6 +34,10 @@ class CatalogoController
             $pagina    = max(1, (int)($request->getQuery('pagina', 1)));
             $porPagina = min(100, max(1, (int)($request->getQuery('por_pagina', 20))));
 
+            // Multi-selección (listas separadas por coma): categorias=1,2  marcas=AMD,Corsair
+            $categoriaIds = $this->csvToList($request->getQuery('categorias'));
+            $marcas       = $this->csvToList($request->getQuery('marcas'));
+
             $resultado = $this->service->listarProductos(
                 categoriaId: $categoria ? (int)$categoria : null,
                 busqueda: $busqueda,
@@ -42,7 +46,9 @@ class CatalogoController
                 enStock: $enStock !== null ? filter_var($enStock, FILTER_VALIDATE_BOOLEAN) : null,
                 ordenar: $ordenar,
                 pagina: $pagina,
-                porPagina: $porPagina
+                porPagina: $porPagina,
+                categoriaIds: $categoriaIds ?: null,
+                marcas: $marcas ?: null
             );
 
             $response->paginated(
@@ -91,6 +97,30 @@ class CatalogoController
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al obtener categorías.', 500);
         }
+    }
+
+    /**
+     * GET /api/catalogo/marcas
+     * Lista marcas activas con conteo de productos
+     */
+    public function marcas(Request $request, Response $response, array $params): void
+    {
+        try {
+            $response->json($this->service->listarMarcas());
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al obtener marcas.', 500);
+        }
+    }
+
+    /**
+     * Convierte "a,b,c" en ['a','b','c'] (vacíos descartados). Null/"" -> [].
+     */
+    private function csvToList(?string $csv): array
+    {
+        if ($csv === null || trim($csv) === '') {
+            return [];
+        }
+        return array_values(array_filter(array_map('trim', explode(',', $csv)), fn($v) => $v !== ''));
     }
 
     /**

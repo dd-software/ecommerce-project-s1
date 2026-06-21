@@ -39,45 +39,39 @@ const Catalogo = {
     },
 
     /**
-     * Renderiza categorías en el sidebar
+     * Renderiza categorías como checkboxes con contador
      */
     renderCategories(categories) {
         const container = document.getElementById('category-list');
         if (!container) return;
+        container.innerHTML = categories.map(c => `
+            <label class="qc-check-row">
+                <input type="checkbox" class="qc-cat-cb" value="${c.id}">
+                <span class="qc-check-name">${this.escapeHtml(c.nombre)}</span>
+                <span class="qc-check-count">${c.total_productos ?? 0}</span>
+            </label>`).join('');
+    },
 
-        // Separar padres e hijos
-        const padres = categories.filter(c => !c.id_padre);
-        const hijos = categories.filter(c => c.id_padre);
-
-        let html = '<li class="list-group-item"><a href="#" class="text-decoration-none text-dark fw-bold" data-cat="">Todas las categorías</a></li>';
-
-        padres.forEach(padre => {
-            html += `<li class="list-group-item">
-                <a href="#" class="text-decoration-none text-dark fw-semibold" data-cat="${padre.id}">${this.escapeHtml(padre.nombre)}</a>`;
-
-            const sub = hijos.filter(h => h.id_padre == padre.id);
-            if (sub.length > 0) {
-                html += '<ul class="list-unstyled ms-3 mt-1">';
-                sub.forEach(s => {
-                    html += `<li><a href="#" class="text-decoration-none text-muted small" data-cat="${s.id}">${this.escapeHtml(s.nombre)} (${s.total_productos})</a></li>`;
-                });
-                html += '</ul>';
+    /**
+     * Carga marcas y las pinta como checkboxes con contador
+     */
+    async loadMarcas() {
+        const container = document.getElementById('marca-list');
+        if (!container) return;
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo/marcas`);
+            const data = await resp.json();
+            if (data.success) {
+                container.innerHTML = data.data.map(m => `
+                    <label class="qc-check-row">
+                        <input type="checkbox" class="qc-marca-cb" value="${this.escapeHtml(m.marca)}">
+                        <span class="qc-check-name">${this.escapeHtml(m.marca)}</span>
+                        <span class="qc-check-count">${m.total}</span>
+                    </label>`).join('');
             }
-            html += '</li>';
-        });
-
-        container.innerHTML = html;
-
-        // Event listeners
-        container.querySelectorAll('a[data-cat]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const catId = link.dataset.cat;
-                this.filters.categoria = catId || null;
-                this.currentPage = 1;
-                this.loadProducts();
-            });
-        });
+        } catch (e) {
+            console.error('Error cargando marcas:', e);
+        }
     },
 
     /**
@@ -90,7 +84,9 @@ const Catalogo = {
         container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
 
         const params = new URLSearchParams();
-        if (this.filters.categoria) params.set('categoria', this.filters.categoria);
+        if (this.filters.categorias && this.filters.categorias.length) params.set('categorias', this.filters.categorias.join(','));
+        else if (this.filters.categoria) params.set('categoria', this.filters.categoria);
+        if (this.filters.marcas && this.filters.marcas.length) params.set('marcas', this.filters.marcas.join(','));
         if (this.filters.q) params.set('q', this.filters.q);
         if (this.filters.precio_min) params.set('precio_min', this.filters.precio_min);
         if (this.filters.precio_max) params.set('precio_max', this.filters.precio_max);
@@ -116,9 +112,28 @@ const Catalogo = {
             if (data.success) {
                 this.renderProducts(data.data);
                 this.renderPagination(data.meta?.pagination);
+                this.updateCounts(data.meta?.pagination?.total ?? data.data.length);
             }
         } catch (e) {
             container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';
+        }
+    },
+
+    /**
+     * Carga productos destacados (home) y los pinta en #featured-container
+     */
+    async loadFeatured() {
+        const container = document.getElementById('featured-container');
+        if (!container) return;
+        container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo/destacados`);
+            const data = await resp.json();
+            container.innerHTML = (data.success && data.data.length)
+                ? data.data.map(p => this.productCard(p)).join('')
+                : '<div class="col-12 text-center py-4 text-muted">No hay destacados por ahora.</div>';
+        } catch (e) {
+            container.innerHTML = '<div class="col-12 text-center py-4 text-danger">Error al cargar destacados.</div>';
         }
     },
 
@@ -149,33 +164,32 @@ const Catalogo = {
      */
     productCard(p) {
         const stockBadge = p.sin_stock
-            ? '<span class="badge bg-danger stock-badge">Sin Stock</span>'
-            : p.stock <= 5
-            ? '<span class="badge bg-warning text-dark stock-badge">Últimas ' + p.stock + ' unid.</span>'
-            : '';
+            ? '<span class="qc-badge-stock agotado">Agotado</span>'
+            : '<span class="qc-badge-stock">En Stock</span>';
+
+        const media = p.imagen_url
+            ? `<img src="${p.imagen_url}" class="card-img-top" alt="${this.escapeHtml(p.nombre)}">`
+            : `<div class="qc-img-ph"><i class="bi bi-cpu"></i></div>`;
 
         const addButton = p.sin_stock
-            ? '<button class="btn btn-secondary btn-sm w-100" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
+            ? '<button class="btn btn-secondary btn-sm w-100" disabled>Sin stock</button>'
+            : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}"><i class="bi bi-cart-plus"></i> Agregar al carrito</button>`;
 
         return `
-            <div class="col-md-4 col-lg-3 mb-4">
+            <div class="col-6 col-lg-4 col-xl-3 mb-4">
                 <div class="product-card position-relative">
-                    ${stockBadge}
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
-                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/400x220?text=Sin+Imagen'">
+                    <div class="qc-card-media">
+                        ${media}
+                        ${stockBadge}
+                    </div>
                     <div class="card-body">
-                        <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
+                        <span class="card-category">${this.escapeHtml(p.marca || p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
-                        <p class="card-text small text-muted">${this.escapeHtml((p.descripcion || '').substring(0, 80))}${p.descripcion && p.descripcion.length > 80 ? '...' : ''}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-auto">
-                            <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>
-                        </div>
+                        <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>
                         <div class="mt-2">
                             ${addButton}
                         </div>
-                        <a href="/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
+                        <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver detalle</a>
                     </div>
                 </div>
             </div>`;
@@ -194,7 +208,7 @@ const Catalogo = {
             return;
         }
 
-        let html = '<nav><ul class="pagination justify-content-center">';
+        let html = '<nav class="qc-pagination"><ul class="pagination justify-content-center">';
 
         html += `<li class="page-item ${this.currentPage <= 1 ? 'disabled' : ''}">
             <a class="page-link" href="#" data-page="${this.currentPage - 1}">Anterior</a></li>`;
@@ -208,7 +222,7 @@ const Catalogo = {
             <a class="page-link" href="#" data-page="${this.currentPage + 1}">Siguiente</a></li>`;
 
         html += '</ul></nav>';
-        html += `<div class="text-center text-muted small">Mostrando página ${this.currentPage} de ${pagination.total_pages} (${pagination.total} productos)</div>`;
+        html += `<div class="qc-pagination-info">Mostrando página ${this.currentPage} de ${pagination.total_pages} · ${pagination.total} productos</div>`;
 
         container.innerHTML = html;
 
@@ -229,87 +243,105 @@ const Catalogo = {
      * Configura event listeners de filtros
      */
     initFilters() {
-        // Filtro de precio
-        const btnFilterPrice = document.getElementById('btn-filter-price');
-        if (btnFilterPrice) {
-            btnFilterPrice.addEventListener('click', () => {
-                this.filters.precio_min = document.getElementById('filter-price-min')?.value || null;
-                this.filters.precio_max = document.getElementById('filter-price-max')?.value || null;
-                this.currentPage = 1;
-                this.loadProducts();
+        // Checkboxes de categorías y marcas: aplican al instante (delegado)
+        const sidebar = document.getElementById('category-list')?.closest('.qc-filters');
+        if (sidebar) {
+            sidebar.addEventListener('change', (e) => {
+                if (e.target.classList.contains('qc-cat-cb') || e.target.classList.contains('qc-marca-cb')) {
+                    this.applyFilters();
+                }
+                if (e.target.id === 'filter-stock') this.applyFilters();
             });
         }
 
-        // Filtro solo en stock
-        const filterStock = document.getElementById('filter-stock');
-        if (filterStock) {
-            filterStock.addEventListener('change', () => {
-                this.filters.en_stock = filterStock.checked;
-                this.currentPage = 1;
-                this.loadProducts();
+        // Botón "Filtrar" (aplica precio + todo)
+        document.getElementById('btn-filter')?.addEventListener('click', () => this.applyFilters());
+
+        // Botón "Limpiar filtros"
+        document.getElementById('btn-clear-filters')?.addEventListener('click', () => this.clearFilters());
+
+        // Enter en los inputs de precio
+        ['filter-price-min', 'filter-price-max'].forEach(id => {
+            document.getElementById(id)?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') this.applyFilters();
             });
-        }
+        });
 
         // Ordenamiento
-        const sortSelect = document.getElementById('sort-select');
-        if (sortSelect) {
-            sortSelect.addEventListener('change', () => {
-                this.filters.ordenar = sortSelect.value;
-                this.currentPage = 1;
-                this.loadProducts();
-            });
-        }
-
-        // Búsqueda
-        const searchForm = document.getElementById('search-form-catalogo');
-        if (searchForm) {
-            searchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.filters.q = document.getElementById('search-input-catalogo').value.trim();
-                this.currentPage = 1;
-                this.loadProducts();
-            });
-        }
-
-        // Agregar al carrito (delegado)
-        document.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('add-to-cart-btn')) {
-                const btn = e.target;
-                const productoId = btn.dataset.id;
-                const nombre = btn.dataset.name;
-
-                try {
-                    btn.disabled = true;
-                    btn.textContent = 'Agregando...';
-
-                    const body = {
-                        producto_id: parseInt(productoId),
-                        cantidad: 1,
-                        session_id: App.getSessionId()
-                    };
-
-                    const resp = await App.fetchAuth(`${App.apiBase}/carrito`, {
-                        method: 'POST',
-                        body: JSON.stringify(body)
-                    });
-
-                    const data = await resp.json();
-
-                    if (data.success) {
-                        App.cartCount = data.data.items ? data.data.items.length : 0;
-                        App.updateCartBadge();
-                        App.showToast(`${nombre} agregado al carrito`, 'success');
-                    } else {
-                        App.showToast(data.error?.message || 'Error al agregar', 'error');
-                    }
-                } catch (err) {
-                    App.showToast('Error de conexión', 'error');
-                }
-
-                btn.disabled = false;
-                btn.textContent = 'Agregar al Carrito';
-            }
+        document.getElementById('sort-select')?.addEventListener('change', (e) => {
+            this.filters.ordenar = e.target.value;
+            this.currentPage = 1;
+            this.loadProducts();
         });
+
+        // Agregar al carrito (delegado; closest para que funcione al clickear el ícono)
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.add-to-cart-btn');
+            if (!btn) return;
+
+            const productoId = btn.dataset.id;
+            const nombre = btn.dataset.name;
+            const original = btn.innerHTML;
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Agregando...';
+                const resp = await App.fetchAuth(`${App.apiBase}/carrito`, {
+                    method: 'POST',
+                    body: JSON.stringify({ producto_id: parseInt(productoId), cantidad: 1, session_id: App.getSessionId() })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    App.cartCount = data.data.items ? data.data.items.length : 0;
+                    App.updateCartBadge();
+                    App.showToast(`${nombre} agregado al carrito`, 'success');
+                } else {
+                    App.showToast(data.error?.message || 'Error al agregar', 'error');
+                }
+            } catch (err) {
+                App.showToast('Error de conexión', 'error');
+            }
+            btn.disabled = false;
+            btn.innerHTML = original;
+        });
+    },
+
+    /**
+     * Lee el estado de los filtros del sidebar a this.filters
+     */
+    collectFilters() {
+        this.filters.categorias = [...document.querySelectorAll('.qc-cat-cb:checked')].map(x => x.value);
+        this.filters.marcas = [...document.querySelectorAll('.qc-marca-cb:checked')].map(x => x.value);
+        this.filters.precio_min = document.getElementById('filter-price-min')?.value || null;
+        this.filters.precio_max = document.getElementById('filter-price-max')?.value || null;
+        this.filters.en_stock = document.getElementById('filter-stock')?.checked || false;
+        // si el usuario filtra desde el sidebar, descartamos el deep-link de categoría única
+        if (this.filters.categorias.length) this.filters.categoria = null;
+    },
+
+    applyFilters() {
+        this.collectFilters();
+        this.currentPage = 1;
+        this.loadProducts();
+    },
+
+    clearFilters() {
+        document.querySelectorAll('.qc-cat-cb, .qc-marca-cb').forEach(x => x.checked = false);
+        const min = document.getElementById('filter-price-min'); if (min) min.value = '';
+        const max = document.getElementById('filter-price-max'); if (max) max.value = '';
+        const st = document.getElementById('filter-stock'); if (st) st.checked = false;
+        this.filters = { ordenar: this.filters.ordenar };  // conserva el orden, limpia el resto
+        this.currentPage = 1;
+        this.loadProducts();
+    },
+
+    /**
+     * Actualiza el contador "N resultados" y el label del botón Filtrar
+     */
+    updateCounts(total) {
+        const rc = document.getElementById('results-count');
+        if (rc) rc.textContent = `${total} resultado${total === 1 ? '' : 's'}`;
+        const bf = document.getElementById('btn-filter');
+        if (bf) bf.textContent = `Filtrar (${total})`;
     },
 
     /**
@@ -356,9 +388,9 @@ const Catalogo = {
         container.innerHTML = `
             <div class="row">
                 <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
-                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'">
+                    ${product.imagen_url
+                        ? `<img src="${product.imagen_url}" class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}">`
+                        : `<div class="qc-img-ph qc-img-ph-lg"><i class="bi bi-cpu"></i></div>`}
                 </div>
                 <div class="col-md-6">
                     <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
