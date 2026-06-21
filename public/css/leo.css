@@ -1,17 +1,137 @@
 /* ============================================================
    leo.css — Estilos de Leonardo (Contacto + páginas del footer)
-   ------------------------------------------------------------
-   Este archivo es TUYO. Poné acá todos los estilos de tus vistas.
-   Se carga DESPUÉS de style.css, así que podés ajustar lo que necesites.
-   Tokens disponibles (de style.css): var(--qc-red), var(--qc-black),
-   var(--qc-gray), var(--qc-border), var(--qc-radius)...
+   Tokens de style.css: var(--qc-red), var(--qc-gray), var(--qc-border),
+   var(--qc-radius), var(--qc-shadow), var(--qc-font-display)...
    ============================================================ */
 
-.leo-contacto,
-.leo-pagina { max-width: 900px; }
+/* ---------- Contenedores ---------- */
+.leo-contacto { max-width: 1080px; margin: 0 auto; }
+.leo-pagina   { max-width: 900px; }
 
-.leo-contacto-info p { margin-bottom: 10px; color: var(--qc-gray); }
-.leo-contacto-info i { color: var(--qc-red); margin-right: 6px; }
+/* ---------- Encabezado de Contacto ---------- */
+.leo-contacto-hero { text-align: center; margin-bottom: 28px; }
+.leo-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(247, 79, 60, 0.10); color: var(--qc-red);
+    font-weight: 600; font-size: .85rem;
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;
+}
+.leo-contacto-sub { color: var(--qc-gray); max-width: 620px; margin: 8px auto 0; line-height: 1.6; }
 
+/* ---------- Tarjetas ---------- */
+.leo-card {
+    background: var(--qc-white);
+    border: 1px solid var(--qc-border);
+    border-radius: var(--qc-radius-lg);
+    box-shadow: var(--qc-shadow);
+    padding: 28px;
+}
+.leo-card-title {
+    font-family: var(--qc-font-display);
+    font-size: 1.15rem; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+}
+.leo-card-title i { color: var(--qc-red); }
+
+/* ---------- Formulario ---------- */
+.leo-field { margin-bottom: 16px; }
+.leo-field label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; color: var(--qc-black); }
+.leo-input-icon { position: relative; }
+.leo-input-icon > i {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--qc-gray); pointer-events: none;
+}
+.leo-input-icon .form-control { padding-left: 38px; }
+.leo-contacto-form .form-control {
+    border: 1px solid var(--qc-border);
+    border-radius: var(--qc-radius-sm);
+    padding: 10px 12px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.leo-contacto-form .form-control:focus {
+    border-color: var(--qc-red);
+    box-shadow: 0 0 0 3px rgba(247, 79, 60, 0.15);
+    outline: none;
+}
+
+/* Validación visual */
+.leo-error { display: none; color: var(--qc-error); font-size: .8rem; margin-top: 4px; }
+.leo-field.is-invalid .form-control { border-color: var(--qc-error); }
+.leo-field.is-invalid .leo-error { display: block; }
+.leo-field.is-valid .form-control { border-color: var(--qc-green); }
+
+/* Botón enviar (rojo QuadCore) */
+.leo-submit {
+    width: 100%; background: var(--qc-red); color: #fff; border: none;
+    border-radius: var(--qc-radius-sm); font-weight: 600; padding: 12px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .15s;
+}
+.leo-submit:hover { background: var(--qc-red-hover); color: #fff; }
+
+/* ---------- Info / Ubicación ---------- */
+.leo-map {
+    height: 150px; border-radius: var(--qc-radius); margin-bottom: 20px; color: #fff;
+    background: linear-gradient(135deg, var(--qc-red), var(--qc-red-dark));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+}
+.leo-map i { font-size: 2rem; }
+.leo-map span { font-weight: 600; }
+
+.leo-info-list { list-style: none; padding: 0; margin: 0; }
+.leo-info-list li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--qc-border); }
+.leo-info-list li:last-child { border-bottom: none; }
+.leo-info-list i { color: var(--qc-red); font-size: 1.1rem; margin-top: 2px; }
+.leo-info-list strong { display: block; font-size: .9rem; }
+.leo-info-list span { color: var(--qc-gray); font-size: .9rem; }
+
+.leo-social { display: flex; gap: 10px; margin-top: 18px; }
+.leo-social a {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--qc-gray-light); color: var(--qc-black);
+    transition: background .15s, color .15s;
+}
+.leo-social a:hover { background: var(--qc-red); color: #fff; }
+
+/* ---------- Páginas informativas del footer (Tarea 3) ---------- */
 .leo-pagina-body { color: var(--qc-gray); line-height: 1.7; }
-.leo-pagina-body ul { padding-left: 18px; }
+.leo-pagina-body ul, .leo-pagina-body ol { padding-left: 20px; }
+.leo-pagina-body li { margin-bottom: 6px; }
+.leo-lead { font-size: 1.05rem; color: var(--qc-black); margin-bottom: 22px; }
+.leo-subtitle { font-family: var(--qc-font-display); font-size: 1.05rem; margin: 24px 0 10px; }
+
+.leo-feature-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin: 22px 0;
+}
+.leo-feature {
+    background: var(--qc-white); border: 1px solid var(--qc-border);
+    border-radius: var(--qc-radius); padding: 20px; text-align: center;
+    box-shadow: var(--qc-shadow); transition: transform .15s, box-shadow .15s;
+}
+.leo-feature:hover { transform: translateY(-3px); box-shadow: var(--qc-shadow-lg); }
+.leo-feature i { font-size: 1.8rem; color: var(--qc-red); }
+.leo-feature h4 { font-family: var(--qc-font-display); font-size: 1rem; margin: 10px 0 6px; }
+.leo-feature p { color: var(--qc-gray); font-size: .9rem; margin: 0; }
+
+.leo-highlight {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: rgba(247, 79, 60, 0.08); border-left: 4px solid var(--qc-red);
+    border-radius: var(--qc-radius-sm); padding: 14px 16px; margin-top: 22px; color: var(--qc-black);
+}
+.leo-highlight i { color: var(--qc-red); font-size: 1.2rem; margin-top: 2px; }
+
+.leo-steps { counter-reset: paso; list-style: none; padding-left: 0; }
+.leo-steps li { position: relative; padding-left: 38px; margin-bottom: 12px; }
+.leo-steps li::before {
+    counter-increment: paso; content: counter(paso);
+    position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--qc-red); color: #fff; font-weight: 600; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.leo-stats { display: flex; flex-wrap: wrap; gap: 24px; margin: 24px 0; }
+.leo-stat { text-align: center; }
+.leo-stat strong { display: block; font-family: var(--qc-font-display); font-size: 1.6rem; color: var(--qc-red); }
+.leo-stat span { color: var(--qc-gray); font-size: .9rem; }
