@@ -67,3 +67,43 @@ UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-16080431522
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=600' WHERE slug = 'monitor-lg-ultragear-27-165hz';
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1517059224940-d4af9eec41b7?w=600' WHERE slug = 'monitor-samsung-essential-24';
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600' WHERE slug = 'monitor-aoc-gaming-27-144hz';
+
+-- ── Catálogo XL: imágenes (pool por categoría, todas verificadas con curl 200) ──
+-- Tarjetas de video
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1591488320449-011701bb6704?w=600' WHERE slug IN ('gpu-rtx-4060-8gb','gpu-rtx-4070-12gb','gpu-rtx-4070-ti-super','gpu-rx-7800-xt-16gb');
+-- Almacenamiento
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1531492746076-161ca9bcad58?w=600' WHERE slug IN ('ssd-samsung-980-pro-1tb','ssd-crucial-mx500-2tb','hdd-seagate-barracuda-2tb','pendrive-kingston-128gb','microsd-sandisk-256gb','disco-externo-wd-4tb');
+-- Redes
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1606904825846-647eb07f5be2?w=600' WHERE slug IN ('router-tplink-ax1500','switch-tplink-8-puertos');
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600' WHERE slug IN ('repetidor-wifi-tplink-re315','tarjeta-wifi-pcie-ax');
+-- Notebooks extra
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600' WHERE slug IN ('notebook-acer-nitro-5-rtx4050','notebook-dell-inspiron-15');
+-- Celulares extra
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600' WHERE slug IN ('iphone-15-pro-256gb','samsung-galaxy-a55-128gb','google-pixel-8-128gb');
+-- Consolas (ediciones/alternativas)
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600' WHERE slug IN ('ps5-god-of-war-ragnarok','ps5-digital-edition');
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=600' WHERE slug='xbox-series-s-512gb';
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=600' WHERE slug='switch-oled-zelda';
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1640955014216-75201056c829?w=600' WHERE slug IN ('steam-deck-oled-512gb','asus-rog-ally-z1');
+-- Videojuegos
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=600' WHERE slug IN ('juego-god-of-war-ragnarok-ps5','juego-ea-fc-24-ps5','juego-spiderman-2-ps5');
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600' WHERE slug IN ('juego-mario-kart-8-switch','juego-zelda-totk-switch');
+-- Controles y gaming
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=600' WHERE slug IN ('control-dualsense-ps5','control-switch-pro','volante-logitech-g29');
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1600861194942-f883de0dfe96?w=600' WHERE slug IN ('control-xbox-series','control-powera-enhanced');
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' WHERE slug='headset-hyperx-cloud-2';
+-- Bolsos y fundas
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600' WHERE slug IN ('mochila-notebook-quadcore','funda-notebook-neopreno-15','bolso-consola');
+-- Sillas y escritorios
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600' WHERE slug IN ('silla-gamer-quadcore-pro','silla-ergonomica-oficina');
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=600' WHERE slug IN ('escritorio-gamer-120','soporte-monitor-brazo');
+-- Limpieza
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1583947215259-38e31be8751f?w=600' WHERE slug IN ('aire-comprimido-400ml','kit-limpieza-pantallas','pack-panos-microfibra','alcohol-isopropilico-250ml');
+-- Accesorios extra
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600' WHERE slug='webcam-logitech-c920';
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=600' WHERE slug='microfono-hyperx-quadcast';
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1629429407759-01cd3d7cfb38?w=600' WHERE slug='mousepad-gamer-xl';
+-- Herramientas extra
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=600' WHERE slug IN ('multimetro-digital','tester-cables-red-rj45');
+-- Cables extra
+UPDATE productos SET imagen_url='https://images.unsplash.com/photo-1601524909162-ae8725290836?w=600' WHERE slug IN ('cable-displayport-14-2m','cable-usbc-100w-2m','cable-red-cat6-3m');

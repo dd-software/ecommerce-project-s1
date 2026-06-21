@@ -132,3 +132,99 @@ UPDATE productos SET precio_anterior = 999990  WHERE slug = 'iphone-15-128gb';
 UPDATE productos SET precio_anterior = 269990  WHERE slug = 'xiaomi-redmi-note-13-pro';
 UPDATE productos SET precio_anterior = 499990  WHERE slug = 'smart-tv-samsung-55-crystal-4k';
 UPDATE productos SET precio_anterior = 269990  WHERE slug = 'monitor-lg-ultragear-27-165hz';
+
+-- ============================================================
+-- Catálogo XL: más categorías y productos (variedad tipo retail)
+-- ============================================================
+INSERT INTO categorias (id, nombre, slug, descripcion, id_padre, activo) VALUES
+(13, 'Tarjetas de Video',    'tarjetas-video',     'GPUs para gaming y diseño',                NULL, 1),
+(14, 'Almacenamiento',       'almacenamiento',     'SSD, HDD, pendrives y memorias',           NULL, 1),
+(15, 'Redes',                'redes',              'Routers, switches y WiFi',                 NULL, 1),
+(16, 'Videojuegos',          'videojuegos',        'Juegos para PS5, Xbox y Switch',           NULL, 1),
+(17, 'Controles y Gaming',   'controles-gaming',   'Controles, headsets y volantes',           NULL, 1),
+(18, 'Bolsos y Fundas',      'bolsos-fundas',      'Mochilas, fundas y estuches',              NULL, 1),
+(19, 'Sillas y Escritorios', 'sillas-escritorios', 'Ergonomía gamer y de oficina',             NULL, 1),
+(20, 'Limpieza y Cuidado',   'limpieza-cuidado',   'Limpieza de equipos electrónicos',         NULL, 1);
+
+INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, stock_minimo, marca, imagen_url, activo, meta_descripcion) VALUES
+-- Tarjetas de Video
+(13, 'Tarjeta de Video NVIDIA RTX 4060 8GB', 'gpu-rtx-4060-8gb', 'GPU NVIDIA GeForce RTX 4060 8GB GDDR6, DLSS 3, ideal 1080p.', 379990, 9, 3, 'NVIDIA', NULL, 1, 'RTX 4060 8GB.'),
+(13, 'Tarjeta de Video NVIDIA RTX 4070 12GB', 'gpu-rtx-4070-12gb', 'GPU RTX 4070 12GB GDDR6X, excelente para 1440p con ray tracing.', 619990, 6, 2, 'NVIDIA', NULL, 1, 'RTX 4070 12GB.'),
+(13, 'Tarjeta de Video RTX 4070 Ti Super', 'gpu-rtx-4070-ti-super', 'GPU RTX 4070 Ti Super 16GB, gaming 1440p/4K de alto rendimiento.', 899990, 4, 2, 'NVIDIA', NULL, 1, 'RTX 4070 Ti Super.'),
+(13, 'Tarjeta de Video AMD RX 7800 XT 16GB', 'gpu-rx-7800-xt-16gb', 'GPU AMD Radeon RX 7800 XT 16GB GDDR6, gran relación precio/rendimiento.', 559990, 7, 2, 'AMD', NULL, 1, 'RX 7800 XT 16GB.'),
+-- Almacenamiento
+(14, 'SSD Samsung 980 Pro 1TB NVMe', 'ssd-samsung-980-pro-1tb', 'SSD Samsung 980 Pro 1TB PCIe 4.0, lecturas hasta 7000 MB/s.', 89990, 22, 6, 'Samsung', NULL, 1, 'SSD Samsung 980 Pro 1TB.'),
+(14, 'SSD Crucial MX500 2TB SATA', 'ssd-crucial-mx500-2tb', 'SSD Crucial MX500 2TB SATA 2.5", confiable para todo equipo.', 119990, 14, 4, 'Crucial', NULL, 1, 'SSD Crucial MX500 2TB.'),
+(14, 'Disco Duro Seagate Barracuda 2TB', 'hdd-seagate-barracuda-2tb', 'HDD Seagate Barracuda 2TB 7200RPM para almacenamiento masivo.', 49990, 18, 5, 'Seagate', NULL, 1, 'HDD Seagate 2TB.'),
+(14, 'Pendrive Kingston DataTraveler 128GB', 'pendrive-kingston-128gb', 'Pendrive Kingston USB 3.2 128GB, compacto y veloz.', 12990, 40, 10, 'Kingston', NULL, 1, 'Pendrive Kingston 128GB.'),
+(14, 'MicroSD SanDisk Extreme 256GB', 'microsd-sandisk-256gb', 'Tarjeta microSD SanDisk Extreme 256GB A2 U3, ideal cámaras y consolas.', 29990, 30, 8, 'SanDisk', NULL, 1, 'MicroSD SanDisk 256GB.'),
+(14, 'Disco Externo WD Elements 4TB', 'disco-externo-wd-4tb', 'Disco externo WD Elements 4TB USB 3.0, respaldo portátil.', 99990, 12, 4, 'Western Digital', NULL, 1, 'Disco externo WD 4TB.'),
+-- Redes
+(15, 'Router TP-Link Archer AX1500 WiFi6', 'router-tplink-ax1500', 'Router TP-Link Archer AX1500 WiFi 6, doble banda, gigabit.', 49990, 16, 5, 'TP-Link', NULL, 1, 'Router TP-Link AX1500.'),
+(15, 'Repetidor WiFi TP-Link RE315', 'repetidor-wifi-tplink-re315', 'Extensor de rango TP-Link RE315 AC1200, amplía tu señal WiFi.', 24990, 20, 6, 'TP-Link', NULL, 1, 'Repetidor TP-Link RE315.'),
+(15, 'Switch TP-Link 8 Puertos Gigabit', 'switch-tplink-8-puertos', 'Switch TP-Link 8 puertos gigabit, plug and play, metálico.', 27990, 13, 4, 'TP-Link', NULL, 1, 'Switch 8 puertos gigabit.'),
+(15, 'Tarjeta WiFi PCIe AX WiFi6', 'tarjeta-wifi-pcie-ax', 'Tarjeta de red PCIe WiFi 6 + Bluetooth 5.2 para PC de escritorio.', 22990, 17, 5, 'TP-Link', NULL, 1, 'Tarjeta WiFi PCIe AX.'),
+-- Notebooks (extra)
+(7, 'Notebook Acer Nitro 5 RTX 4050', 'notebook-acer-nitro-5-rtx4050', 'Notebook gamer Acer Nitro 5, i5, 16GB, RTX 4050, 512GB SSD, 144Hz.', 799990, 8, 3, 'Acer', NULL, 1, 'Acer Nitro 5 RTX 4050.'),
+(7, 'Notebook Dell Inspiron 15', 'notebook-dell-inspiron-15', 'Notebook Dell Inspiron 15.6" FHD, i7, 16GB RAM, 512GB SSD.', 629990, 10, 3, 'Dell', NULL, 1, 'Dell Inspiron 15 i7.'),
+-- Celulares (extra)
+(10, 'iPhone 15 Pro 256GB', 'iphone-15-pro-256gb', 'Apple iPhone 15 Pro 256GB, titanio, chip A17 Pro, cámara 48MP.', 1299990, 7, 2, 'Apple', NULL, 1, 'iPhone 15 Pro 256GB.'),
+(10, 'Samsung Galaxy A55 128GB', 'samsung-galaxy-a55-128gb', 'Samsung Galaxy A55 5G 128GB, pantalla Super AMOLED 120Hz.', 349990, 15, 5, 'Samsung', NULL, 1, 'Samsung Galaxy A55.'),
+(10, 'Google Pixel 8 128GB', 'google-pixel-8-128gb', 'Google Pixel 8 128GB, cámara con IA, Android puro y actualizado.', 699990, 8, 3, 'Google', NULL, 1, 'Google Pixel 8.'),
+-- Consolas (ediciones y alternativas)
+(9, 'PlayStation 5 Edición God of War Ragnarök', 'ps5-god-of-war-ragnarok', 'Consola PS5 bundle God of War Ragnarök, incluye el juego en formato digital.', 649990, 6, 2, 'Sony', NULL, 1, 'PS5 God of War Ragnarök.'),
+(9, 'PlayStation 5 Digital Edition', 'ps5-digital-edition', 'Consola PS5 Digital Edition (sin lector), 1TB, control DualSense.', 549990, 9, 3, 'Sony', NULL, 1, 'PS5 Digital Edition.'),
+(9, 'Xbox Series S 512GB', 'xbox-series-s-512gb', 'Consola Xbox Series S 512GB, digital, compacta, 1440p.', 379990, 12, 4, 'Microsoft', NULL, 1, 'Xbox Series S 512GB.'),
+(9, 'Nintendo Switch OLED Edición Zelda', 'switch-oled-zelda', 'Nintendo Switch OLED edición especial The Legend of Zelda: TOTK.', 419990, 7, 2, 'Nintendo', NULL, 1, 'Switch OLED edición Zelda.'),
+(9, 'Steam Deck OLED 512GB', 'steam-deck-oled-512gb', 'Consola portátil Valve Steam Deck OLED 512GB, ejecuta tu librería de Steam.', 749990, 5, 2, 'Valve', NULL, 1, 'Steam Deck OLED 512GB.'),
+(9, 'ASUS ROG Ally Z1 Extreme', 'asus-rog-ally-z1', 'Consola portátil ASUS ROG Ally Z1 Extreme, Windows 11, pantalla 120Hz.', 829990, 4, 2, 'ASUS', NULL, 1, 'ROG Ally Z1 Extreme.'),
+-- Videojuegos
+(16, 'God of War Ragnarök PS5', 'juego-god-of-war-ragnarok-ps5', 'Videojuego God of War Ragnarök para PlayStation 5, edición física.', 49990, 25, 6, 'Sony', NULL, 1, 'God of War Ragnarök PS5.'),
+(16, 'Mario Kart 8 Deluxe Switch', 'juego-mario-kart-8-switch', 'Videojuego Mario Kart 8 Deluxe para Nintendo Switch.', 44990, 28, 8, 'Nintendo', NULL, 1, 'Mario Kart 8 Deluxe.'),
+(16, 'EA Sports FC 24 PS5', 'juego-ea-fc-24-ps5', 'Videojuego EA Sports FC 24 para PlayStation 5.', 39990, 30, 8, 'EA', NULL, 1, 'EA Sports FC 24 PS5.'),
+(16, 'The Legend of Zelda TOTK Switch', 'juego-zelda-totk-switch', 'Videojuego The Legend of Zelda: Tears of the Kingdom para Switch.', 49990, 20, 6, 'Nintendo', NULL, 1, 'Zelda Tears of the Kingdom.'),
+(16, 'Marvels Spider-Man 2 PS5', 'juego-spiderman-2-ps5', 'Videojuego Marvel''s Spider-Man 2 para PlayStation 5.', 54990, 18, 5, 'Sony', NULL, 1, 'Spider-Man 2 PS5.'),
+-- Controles y Gaming
+(17, 'Control DualSense PS5', 'control-dualsense-ps5', 'Control inalámbrico Sony DualSense para PS5, retroalimentación háptica.', 64990, 20, 6, 'Sony', NULL, 1, 'Control DualSense PS5.'),
+(17, 'Control Inalámbrico Xbox Series', 'control-xbox-series', 'Control inalámbrico Xbox Series, compatible con Xbox y PC.', 59990, 18, 6, 'Microsoft', NULL, 1, 'Control Xbox Series.'),
+(17, 'Nintendo Switch Pro Controller', 'control-switch-pro', 'Control Nintendo Switch Pro, ergonómico, batería de larga duración.', 69990, 14, 4, 'Nintendo', NULL, 1, 'Switch Pro Controller.'),
+(17, 'Control PowerA Enhanced (Alternativo)', 'control-powera-enhanced', 'Control alámbrico PowerA Enhanced para Switch/Xbox, opción económica.', 29990, 22, 6, 'PowerA', NULL, 1, 'Control PowerA Enhanced.'),
+(17, 'Headset Gamer HyperX Cloud II', 'headset-hyperx-cloud-2', 'Audífonos gamer HyperX Cloud II con sonido envolvente 7.1 y micrófono.', 69990, 16, 5, 'HyperX', NULL, 1, 'Headset HyperX Cloud II.'),
+(17, 'Volante Logitech G29 Driving Force', 'volante-logitech-g29', 'Volante Logitech G29 con pedales, force feedback, PS/PC.', 299990, 6, 2, 'Logitech', NULL, 1, 'Volante Logitech G29.'),
+-- Bolsos y Fundas
+(18, 'Mochila Notebook QuadCore 15.6"', 'mochila-notebook-quadcore', 'Mochila para notebook hasta 15.6", acolchada, resistente al agua.', 29990, 25, 6, 'QuadCore', NULL, 1, 'Mochila notebook 15.6.'),
+(18, 'Funda Notebook Neopreno 15"', 'funda-notebook-neopreno-15', 'Funda de neopreno para notebook 15", protección contra golpes.', 14990, 30, 8, 'QuadCore', NULL, 1, 'Funda notebook neopreno 15.'),
+(18, 'Bolso de Transporte para Consola', 'bolso-consola', 'Bolso acolchado para transportar tu consola y accesorios.', 24990, 14, 4, 'QuadCore', NULL, 1, 'Bolso para consola.'),
+-- Sillas y Escritorios
+(19, 'Silla Gamer QuadCore Pro', 'silla-gamer-quadcore-pro', 'Silla gamer ergonómica reclinable con soporte lumbar y apoyabrazos 2D.', 159990, 10, 3, 'QuadCore', NULL, 1, 'Silla gamer QuadCore Pro.'),
+(19, 'Silla Ergonómica de Oficina', 'silla-ergonomica-oficina', 'Silla de oficina ergonómica con malla transpirable y altura ajustable.', 119990, 12, 4, 'QuadCore', NULL, 1, 'Silla ergonómica oficina.'),
+(19, 'Escritorio Gamer 120cm', 'escritorio-gamer-120', 'Escritorio gamer 120cm con superficie amplia y pasacables.', 99990, 8, 3, 'QuadCore', NULL, 1, 'Escritorio gamer 120cm.'),
+(19, 'Soporte de Monitor con Brazo', 'soporte-monitor-brazo', 'Soporte de monitor con brazo articulado, libera espacio en tu escritorio.', 34990, 15, 5, 'QuadCore', NULL, 1, 'Soporte monitor con brazo.'),
+-- Limpieza y Cuidado
+(20, 'Aire Comprimido 400ml', 'aire-comprimido-400ml', 'Aire comprimido 400ml para limpiar teclados, ventiladores y componentes.', 9990, 40, 12, 'QuadCore', NULL, 1, 'Aire comprimido 400ml.'),
+(20, 'Kit Limpieza de Pantallas', 'kit-limpieza-pantallas', 'Kit limpiador de pantallas: spray + paño microfibra, sin residuos.', 8990, 35, 10, 'QuadCore', NULL, 1, 'Kit limpieza pantallas.'),
+(20, 'Pack 5 Paños de Microfibra', 'pack-panos-microfibra', 'Pack de 5 paños de microfibra premium para equipos y lentes.', 5990, 50, 15, 'QuadCore', NULL, 1, 'Pack 5 paños microfibra.'),
+(20, 'Alcohol Isopropílico 250ml', 'alcohol-isopropilico-250ml', 'Alcohol isopropílico 99% 250ml para limpieza de electrónica.', 6990, 45, 12, 'QuadCore', NULL, 1, 'Alcohol isopropílico 250ml.'),
+-- Accesorios (extra)
+(2, 'Webcam Logitech C920 Full HD', 'webcam-logitech-c920', 'Webcam Logitech C920 Full HD 1080p con micrófono estéreo.', 49990, 18, 5, 'Logitech', NULL, 1, 'Webcam Logitech C920.'),
+(2, 'Micrófono HyperX QuadCast', 'microfono-hyperx-quadcast', 'Micrófono USB HyperX QuadCast con filtro antipop y luz RGB.', 99990, 10, 3, 'HyperX', NULL, 1, 'Micrófono HyperX QuadCast.'),
+(2, 'Mousepad Gamer XL', 'mousepad-gamer-xl', 'Mousepad gamer XL 80x30cm, base antideslizante, superficie suave.', 12990, 30, 8, 'QuadCore', NULL, 1, 'Mousepad gamer XL.'),
+-- Herramientas (extra)
+(4, 'Multímetro Digital', 'multimetro-digital', 'Multímetro digital con medición de voltaje, corriente y continuidad.', 19990, 16, 5, 'QuadCore', NULL, 1, 'Multímetro digital.'),
+(4, 'Tester de Cables de Red RJ45', 'tester-cables-red-rj45', 'Tester de cables de red RJ45/RJ11, verifica continuidad y conexiones.', 14990, 14, 4, 'QuadCore', NULL, 1, 'Tester cables de red.'),
+-- Cables (extra)
+(3, 'Cable DisplayPort 1.4 2m', 'cable-displayport-14-2m', 'Cable DisplayPort 1.4, 2 metros, soporta 4K 144Hz.', 9990, 30, 8, 'QuadCore', NULL, 1, 'Cable DisplayPort 1.4 2m.'),
+(3, 'Cable USB-C a USB-C 100W 2m', 'cable-usbc-100w-2m', 'Cable USB-C a USB-C 2m, carga rápida hasta 100W y datos.', 8990, 35, 10, 'QuadCore', NULL, 1, 'Cable USB-C 100W 2m.'),
+(3, 'Cable de Red Cat6 3m', 'cable-red-cat6-3m', 'Cable de red Ethernet Cat6 3 metros, hasta 1 Gbps.', 4990, 50, 15, 'QuadCore', NULL, 1, 'Cable de red Cat6 3m.');
+
+-- Ofertas del catálogo XL
+UPDATE productos SET precio_anterior = 449990  WHERE slug = 'gpu-rtx-4060-8gb';
+UPDATE productos SET precio_anterior = 729990  WHERE slug = 'gpu-rtx-4070-12gb';
+UPDATE productos SET precio_anterior = 109990  WHERE slug = 'ssd-samsung-980-pro-1tb';
+UPDATE productos SET precio_anterior = 899990  WHERE slug = 'notebook-acer-nitro-5-rtx4050';
+UPDATE productos SET precio_anterior = 1449990 WHERE slug = 'iphone-15-pro-256gb';
+UPDATE productos SET precio_anterior = 729990  WHERE slug = 'ps5-god-of-war-ragnarok';
+UPDATE productos SET precio_anterior = 59990   WHERE slug = 'juego-god-of-war-ragnarok-ps5';
+UPDATE productos SET precio_anterior = 199990  WHERE slug = 'silla-gamer-quadcore-pro';
+UPDATE productos SET precio_anterior = 84990   WHERE slug = 'headset-hyperx-cloud-2';
+UPDATE productos SET precio_anterior = 64990   WHERE slug = 'router-tplink-ax1500';
