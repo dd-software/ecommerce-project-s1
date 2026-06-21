@@ -1,16 +1,6 @@
 /**
  * contacto.js — Vista de Contacto (#/contacto)  ·  TAREA LEONARDO #2
- * ----------------------------------------------------------------------
- * El router ya te llama solo: cuando alguien entra a #/contacto se ejecuta
- * Contacto.render(). Vos trabajás SOLO en este archivo (y estilos en css/leo.css).
- * No toques index.html, router.js ni catalogo.js.
- *
- * Esta es una versión mínima que ya funciona. Tu tarea: dejarla linda y completa
- * según el diseño QuadCore (rojo #F74F3C, fuentes Poppins/Inter, ver style.css).
- * Ideas: mapa, horarios, mejores íconos, validación, datos de la tienda.
- *
- * El form por ahora solo muestra un toast (no hay backend de contacto, está fuera
- * de alcance). Con eso alcanza para la entrega.
+ * Solo se edita este archivo + css/leo.css. El form no tiene backend: solo muestra un toast.
  */
 const Contacto = {
     render() {
@@ -18,31 +8,114 @@ const Contacto = {
         if (!view) return;
         view.innerHTML = `
             <div class="leo-contacto">
-                <h2 class="qc-similares-title">Contáctanos</h2>
-                <p class="text-muted">¿Tienes dudas sobre un producto o servicio técnico? Escríbenos.</p>
+                <header class="leo-contacto-hero">
+                    <span class="leo-badge"><i class="bi bi-headset"></i> Atención al cliente</span>
+                    <h2 class="qc-similares-title">Contáctanos</h2>
+                    <p class="leo-contacto-sub">¿Tienes dudas sobre un producto o necesitas servicio técnico?
+                        Escríbenos y te respondemos dentro de 24 horas hábiles.</p>
+                </header>
 
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <form id="contacto-form" class="leo-contacto-form">
-                            <input class="form-control mb-2" id="c-nombre" placeholder="Nombre" required>
-                            <input class="form-control mb-2" id="c-email" type="email" placeholder="Email" required>
-                            <textarea class="form-control mb-2" id="c-msg" rows="4" placeholder="Mensaje" required></textarea>
-                            <button class="btn btn-accent" type="submit">Enviar mensaje</button>
-                        </form>
+                <div class="row g-4 align-items-stretch">
+                    <div class="col-lg-7">
+                        <div class="leo-card">
+                            <h3 class="leo-card-title"><i class="bi bi-chat-dots"></i> Envíanos un mensaje</h3>
+                            <form id="contacto-form" class="leo-contacto-form" novalidate>
+                                <div class="leo-field">
+                                    <label for="c-nombre">Nombre</label>
+                                    <div class="leo-input-icon">
+                                        <i class="bi bi-person"></i>
+                                        <input class="form-control" id="c-nombre" placeholder="Tu nombre" required>
+                                    </div>
+                                    <small class="leo-error">Ingresa tu nombre.</small>
+                                </div>
+                                <div class="leo-field">
+                                    <label for="c-email">Email</label>
+                                    <div class="leo-input-icon">
+                                        <i class="bi bi-envelope"></i>
+                                        <input class="form-control" id="c-email" type="email" placeholder="tucorreo@ejemplo.com" required>
+                                    </div>
+                                    <small class="leo-error">Ingresa un email válido.</small>
+                                </div>
+                                <div class="leo-field">
+                                    <label for="c-asunto">Asunto</label>
+                                    <div class="leo-input-icon">
+                                        <i class="bi bi-tag"></i>
+                                        <select class="form-control" id="c-asunto" required>
+                                            <option value="">Selecciona un tema…</option>
+                                            <option>Consulta de producto</option>
+                                            <option>Servicio técnico</option>
+                                            <option>Estado de mi pedido</option>
+                                            <option>Garantía y devoluciones</option>
+                                            <option>Otro</option>
+                                        </select>
+                                    </div>
+                                    <small class="leo-error">Selecciona un asunto.</small>
+                                </div>
+                                <div class="leo-field">
+                                    <label for="c-msg">Mensaje</label>
+                                    <textarea class="form-control" id="c-msg" rows="4" placeholder="Cuéntanos en qué podemos ayudarte" required></textarea>
+                                    <small class="leo-error">Escribe tu mensaje.</small>
+                                </div>
+                                <button class="btn leo-submit" type="submit"><i class="bi bi-send"></i> Enviar mensaje</button>
+                            </form>
+                        </div>
                     </div>
-                    <div class="col-md-6 leo-contacto-info">
-                        <p><i class="bi bi-geo-alt"></i> Av. Providencia 1234, Santiago, Chile</p>
-                        <p><i class="bi bi-telephone"></i> +56 2 2123 4567</p>
-                        <p><i class="bi bi-envelope"></i> contacto@quadcore.cl</p>
-                        <p><i class="bi bi-clock"></i> Lun a Vie 9–19h · Sáb 10–14h</p>
+
+                    <div class="col-lg-5">
+                        <div class="leo-card leo-contacto-info h-100">
+                            <h3 class="leo-card-title"><i class="bi bi-geo-alt"></i> Visítanos</h3>
+                            <div class="leo-map" role="img" aria-label="Ubicación de QuadCore en Providencia, Santiago">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <span>Av. Providencia 1234, Santiago</span>
+                            </div>
+                            <ul class="leo-info-list">
+                                <li><i class="bi bi-geo-alt"></i><div><strong>Dirección</strong><span>Av. Providencia 1234, Santiago, Chile</span></div></li>
+                                <li><i class="bi bi-telephone"></i><div><strong>Teléfono</strong><span>+56 2 2123 4567</span></div></li>
+                                <li><i class="bi bi-envelope"></i><div><strong>Email</strong><span>contacto@quadcore.cl</span></div></li>
+                                <li><i class="bi bi-clock"></i><div><strong>Horario</strong><span>Lun a Vie 9–19h · Sáb 10–14h</span></div></li>
+                            </ul>
+                            <div class="leo-social">
+                                <a href="#/contacto" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                                <a href="#/contacto" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                                <a href="#/contacto" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                                <a href="#/contacto" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>`;
 
-        document.getElementById('contacto-form')?.addEventListener('submit', (e) => {
+        const form = document.getElementById('contacto-form');
+
+        const validar = (el) => {
+            const field = el.closest('.leo-field');
+            if (!field) return true;
+            const ok = el.checkValidity();
+            field.classList.toggle('is-invalid', !ok);
+            field.classList.toggle('is-valid', ok && el.value.trim() !== '');
+            return ok;
+        };
+
+        form.querySelectorAll('input, select, textarea').forEach((el) => {
+            el.addEventListener('blur', () => validar(el));
+            el.addEventListener('input', () => {
+                if (el.closest('.leo-field')?.classList.contains('is-invalid')) validar(el);
+            });
+        });
+
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
+            let todoOk = true;
+            form.querySelectorAll('input, select, textarea').forEach((el) => {
+                if (!validar(el)) todoOk = false;
+            });
+            if (!todoOk) {
+                App.showToast('Revisa los campos marcados en rojo.', 'error');
+                return;
+            }
             App.showToast('¡Gracias! Te responderemos pronto.', 'success');
-            e.target.reset();
+            form.reset();
+            form.querySelectorAll('.leo-field').forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
         });
     }
 };
