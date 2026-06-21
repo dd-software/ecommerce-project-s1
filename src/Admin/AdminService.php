@@ -45,6 +45,11 @@ class AdminService
         return $this->repository->listarProductosAdmin($busqueda, $pagina, $porPagina);
     }
 
+    public function obtenerProductoPorId(int $id): array
+    {
+        return $this->repository->obtenerProductoPorId($id);
+    }
+
     /**
      * Crea un nuevo producto
      */

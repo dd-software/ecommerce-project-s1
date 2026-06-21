@@ -50,6 +50,16 @@ class AdminController
         }
     }
 
+    public function obtenerProducto(Request $request, Response $response, array $params): void
+    {
+        try {
+            $producto = $this->service->obtenerProductoPorId((int)$params['id']);
+            $response->json($producto);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al obtener producto.', 500);
+        }
+    }
+
     /**
      * POST /api/admin/productos
      * Crea un nuevo producto

@@ -14,7 +14,15 @@ const App = {
      */
     init() {
         this.token = localStorage.getItem('uct_auth_token');
-        this.user = JSON.parse(localStorage.getItem('uct_user') || 'null');
+        const storedUser = localStorage.getItem('uct_user');
+        this.user = storedUser ? JSON.parse(storedUser) : null;
+
+        if (!this.token || !this.user) {
+            this.token = null;
+            this.user = null;
+            localStorage.removeItem('uct_auth_token');
+            localStorage.removeItem('uct_user');
+        }
 
         this.updateNavbar();
         this.initEventListeners();
@@ -228,9 +236,16 @@ const App = {
      */
     async fetchAuth(url, options = {}) {
         const headers = {
-            'Content-Type': 'application/json',
+            'Accept': 'application/json',
             ...options.headers
         };
+
+        if (options.body !== undefined && options.body !== null) {
+            const headerKeys = Object.keys(headers).map(k => k.toLowerCase());
+            if (!headerKeys.includes('content-type')) {
+                headers['Content-Type'] = 'application/json';
+            }
+        }
 
         if (this.token) {
             headers['Authorization'] = `Bearer ${this.token}`;
@@ -241,7 +256,42 @@ const App = {
             headers['X-Session-Id'] = sessionId;
         }
 
-        return fetch(url, { ...options, headers });
+        const resp = await fetch(url, { ...options, headers });
+
+        if (resp.status === 401) {
+            const text = await resp.text();
+            console.error('401 Unauthorized from', url, text);
+            this.logout();
+            throw new Error('Unauthorized');
+        }
+
+        return resp;
+    },
+
+    /**
+     * Valida que el token y el usuario sigan siendo válidos
+     */
+    async validateAuth() {
+        if (!this.token || !this.user) {
+            return false;
+        }
+
+        try {
+            const resp = await fetch(`${this.apiBase}/auth/perfil`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+
+            if (!resp.ok) {
+                return false;
+            }
+
+            const data = await resp.json();
+            return data.success === true;
+        } catch (e) {
+            return false;
+        }
     }
 };
 

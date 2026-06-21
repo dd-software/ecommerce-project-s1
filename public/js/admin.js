@@ -9,10 +9,16 @@ const Admin = {
     /**
      * Inicializa el panel admin
      */
-    init() {
-        if (!App.user || App.user.rol !== 'admin') {
+    async init() {
+        if (!App.token || !App.user || App.user.rol !== 'admin') {
             const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
             window.location.href = base + '/index.html?showLogin=true';
+            return;
+        }
+
+        const valid = await App.validateAuth();
+        if (!valid) {
+            App.logout();
             return;
         }
 
@@ -204,6 +210,9 @@ const Admin = {
                                         </span>
                                     </td>
                                     <td>
+                                        <button class="btn btn-sm btn-outline-secondary btn-action me-1" onclick="Admin.showProductDetail(${p.id})" title="Detalle">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-outline-primary btn-action me-1" onclick="Admin.showProductForm(${p.id})" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -541,6 +550,67 @@ const Admin = {
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
     },
+
+        /**
+     * Muestra detalle de producto en modal
+     */
+    async showProductDetail(id) {
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo/${id}`);
+            const data = await resp.json();
+
+            if (!data.success || !data.data) {
+                App.showToast('No se pudo cargar el detalle del producto', 'error');
+                return;
+            }
+
+            const product = data.data;
+
+            const modalHtml = `
+            <div class="modal fade" id="productDetailModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-uct">
+                            <h5 class="modal-title">${this.escapeHtml(product.nombre)}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <img src="${product.imagen_url || 'https://via.placeholder.com/300'}"
+                                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}">
+                                </div>
+                                <div class="col-md-8">
+                                    <p><strong>Categoría:</strong> ${this.escapeHtml(product.categoria_nombre || '-')}</p>
+                                    <p><strong>Precio:</strong> ${product.precio_formateado || App.formatPrice(product.precio)}</p>
+                                    <p><strong>Stock:</strong> ${product.stock}</p>
+                                    <p><strong>Stock mínimo:</strong> ${product.stock_minimo || 'N/A'}</p>
+                                    <p><strong>Activo:</strong> ${product.activo == 1 ? 'Sí' : 'No'}</p>
+                                    <hr>
+                                    <p><strong>Descripción:</strong></p>
+                                    <p>${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            const oldModal = document.getElementById('productDetailModal');
+            if (oldModal) oldModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('productDetailModal'));
+            modal.show();
+        } catch (e) {
+            App.showToast('Error al cargar el detalle', 'error');
+        }
+    },
+
+
 
     /**
      * Guarda producto (crear/actualizar)

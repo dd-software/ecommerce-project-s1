@@ -20,6 +20,19 @@ class AdminRepository
     }
 
     // ========== Dashboard ==========
+    public function obtenerProductoPorId(int $id): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT p.*, c.nombre as categoria_nombre
+            FROM productos p
+            LEFT JOIN categorias c ON p.id_categoria = c.id
+            WHERE p.id = :id AND p.deleted_at IS NULL"
+        );
+        $stmt->execute([':id' => $id]);
+        $producto = $stmt->fetch() ?: [];
+        $producto['precio_formateado'] = '$' . number_format($producto['precio'] / 100, 0, ',', '.');
+        return $producto;
+    }
 
     public function contarProductos(): int
     {

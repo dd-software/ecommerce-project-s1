@@ -58,10 +58,26 @@ class Request
                 $headers[$headerName] = $value;
             }
         }
-        // Headers especiales
+
+        // Headers especiales que algunos servidores pasan de forma distinta
         if (isset($_SERVER['CONTENT_TYPE'])) {
             $headers['CONTENT-TYPE'] = $_SERVER['CONTENT_TYPE'];
         }
+        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $headers['AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        if (isset($_SERVER['Authorization'])) {
+            $headers['AUTHORIZATION'] = $_SERVER['Authorization'];
+        }
+
+        if (function_exists('apache_request_headers')) {
+            $apacheHeaders = apache_request_headers();
+            foreach ($apacheHeaders as $name => $value) {
+                $normalized = strtoupper(str_replace('_', '-', $name));
+                $headers[$normalized] = $value;
+            }
+        }
+
         return $headers;
     }
 

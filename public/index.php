@@ -100,6 +100,7 @@ $router->post('/api/inventario/ajustar', [InventarioController::class, 'ajustar'
 $router->get('/api/admin/dashboard', [AdminController::class, 'dashboard'], auth: true, admin: true);
 $router->get('/api/admin/productos', [AdminController::class, 'listarProductos'], auth: true, admin: true);
 $router->post('/api/admin/productos', [AdminController::class, 'crearProducto'], auth: true, admin: true);
+$router->get('/api/admin/productos/{id}', [AdminController::class, 'obtenerProducto'], auth: true, admin: true);
 $router->put('/api/admin/productos/{id}', [AdminController::class, 'actualizarProducto'], auth: true, admin: true);
 $router->delete('/api/admin/productos/{id}', [AdminController::class, 'eliminarProducto'], auth: true, admin: true);
 $router->get('/api/admin/pedidos', [AdminController::class, 'listarPedidos'], auth: true, admin: true);
