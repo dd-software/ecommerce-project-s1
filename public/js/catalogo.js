@@ -15,11 +15,18 @@ const Catalogo = {
         // Cargar categorías
         await this.loadCategories();
 
-        // Verificar si hay una búsqueda activa o filtro en la URL
+        // Verificar si hay un ID de producto o una búsqueda activa/filtro en la URL
         const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
         const hasSearch = urlParams.has('search') || urlParams.has('q') || urlParams.has('categoria');
 
-        if (hasSearch) {
+        if (productId) {
+            // Mostrar solo el detalle del producto
+            document.getElementById('product-detail')?.classList.remove('d-none');
+            document.getElementById('catalog-search-view')?.classList.add('d-none');
+            document.getElementById('catalog-home-view')?.classList.add('d-none');
+            await this.loadDetail(productId);
+        } else if (hasSearch) {
             // Mostrar la vista de búsqueda/filtros
             document.getElementById('catalog-search-view')?.classList.remove('d-none');
             document.getElementById('catalog-home-view')?.classList.add('d-none');
@@ -191,7 +198,7 @@ const Catalogo = {
                         <div class="mt-2">
                             ${addButton}
                         </div>
-                        <a href="/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
+                        <a href="?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
                     </div>
                 </div>
             </div>`;

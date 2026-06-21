@@ -55,6 +55,8 @@ const Checkout = {
                 this.cartId = data.data.id;
                 this.renderItems();
                 this.renderSummary();
+                const btn = document.getElementById('btn-place-order');
+                if (btn) btn.disabled = false;
             } else {
                 container.innerHTML = `
                     <div class="alert alert-warning">
@@ -223,9 +225,9 @@ const Checkout = {
             if (paymentData.success && paymentData.data.estado === 'aprobado') {
                 // Éxito
                 App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
-                // Redirigir a confirmación
+                // Redirigir a página existente en el mismo proyecto
                 setTimeout(() => {
-                    window.location.href = `/pedido-confirmado.html?pedido_id=${pedido.id || pedido.pedido_id}`;
+                    window.location.href = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'index.html';
                 }, 2000);
             } else {
                 App.showToast('Pago rechazado: ' + (paymentData.data?.mensaje || 'Error'), 'error');

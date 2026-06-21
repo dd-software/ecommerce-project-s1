@@ -4,7 +4,7 @@
  */
 
 const App = {
-    apiBase: new URL('api/', document.baseURI).href.replace(/\/$/, ''),
+    apiBase: new URL('./api/', document.baseURI).href.replace(/\/$/, ''),
     token: null,
     user: null,
     cartCount: 0,
