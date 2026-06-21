@@ -243,7 +243,7 @@ const Catalogo = {
     /**
      * Genera HTML de una card de producto
      */
-    productCard(p) {
+    productCard(p, extra = '') {
         const stockBadge = p.sin_stock
             ? '<span class="qc-badge-stock agotado">Agotado</span>'
             : '<span class="qc-badge-stock">En Stock</span>';
@@ -271,6 +271,7 @@ const Catalogo = {
                             ${addButton}
                         </div>
                         <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver detalle</a>
+                        ${extra}
                     </div>
                 </div>
             </div>`;
@@ -373,6 +374,7 @@ const Catalogo = {
                 if (data.success) {
                     App.cartCount = data.data.items ? data.data.items.length : 0;
                     App.updateCartBadge();
+                    if (window.Carrito) Carrito.loadCart();   // refresca total del header + offcanvas
                     App.showToast(`${nombre} agregado al carrito`, 'success');
                 } else {
                     App.showToast(data.error?.message || 'Error al agregar', 'error');
@@ -488,8 +490,8 @@ const Catalogo = {
                 <div class="col-lg-6">
                     <div class="qc-detail-brand">${this.escapeHtml(product.marca || '')}</div>
                     <h1 class="qc-detail-title">${this.escapeHtml(product.nombre)}</h1>
-                    <div class="qc-detail-rating text-muted small mb-2">
-                        <span class="text-warning">★★★★★</span> Sin reseñas aún
+                    <div class="qc-detail-rating text-muted small mb-2" id="detail-rating">
+                        <span class="text-muted">Cargando reseñas…</span>
                     </div>
                     <div class="qc-detail-price">${product.precio_formateado}</div>
                     <div class="qc-detail-stock ${product.sin_stock ? 'agotado' : ''}">
@@ -526,13 +528,175 @@ const Catalogo = {
                     </div>
                 </div>
             </div>
+            <div class="qc-reviews mt-5" id="detail-reviews"></div>
             <div class="qc-similares mt-5">
                 <h2 class="qc-similares-title">Productos similares</h2>
                 <div class="row" id="similares-grid"></div>
             </div>`;
 
         this.wireDetail(product);
+        this.initFavButton(product);
+        this.loadResenas(product.id);
         this.loadSimilares(product);
+    },
+
+    /** Estrellas llenas/vacías para mostrar (n = 0..5) */
+    stars(n) {
+        const full = Math.round(n);
+        return '<span class="qc-stars">' + '★'.repeat(full) + '☆'.repeat(5 - full) + '</span>';
+    },
+
+    /** Carga rating + lista de reseñas + form (si hay sesión) */
+    async loadResenas(productId) {
+        const ratingEl = document.getElementById('detail-rating');
+        const box = document.getElementById('detail-reviews');
+        let resenas = [], resumen = { promedio: 0, total: 0 };
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo/${productId}/resenas`);
+            const data = await resp.json();
+            if (data.success) { resenas = data.data.resenas; resumen = data.data.resumen; }
+        } catch (e) { /* deja vacío */ }
+
+        if (ratingEl) {
+            ratingEl.innerHTML = resumen.total > 0
+                ? `${this.stars(resumen.promedio)} <b>${resumen.promedio}</b> · ${resumen.total} reseña${resumen.total === 1 ? '' : 's'}`
+                : `${this.stars(0)} Sin reseñas aún`;
+        }
+        if (!box) return;
+
+        const lista = resenas.length
+            ? resenas.map(r => `
+                <div class="qc-review">
+                    <div class="qc-review-head">
+                        <span class="qc-review-author">${this.escapeHtml(r.autor)}</span>
+                        ${this.stars(r.calificacion)}
+                        <span class="qc-review-date">${(r.created_at || '').slice(0, 10)}</span>
+                    </div>
+                    ${r.comentario ? `<p class="qc-review-body">${this.escapeHtml(r.comentario)}</p>` : ''}
+                </div>`).join('')
+            : '<p class="text-muted">Sé el primero en opinar sobre este producto.</p>';
+
+        const form = App.token ? `
+            <form class="qc-review-form" id="review-form">
+                <h6>Deja tu reseña</h6>
+                <label>Calificación</label>
+                <select id="review-stars" class="form-select form-select-sm mb-2" style="max-width:160px">
+                    <option value="5">★★★★★ (5)</option>
+                    <option value="4">★★★★ (4)</option>
+                    <option value="3">★★★ (3)</option>
+                    <option value="2">★★ (2)</option>
+                    <option value="1">★ (1)</option>
+                </select>
+                <textarea id="review-text" class="form-control form-control-sm mb-2" rows="3" placeholder="Cuéntanos tu experiencia (opcional)"></textarea>
+                <button class="btn btn-accent btn-sm" type="submit">Publicar reseña</button>
+            </form>`
+            : '<p class="text-muted small">Inicia sesión para dejar una reseña.</p>';
+
+        box.innerHTML = `<h2 class="qc-similares-title">Reseñas</h2>
+            <div class="qc-reviews-list">${lista}</div>
+            ${form}`;
+
+        document.getElementById('review-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type=submit]');
+            btn.disabled = true;
+            try {
+                const resp = await App.fetchAuth(`${App.apiBase}/catalogo/${productId}/resenas`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        calificacion: parseInt(document.getElementById('review-stars').value),
+                        comentario: document.getElementById('review-text').value
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    App.showToast('¡Gracias por tu reseña!', 'success');
+                    this.loadResenas(productId);   // recarga lista + rating
+                } else {
+                    App.showToast(data.error?.message || 'No se pudo guardar', 'error');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                App.showToast('Error de conexión', 'error');
+                btn.disabled = false;
+            }
+        });
+    },
+
+    /** Estado + toggle del botón favorito del detalle */
+    async initFavButton(product) {
+        const btn = document.getElementById('btn-fav');
+        if (!btn) return;
+        if (!App.token) {
+            btn.addEventListener('click', () => App.showToast('Inicia sesión para guardar favoritos', 'info'));
+            return;
+        }
+        // estado inicial: ¿ya está en favoritos?
+        let fav = false;
+        try {
+            const data = await (await App.fetchAuth(`${App.apiBase}/favoritos`)).json();
+            fav = data.success && data.data.ids.includes(product.id);
+        } catch (e) { /* asume no-fav */ }
+
+        const paint = () => {
+            btn.innerHTML = fav
+                ? '<i class="bi bi-heart-fill"></i> En favoritos'
+                : '<i class="bi bi-heart"></i> Agregar a favoritos';
+            btn.classList.toggle('active', fav);
+        };
+        paint();
+
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            try {
+                const opts = fav
+                    ? { method: 'DELETE' }
+                    : { method: 'POST', body: JSON.stringify({ producto_id: product.id }) };
+                const url = fav ? `${App.apiBase}/favoritos/${product.id}` : `${App.apiBase}/favoritos`;
+                const data = await (await App.fetchAuth(url, opts)).json();
+                if (data.success) {
+                    fav = !fav;
+                    paint();
+                    App.showToast(fav ? 'Agregado a favoritos' : 'Quitado de favoritos', 'success');
+                }
+            } catch (e) {
+                App.showToast('Error de conexión', 'error');
+            }
+            btn.disabled = false;
+        });
+    },
+
+    /** Vista #/favoritos: grid con los productos guardados del usuario */
+    async loadFavoritos() {
+        const view = document.getElementById('view-generic');
+        if (!view) return;
+        if (!App.token) {
+            view.innerHTML = `<div class="empty-state"><i class="bi bi-heart"></i>
+                <h5>Mis favoritos</h5><p class="text-muted">Inicia sesión para ver tu lista de favoritos.</p></div>`;
+            return;
+        }
+        view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        try {
+            const data = await (await App.fetchAuth(`${App.apiBase}/favoritos`)).json();
+            const productos = data.data?.productos || [];
+            view.innerHTML = `<h2 class="qc-similares-title mb-3">Mis favoritos (${productos.length})</h2>
+                <div class="row" id="fav-grid">${
+                    productos.length
+                        ? productos.map(p => this.productCard(p,
+                            `<button class="btn btn-outline-danger btn-sm w-100 mt-1 fav-remove" data-id="${p.id}"><i class="bi bi-trash"></i> Quitar</button>`)).join('')
+                        : '<p class="text-muted">Aún no tienes productos favoritos. <a href="#/catalogo">Explora el catálogo</a>.</p>'
+                }</div>`;
+
+            view.querySelectorAll('.fav-remove').forEach(b => b.addEventListener('click', async () => {
+                b.disabled = true;
+                try {
+                    const r = await (await App.fetchAuth(`${App.apiBase}/favoritos/${b.dataset.id}`, { method: 'DELETE' })).json();
+                    if (r.success) { this.loadFavoritos(); App.showToast('Quitado de favoritos', 'success'); }
+                } catch (e) { App.showToast('Error de conexión', 'error'); b.disabled = false; }
+            }));
+        } catch (e) {
+            view.innerHTML = '<div class="alert alert-danger">Error al cargar favoritos.</div>';
+        }
     },
 
     /** Conecta stepper, botón agregar, favoritos y comparar del detalle */
@@ -561,6 +725,7 @@ const Catalogo = {
                 if (data.success) {
                     App.cartCount = data.data.items ? data.data.items.length : 0;
                     App.updateCartBadge();
+                    if (window.Carrito) Carrito.loadCart();   // refresca total del header + offcanvas
                     App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
                 } else {
                     App.showToast(data.error?.message || 'Error', 'error');
@@ -572,9 +737,7 @@ const Catalogo = {
             btnDetail.innerHTML = original;
         });
 
-        // ponytail: favoritos y comparar son stubs hasta su backend (tabla
-        // lista_deseos ya existe; comparar no está en el alcance del plan).
-        document.getElementById('btn-fav')?.addEventListener('click', () => App.showToast('Favoritos: próximamente', 'info'));
+        // favoritos lo maneja initFavButton(); comparar sigue siendo stub fuera de alcance.
         document.getElementById('btn-compare')?.addEventListener('click', () => App.showToast('Comparar: próximamente', 'info'));
     },
 

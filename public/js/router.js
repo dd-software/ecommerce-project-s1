@@ -86,6 +86,26 @@ const Router = {
             return;
         }
 
+        // Carrito (página completa) · checkout · confirmación
+        if (path === 'carrito') {
+            this.show('view-generic');
+            this.crumbs([['Inicio', '#/'], ['Carrito']]);
+            Carrito.openPage();
+            return;
+        }
+        if (path === 'checkout') {
+            this.show('view-generic');
+            this.crumbs([['Inicio', '#/'], ['Carrito', '#/carrito'], ['Checkout']]);
+            Checkout.openPage();
+            return;
+        }
+        if (path === 'confirmacion') {
+            this.show('view-generic');
+            this.crumbs([['Inicio', '#/'], ['Confirmación']]);
+            Checkout.openConfirmacion();
+            return;
+        }
+
         // Favoritos: grid de productos guardados (vista real, reutiliza view-generic)
         if (path === 'favoritos') {
             this.show('view-generic');

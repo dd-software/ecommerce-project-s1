@@ -206,30 +206,10 @@
 <div id="cart-empty" class="text-center py-5"><i class="bi bi-cart-x display-3 text-muted"></i><p class="mt-2">Tu carrito está vacío</p></div>
 <div id="cart-items"></div>
 <div id="cart-summary" class="d-none"><div id="cart-summary-content"></div>
-<a href="#" class="btn btn-primary w-100 mt-3" id="btn-checkout-nav" data-bs-toggle="modal" data-bs-target="#checkoutModal">Ir a Pagar</a></div>
+<a href="#" class="btn btn-primary w-100 mt-3" id="btn-checkout-nav">Ver carrito</a></div>
 </div></div>
 
-<!-- Modal Checkout -->
-<div class="modal fade" id="checkoutModal" tabindex="-1">
-<div class="modal-dialog modal-lg"><div class="modal-content">
-<div class="modal-header"><h5>Checkout</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body">
-<form id="checkout-form">
-<div id="checkout-items"></div>
-<div id="checkout-totals" class="border-top pt-3 mt-3"></div>
-<div class="mb-3"><label class="form-label">Dirección de envío</label>
-<textarea class="form-control" id="shipping-address" rows="2" required></textarea></div>
-<div class="mb-3"><label class="form-label">Teléfono</label>
-<input type="tel" class="form-control" id="shipping-phone"></div>
-<div class="mb-3"><label class="form-label">Cupón de descuento</label>
-<div class="input-group"><input type="text" class="form-control" id="coupon-code" placeholder="Ingresa código">
-<button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button></div></div>
-<div class="mb-3"><label class="form-label">Notas del pedido</label>
-<textarea class="form-control" id="order-notes" rows="2"></textarea></div>
-<div id="checkout-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Confirmar Pedido</button>
-</form>
-</div></div></div></div>
+<!-- Checkout y confirmación son páginas (#/checkout, #/confirmacion) — ver checkout.js -->
 
 <!-- Toast -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
@@ -298,7 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
     Catalogo.loadCategories();   // rellena categorías (checkboxes) en el sidebar
     Catalogo.loadMarcas();       // rellena marcas (checkboxes) en el sidebar
     Catalogo.initFilters();      // listeners de filtros/orden + add-to-cart (una sola vez)
+    Carrito.init();              // mini-carrito (offcanvas) + total del header + listeners
     Router.init();               // pinta la primera vista según el hash
+
+    // Recargar el carrito cada vez que se abre el offcanvas (datos frescos)
+    document.getElementById('cartOffcanvas')
+        ?.addEventListener('show.bs.offcanvas', () => Carrito.loadCart());
 });
 </script>
 </body>
