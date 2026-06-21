@@ -250,6 +250,44 @@ ecommerce-project-s1-team-1-heavyduty/
 
 ### 💻 Despliegue Local (Desarrollo)
 
+> ✅ **Inicio rápido verificado (Linux + MySQL nativo).** Estos son los pasos exactos con los que la app quedó corriendo end-to-end: registro → login → catálogo → carrito → checkout → pago → panel admin. Si solo quieres levantarla, usa esta opción.
+>
+> ℹ️ Nota: el proyecto carga la configuración desde un archivo **`.env`** (ver `.env.example`), **no** desde `config/database.php` con `define()`. Las opciones XAMPP/WAMP de más abajo describen un esquema antiguo; ajusta usando `.env` y el nombre de BD **`uct_ecommerce`**.
+
+#### Opción recomendada: MySQL nativo + servidor embebido de PHP
+
+**Requisitos:** PHP 8.1+ con `pdo_mysql` y `mbstring`, y **MySQL 8 server** (no solo el cliente: verifica con `which mysqld`).
+
+```bash
+# 0. Instalar el servidor MySQL si solo tienes el cliente, y arrancarlo
+sudo apt install -y mysql-server
+sudo systemctl enable --now mysql
+
+# 1. Crear BD + usuario. OJO: se crea para 'localhost' Y '127.0.0.1'.
+#    El código conecta por TCP a 127.0.0.1; un usuario solo '@localhost'
+#    (socket) daría "access denied".
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS uct_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER IF NOT EXISTS 'ecommerce_app'@'localhost' IDENTIFIED BY 'TU_PASS';"
+sudo mysql -e "CREATE USER IF NOT EXISTS 'ecommerce_app'@'127.0.0.1' IDENTIFIED BY 'TU_PASS';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON uct_ecommerce.* TO 'ecommerce_app'@'localhost'; GRANT ALL PRIVILEGES ON uct_ecommerce.* TO 'ecommerce_app'@'127.0.0.1'; FLUSH PRIVILEGES;"
+
+# 2. Cargar esquema y datos de demo
+sudo mysql uct_ecommerce < database/schema.sql
+sudo mysql uct_ecommerce < database/seed.sql
+
+# 3. Configurar entorno
+cp .env.example .env
+#   Editar .env:
+#     DB_PASS=TU_PASS  (la misma de arriba)
+#     JWT_SECRET=...    (>=32 chars aleatorios)  ->  openssl rand -base64 48
+
+# 4. Servir. Se pasa router.php para que /api/* funcione sin .htaccess.
+php -S localhost:8000 -t public router.php
+#   Abrir http://localhost:8000
+```
+
+> ⚠️ El servidor embebido de PHP **no lee `.htaccess`**, por eso pasamos `router.php`: replica la regla de Apache (los archivos reales —css/js/imágenes— se sirven directo y todo lo demás va a `public/index.php`). Sin él, las rutas `/api/*` devuelven 404.
+
 #### Opción 1: XAMPP (Windows / Linux / macOS)
 
 1. **Descargar e instalar XAMPP** desde [apachefriends.org](https://www.apachefriends.org)
@@ -305,11 +343,11 @@ git clone https://github.com/dd-software/ecommerce-project-s1.git
 cd ecommerce-project-s1
 git checkout feature/full-platform
 
-# Iniciar servidor PHP embebido
-php -S localhost:8080 -t public/
+# Iniciar servidor PHP embebido (router.php enruta /api/* igual que .htaccess)
+php -S localhost:8000 -t public router.php
 ```
 
-> ⚠️ El servidor embebido de PHP es útil para desarrollo rápido, pero no soporta `.htaccess`. Usa Apache o Nginx para todas las funcionalidades.
+> ⚠️ El servidor embebido de PHP es útil para desarrollo rápido y **no** lee `.htaccess`; por eso se usa `router.php`. Para producción usa Apache/Nginx con el `.htaccess` incluido.
 
 ---
 
