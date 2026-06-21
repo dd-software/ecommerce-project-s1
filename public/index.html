@@ -54,10 +54,12 @@
   <nav class="qc-header-nav">
     <div class="qc-header-nav-inner">
       <a href="#" data-view="catalogo" class="qc-nav-all"><i class="bi bi-list"></i> Todas</a>
-      <a href="#" data-view="catalogo" data-cat="repuestos">Repuestos</a>
-      <a href="#" data-view="catalogo" data-cat="accesorios">Accesorios</a>
-      <a href="#" data-view="catalogo" data-cat="herramientas">Herramientas</a>
-      <a href="#" data-view="catalogo" data-cat="servicios-tecnicos">Servicios técnicos</a>
+      <a href="#" data-view="catalogo" data-cat="computadores">Computadores</a>
+      <a href="#" data-view="catalogo" data-cat="notebooks">Notebooks</a>
+      <a href="#" data-view="catalogo" data-cat="celulares">Celulares</a>
+      <a href="#" data-view="catalogo" data-cat="consolas">Consolas</a>
+      <a href="#" data-view="catalogo" data-cat="tv-audio">TV y Audio</a>
+      <a href="#" data-view="catalogo" data-cat="componentes-pc">Componentes</a>
       <span class="qc-nav-right"><i class="bi bi-shield-check"></i> Garantía oficial · Despacho a todo Chile</span>
     </div>
   </nav>
@@ -81,28 +83,54 @@
       </div>
     </div>
 
-    <!-- Banners promo -->
-    <div class="qc-promos">
-      <a href="#/catalogo" class="qc-promo qc-promo-red">
-        <div><span class="qc-promo-tag">Renová tu PC</span><h3>Hasta 30% OFF en componentes</h3><span class="qc-promo-link">Ver ofertas →</span></div>
-        <i class="bi bi-cpu"></i>
-      </a>
-      <a href="#/catalogo" class="qc-promo qc-promo-dark">
-        <div><span class="qc-promo-tag">Despacho</span><h3>Envío gratis sobre $50.000</h3><span class="qc-promo-link">A todo Chile →</span></div>
-        <i class="bi bi-truck"></i>
-      </a>
+    <!-- Carrusel de banners publicitarios (Bootstrap) -->
+    <div id="homeBanners" class="carousel slide qc-banners" data-bs-ride="carousel" data-bs-interval="5000">
+      <div class="carousel-indicators">
+        <button type="button" data-bs-target="#homeBanners" data-bs-slide-to="0" class="active" aria-label="Banner 1"></button>
+        <button type="button" data-bs-target="#homeBanners" data-bs-slide-to="1" aria-label="Banner 2"></button>
+        <button type="button" data-bs-target="#homeBanners" data-bs-slide-to="2" aria-label="Banner 3"></button>
+        <button type="button" data-bs-target="#homeBanners" data-bs-slide-to="3" aria-label="Banner 4"></button>
+      </div>
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <a href="#/catalogo?cat=computadores" class="qc-banner b-gaming">
+            <div class="qc-banner-text"><span class="qc-banner-kicker">Arma tu setup</span><h2>PCs Gamer armados y listos</h2><p>Ryzen y RTX, ensamblados y testeados por QuadCore.</p><span class="qc-banner-cta">Ver computadores →</span></div>
+            <i class="bi bi-pc-display-horizontal"></i>
+          </a>
+        </div>
+        <div class="carousel-item">
+          <a href="#/catalogo?cat=consolas" class="qc-banner b-consolas">
+            <div class="qc-banner-text"><span class="qc-banner-kicker">Nueva generación</span><h2>PlayStation, Xbox y Switch</h2><p>Las consolas más buscadas, con stock real.</p><span class="qc-banner-cta">Ver consolas →</span></div>
+            <i class="bi bi-controller"></i>
+          </a>
+        </div>
+        <div class="carousel-item">
+          <a href="#/catalogo?cat=celulares" class="qc-banner b-celulares">
+            <div class="qc-banner-text"><span class="qc-banner-kicker">Siempre conectado</span><h2>Los últimos smartphones</h2><p>iPhone, Samsung, Xiaomi y más, al mejor precio.</p><span class="qc-banner-cta">Ver celulares →</span></div>
+            <i class="bi bi-phone"></i>
+          </a>
+        </div>
+        <div class="carousel-item">
+          <a href="#/catalogo?cat=tv-audio" class="qc-banner b-tv">
+            <div class="qc-banner-text"><span class="qc-banner-kicker">Vive el cine en casa</span><h2>Smart TVs 4K y audio</h2><p>Imagen y sonido de otro nivel para tu living.</p><span class="qc-banner-cta">Ver TV y audio →</span></div>
+            <i class="bi bi-tv"></i>
+          </a>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#homeBanners" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+      <button class="carousel-control-next" type="button" data-bs-target="#homeBanners" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
     </div>
 
-    <!-- Tiles de categorías -->
-    <h2 class="section-title mb-3">Explora por categoría</h2>
-    <div class="qc-cat-tiles" id="home-categorias"></div>
-
-    <!-- Ofertas -->
+    <!-- Ofertas (prominente, estilo PCFactory) -->
     <div class="qc-section-head">
       <h2 class="section-title mb-0">🔥 Ofertas de la semana</h2>
       <a href="#/catalogo" class="qc-section-link">Ver todo →</a>
     </div>
     <div class="qc-carousel" id="home-ofertas"></div>
+
+    <!-- Tiles de categorías -->
+    <h2 class="section-title mb-3">Explora por categoría</h2>
+    <div class="qc-cat-tiles" id="home-categorias"></div>
 
     <!-- Carruseles por categoría (se llenan dinámicamente) -->
     <div id="home-secciones"></div>

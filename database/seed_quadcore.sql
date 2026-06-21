@@ -82,3 +82,53 @@ UPDATE productos SET precio_anterior = 99990  WHERE slug = 'fuente-evga-supernov
 UPDATE productos SET precio_anterior = 189990 WHERE slug = 'placa-madre-asus-tuf-b650-plus';      -- ~16%
 UPDATE productos SET precio_anterior = 44990  WHERE slug = 'mouse-logitech-g502-hero';            -- ~22%
 UPDATE productos SET precio_anterior = 149990 WHERE slug = 'refrigeracion-corsair-icue-h100i';    -- ~20%
+
+-- ============================================================
+-- Catálogo ampliado (retail variado: PCs, notebooks, consolas, celulares, TV, monitores)
+-- imagen_url NULL → placeholder gris; las imágenes las cura Leonardo (seed_imagenes.sql)
+-- ============================================================
+INSERT INTO categorias (id, nombre, slug, descripcion, id_padre, activo) VALUES
+(7,  'Notebooks',    'notebooks',    'Notebooks gamer, oficina y ultraligeros',  NULL, 1),
+(8,  'Computadores', 'computadores', 'PCs armados gamer y de oficina',           NULL, 1),
+(9,  'Consolas',     'consolas',     'PlayStation, Xbox y Nintendo',             NULL, 1),
+(10, 'Celulares',    'celulares',    'Smartphones de todas las marcas',          NULL, 1),
+(11, 'TV y Audio',   'tv-audio',     'Smart TVs, audífonos y parlantes',         NULL, 1),
+(12, 'Monitores',    'monitores',    'Monitores gamer y de oficina',             NULL, 1);
+
+INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, stock_minimo, marca, imagen_url, activo, meta_descripcion) VALUES
+-- Notebooks
+(7, 'Notebook ASUS VivoBook 15 i5', 'notebook-asus-vivobook-15-i5', 'Notebook ASUS VivoBook 15.6" FHD, Intel Core i5, 8GB RAM, 512GB SSD, Windows 11.', 549990, 14, 4, 'ASUS', NULL, 1, 'Notebook ASUS VivoBook 15 i5.'),
+(7, 'Notebook Lenovo IdeaPad Gaming 3', 'notebook-lenovo-ideapad-gaming-3', 'Notebook gamer Lenovo IdeaPad Gaming 3, Ryzen 7, 16GB RAM, RTX 3050, 512GB SSD.', 729990, 9, 3, 'Lenovo', NULL, 1, 'Lenovo IdeaPad Gaming 3 RTX 3050.'),
+(7, 'Notebook HP Pavilion 14', 'notebook-hp-pavilion-14', 'Notebook HP Pavilion 14" FHD, Intel Core i5, 16GB RAM, 512GB SSD.', 489990, 11, 4, 'HP', NULL, 1, 'Notebook HP Pavilion 14 i5.'),
+(7, 'MacBook Air M2 13"', 'macbook-air-m2-13', 'Apple MacBook Air 13" chip M2, 8GB RAM, 256GB SSD, macOS.', 1199990, 6, 2, 'Apple', NULL, 1, 'MacBook Air M2 13 pulgadas.'),
+-- Computadores
+(8, 'PC Gamer QuadCore Ryzen 5 RTX 4060', 'pc-gamer-quadcore-ryzen5-rtx4060', 'PC gamer armado: Ryzen 5 7600, 16GB DDR5, RTX 4060, SSD 1TB NVMe. Listo para jugar.', 899990, 7, 2, 'QuadCore', NULL, 1, 'PC Gamer Ryzen 5 RTX 4060.'),
+(8, 'PC Oficina QuadCore Intel i3', 'pc-oficina-quadcore-i3', 'PC de oficina: Intel Core i3, 8GB RAM, SSD 480GB, ideal para trabajo y estudio.', 369990, 20, 5, 'QuadCore', NULL, 1, 'PC Oficina Intel i3.'),
+(8, 'PC Gamer Pro QuadCore i7 RTX 4070', 'pc-gamer-pro-quadcore-i7-rtx4070', 'PC gamer alta gama: Intel Core i7, 32GB DDR5, RTX 4070, SSD 2TB NVMe.', 1499990, 4, 2, 'QuadCore', NULL, 1, 'PC Gamer Pro i7 RTX 4070.'),
+-- Consolas
+(9, 'PlayStation 5 Slim', 'playstation-5-slim', 'Consola Sony PlayStation 5 Slim edición disco, 1TB, control DualSense incluido.', 599990, 10, 3, 'Sony', NULL, 1, 'PlayStation 5 Slim 1TB.'),
+(9, 'Xbox Series X', 'xbox-series-x', 'Consola Microsoft Xbox Series X, 1TB SSD, 4K nativo, control inalámbrico.', 649990, 8, 3, 'Microsoft', NULL, 1, 'Xbox Series X 1TB.'),
+(9, 'Nintendo Switch OLED', 'nintendo-switch-oled', 'Consola Nintendo Switch modelo OLED, pantalla 7" vibrante, 64GB.', 379990, 13, 4, 'Nintendo', NULL, 1, 'Nintendo Switch OLED.'),
+-- Celulares
+(10, 'iPhone 15 128GB', 'iphone-15-128gb', 'Apple iPhone 15 128GB, chip A16 Bionic, cámara 48MP, USB-C.', 899990, 12, 4, 'Apple', NULL, 1, 'iPhone 15 128GB.'),
+(10, 'Samsung Galaxy S24 256GB', 'samsung-galaxy-s24-256gb', 'Samsung Galaxy S24 256GB, pantalla AMOLED 120Hz, Galaxy AI.', 849990, 9, 3, 'Samsung', NULL, 1, 'Samsung Galaxy S24 256GB.'),
+(10, 'Xiaomi Redmi Note 13 Pro', 'xiaomi-redmi-note-13-pro', 'Xiaomi Redmi Note 13 Pro, 256GB, cámara 200MP, carga rápida 67W.', 229990, 22, 6, 'Xiaomi', NULL, 1, 'Xiaomi Redmi Note 13 Pro.'),
+(10, 'Motorola Moto G54 5G', 'motorola-moto-g54-5g', 'Motorola Moto G54 5G, 128GB, pantalla 120Hz, batería 5000mAh.', 169990, 18, 5, 'Motorola', NULL, 1, 'Motorola Moto G54 5G.'),
+-- TV y Audio
+(11, 'Smart TV Samsung 55" Crystal 4K', 'smart-tv-samsung-55-crystal-4k', 'Smart TV Samsung 55" Crystal UHD 4K, Tizen, HDR, control por voz.', 399990, 8, 3, 'Samsung', NULL, 1, 'Smart TV Samsung 55 4K.'),
+(11, 'Audífonos Sony WH-1000XM5', 'audifonos-sony-wh-1000xm5', 'Audífonos Sony WH-1000XM5 con cancelación de ruido líder, 30h de batería.', 299990, 11, 4, 'Sony', NULL, 1, 'Sony WH-1000XM5 noise cancelling.'),
+(11, 'Parlante JBL Charge 5', 'parlante-jbl-charge-5', 'Parlante portátil JBL Charge 5, resistente al agua IP67, 20h de batería.', 119990, 16, 5, 'JBL', NULL, 1, 'Parlante JBL Charge 5.'),
+-- Monitores
+(12, 'Monitor Gamer LG UltraGear 27" 165Hz', 'monitor-lg-ultragear-27-165hz', 'Monitor gamer LG UltraGear 27" QHD, 165Hz, 1ms, IPS, FreeSync.', 219990, 10, 3, 'LG', NULL, 1, 'Monitor LG UltraGear 27 165Hz.'),
+(12, 'Monitor Samsung Essential 24"', 'monitor-samsung-essential-24', 'Monitor Samsung 24" FHD, panel IPS, bordes ultrafinos, ideal oficina.', 99990, 19, 5, 'Samsung', NULL, 1, 'Monitor Samsung 24 FHD.'),
+(12, 'Monitor AOC Gaming 27" 144Hz', 'monitor-aoc-gaming-27-144hz', 'Monitor gamer AOC 27" FHD, 144Hz, 1ms, FreeSync Premium.', 159990, 12, 4, 'AOC', NULL, 1, 'Monitor AOC 27 144Hz.');
+
+-- Ofertas del catálogo ampliado (precio_anterior > precio)
+UPDATE productos SET precio_anterior = 849990  WHERE slug = 'notebook-lenovo-ideapad-gaming-3';
+UPDATE productos SET precio_anterior = 1299990 WHERE slug = 'macbook-air-m2-13';
+UPDATE productos SET precio_anterior = 1049990 WHERE slug = 'pc-gamer-quadcore-ryzen5-rtx4060';
+UPDATE productos SET precio_anterior = 649990  WHERE slug = 'playstation-5-slim';
+UPDATE productos SET precio_anterior = 999990  WHERE slug = 'iphone-15-128gb';
+UPDATE productos SET precio_anterior = 269990  WHERE slug = 'xiaomi-redmi-note-13-pro';
+UPDATE productos SET precio_anterior = 499990  WHERE slug = 'smart-tv-samsung-55-crystal-4k';
+UPDATE productos SET precio_anterior = 269990  WHERE slug = 'monitor-lg-ultragear-27-165hz';
