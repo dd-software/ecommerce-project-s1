@@ -340,7 +340,9 @@ class AdminRepository
         $ventas = $stmt->fetchAll();
 
         foreach ($ventas as &$v) {
-            $v['total_ventas_formateado'] = '$' . number_format($v['total_ventas'] , 0, ',', '.');
+            // SUM() vuelve como string (DECIMAL); con strict_types hay que castear
+            $v['total_ventas'] = (int)$v['total_ventas'];
+            $v['total_ventas_formateado'] = '$' . number_format($v['total_ventas'], 0, ',', '.');
         }
 
         return $ventas;
