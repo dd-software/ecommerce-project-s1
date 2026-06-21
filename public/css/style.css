@@ -48,7 +48,7 @@
 /* Títulos y marca en Poppins */
 h1, h2, h3, h4, h5, h6,
 .section-title, .hero-section h1, .qc-logo-text strong,
-.footer h6, .cart-summary .summary-total, .card-price {
+.footer h6, .card-price {
     font-family: var(--qc-font-display);
 }
 
@@ -523,8 +523,10 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 .cart-page-title, .confirm-title { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--qc-black); }
 .cart-page-title { font-size: 26px; margin-bottom: 20px; }
 
-.cart-table-card { background: #fff; border: 1px solid var(--qc-border); border-radius: var(--qc-radius); padding: 8px 16px; }
-.cart-table { width: 100%; }
+.cart-table-card { background: #fff; border: 1px solid var(--qc-border); border-radius: var(--qc-radius); padding: 8px 16px; overflow-x: auto; }
+/* min-width: en mobile las tablas hacen scroll horizontal en vez de aplastarse */
+.cart-table { width: 100%; min-width: 520px; }
+.admin-table { min-width: 680px; }
 .cart-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--qc-gray); font-weight: 700; padding: 12px 8px; border-bottom: 1px solid var(--qc-border); }
 .cart-table td { padding: 16px 8px; border-bottom: 1px solid var(--qc-border); vertical-align: middle; }
 .cart-table tbody tr:last-child td { border-bottom: none; }
@@ -631,38 +633,6 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
     .admin-sidebar-title { width: 100%; }
 }
 
-.cart-summary {
-    background: #fff;
-    border-radius: var(--qc-radius);
-    padding: 24px;
-    box-shadow: var(--qc-shadow-lg);
-}
-.cart-summary .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
-.cart-summary .summary-row .label { color: var(--qc-gray); font-size: 12px; }
-.cart-summary .summary-total { font-size: 28px; font-weight: 700; color: var(--qc-red); }
-.cart-summary .summary-free { color: var(--qc-green); font-weight: 600; }
-.cart-summary hr { border-color: var(--qc-border); }
-
-/* ============================================
-   Admin Dashboard
-   ============================================ */
-.admin-sidebar { background: var(--qc-black); min-height: calc(100vh - 108px); padding-top: 16px; }
-.admin-sidebar .nav-link { color: rgba(255,255,255,0.75); padding: 12px 16px; border-radius: 0; transition: all .2s; }
-.admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active { color: #fff; background: var(--qc-red); }
-.admin-sidebar .nav-link i { width: 20px; text-align: center; margin-right: 8px; }
-
-.stat-card {
-    background: #fff;
-    border-radius: var(--qc-radius);
-    padding: 24px;
-    box-shadow: var(--qc-shadow);
-    border-left: 4px solid var(--qc-red);
-}
-.stat-card.accent  { border-left-color: var(--qc-green); }
-.stat-card.success { border-left-color: var(--qc-green); }
-.stat-card.danger  { border-left-color: var(--qc-error); }
-.stat-card .stat-value { font-size: 32px; font-weight: 700; color: var(--qc-black); }
-.stat-card .stat-label { font-size: 12px; color: var(--qc-gray); text-transform: uppercase; }
 
 /* ============================================
    Paginación (look minimal sobre Bootstrap)
@@ -759,20 +729,6 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 .modal-header-uct, .modal-header { background-color: var(--qc-white); color: var(--qc-black); border-bottom: 1px solid var(--qc-border); }
 
 /* ============================================
-   Checkout steps
-   ============================================ */
-.checkout-steps { display: flex; justify-content: center; margin-bottom: 32px; }
-.checkout-step { text-align: center; flex: 1; max-width: 200px; }
-.checkout-step .step-number {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: var(--qc-border); color: var(--qc-gray);
-    display: inline-flex; align-items: center; justify-content: center;
-    font-weight: bold; margin-bottom: 8px;
-}
-.checkout-step.active .step-number { background: var(--qc-red); color: #fff; }
-.checkout-step.completed .step-number { background: var(--qc-green); color: #fff; }
-
-/* ============================================
    Estados / utilidades
    ============================================ */
 .empty-state { text-align: center; padding: 48px 16px; }
@@ -795,19 +751,6 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 .qc-fav { background: #fff; border: 1px solid var(--qc-border); border-radius: 50%; width: 36px; height: 36px;
           display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--qc-gray); }
 .qc-fav.active { color: var(--qc-red); border-color: var(--qc-red); }
-
-/* === Tabla admin === */
-.table-admin th { background-color: var(--qc-black); color: #fff; font-weight: 500; }
-.table-admin .btn-action { padding: 4px 8px; font-size: 12px; }
-
-/* === Badges de estado de pedido === */
-.badge-estado { padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; }
-.badge-estado.pendiente      { background: #ffeaa7; color: #856404; }
-.badge-estado.pagado         { background: #81ecec; color: #006064; }
-.badge-estado.en_preparacion { background: #a29bfe; color: #3c1a9e; }
-.badge-estado.enviado        { background: #74b9ff; color: #003d6b; }
-.badge-estado.entregado      { background: #55efc4; color: #006b3c; }
-.badge-estado.cancelado      { background: #fab1a0; color: #8b0000; }
 
 /* ============================================
    Sistema de vistas (SPA)
