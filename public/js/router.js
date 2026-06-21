@@ -100,6 +100,7 @@ const Router = {
         Catalogo.filters.categoria = (cat && /^\d+$/.test(cat)) ? cat : null;
         Catalogo.currentPage = 1;
         Catalogo.loadProducts();
+        Catalogo.loadPriceDistribution();
         this.crumbs([['Inicio', '#/'], ['Catálogo']]);
     }
 };

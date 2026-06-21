@@ -7,6 +7,9 @@ const Catalogo = {
     currentPage: 1,
     totalPages: 1,
     filters: {},
+    priceLimit: 0,        // tope del rango, se calcula con la data
+    priceDraft: null,     // {min,max} borrador (histograma + conteo en vivo)
+    priceBase: [],        // precios del set actual sin filtro de precio
 
     /**
      * Inicializa la página de catálogo
@@ -117,6 +120,84 @@ const Catalogo = {
         } catch (e) {
             container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';
         }
+    },
+
+    /**
+     * Carga la distribución de precios del set actual (cat/marca/búsqueda, SIN
+     * el filtro de precio) para el histograma y el conteo en vivo.
+     * ponytail: cálculo client-side; con ~20 productos traemos todos. Si el
+     * catálogo creciera mucho, mover los buckets a un endpoint del backend.
+     */
+    async loadPriceDistribution() {
+        const params = new URLSearchParams();
+        if (this.filters.categorias?.length) params.set('categorias', this.filters.categorias.join(','));
+        else if (this.filters.categoria) params.set('categoria', this.filters.categoria);
+        if (this.filters.marcas?.length) params.set('marcas', this.filters.marcas.join(','));
+        if (this.filters.q) params.set('q', this.filters.q);
+        if (this.filters.en_stock) params.set('en_stock', '1');
+        params.set('por_pagina', 100);
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo?${params.toString()}`);
+            const data = await resp.json();
+            this.priceBase = (data.data || []).map(p => p.precio);
+        } catch (e) {
+            this.priceBase = [];
+        }
+        // Tope = máximo redondeado a 10.000, fijado una sola vez para estabilidad
+        if (!this.priceLimit) {
+            const maxP = this.priceBase.length ? Math.max(...this.priceBase) : 300000;
+            this.priceLimit = Math.max(10000, Math.ceil(maxP / 10000) * 10000);
+            this.priceDraft = { min: 0, max: this.priceLimit };
+        }
+        this.syncPriceControls();
+        this.renderPriceHistogram();
+    },
+
+    /** Refleja priceDraft + priceLimit en sliders e inputs */
+    syncPriceControls() {
+        if (!this.priceDraft) return;
+        const { min, max } = this.priceDraft;
+        const set = (id, val) => { const el = document.getElementById(id); if (el) { el.max = this.priceLimit; el.value = val; } };
+        set('price-slider-min', min);
+        set('price-slider-max', max);
+        set('filter-price-min', min);
+        set('filter-price-max', max);
+    },
+
+    /** Pinta el histograma coloreando lo que cae en el borrador + conteo en vivo */
+    renderPriceHistogram() {
+        const box = document.getElementById('price-histogram');
+        if (!box || !this.priceDraft) return;
+        const BUCKETS = 22, step = this.priceLimit / BUCKETS;
+        const counts = Array.from({ length: BUCKETS }, (_, i) =>
+            this.priceBase.filter(p => p >= i * step && p < (i + 1) * step).length);
+        const maxC = Math.max(1, ...counts);
+        const { min, max } = this.priceDraft;
+        box.innerHTML = counts.map((c, i) => {
+            const inRange = (i + 1) * step >= min && i * step <= max;
+            const h = Math.max(Math.round((c / maxC) * 100), 5);
+            return `<span class="qc-bar${inRange ? ' on' : ''}" style="height:${h}%"></span>`;
+        }).join('');
+        const live = this.priceBase.filter(p => p >= min && p <= max).length;
+        const bf = document.getElementById('btn-filter');
+        if (bf) bf.textContent = `Filtrar (${live} productos)`;
+    },
+
+    /** Edita el borrador desde slider/input (key: 'min'|'max') */
+    onPriceDraft(key, raw) {
+        const v = Math.max(0, Math.min(this.priceLimit, parseInt(raw) || 0));
+        if (key === 'min') this.priceDraft.min = Math.min(v, this.priceDraft.max);
+        else this.priceDraft.max = Math.max(v, this.priceDraft.min);
+        this.syncPriceControls();
+        this.renderPriceHistogram();
+    },
+
+    /** Aplica el borrador al grid (solo al pulsar "Filtrar") */
+    applyPrice() {
+        this.filters.precio_min = this.priceDraft.min > 0 ? this.priceDraft.min : null;
+        this.filters.precio_max = this.priceDraft.max < this.priceLimit ? this.priceDraft.max : null;
+        this.currentPage = 1;
+        this.loadProducts();
     },
 
     /**
@@ -254,18 +335,17 @@ const Catalogo = {
             });
         }
 
-        // Botón "Filtrar" (aplica precio + todo)
-        document.getElementById('btn-filter')?.addEventListener('click', () => this.applyFilters());
+        // Botón "Filtrar": aplica el rango de precio del borrador al grid
+        document.getElementById('btn-filter')?.addEventListener('click', () => this.applyPrice());
 
         // Botón "Limpiar filtros"
         document.getElementById('btn-clear-filters')?.addEventListener('click', () => this.clearFilters());
 
-        // Enter en los inputs de precio
-        ['filter-price-min', 'filter-price-max'].forEach(id => {
-            document.getElementById(id)?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') this.applyFilters();
-            });
-        });
+        // Sliders e inputs de precio: editan el borrador (histograma + conteo en vivo)
+        document.getElementById('price-slider-min')?.addEventListener('input', (e) => this.onPriceDraft('min', e.target.value));
+        document.getElementById('price-slider-max')?.addEventListener('input', (e) => this.onPriceDraft('max', e.target.value));
+        document.getElementById('filter-price-min')?.addEventListener('input', (e) => this.onPriceDraft('min', e.target.value));
+        document.getElementById('filter-price-max')?.addEventListener('input', (e) => this.onPriceDraft('max', e.target.value));
 
         // Ordenamiento
         document.getElementById('sort-select')?.addEventListener('change', (e) => {
@@ -311,8 +391,7 @@ const Catalogo = {
     collectFilters() {
         this.filters.categorias = [...document.querySelectorAll('.qc-cat-cb:checked')].map(x => x.value);
         this.filters.marcas = [...document.querySelectorAll('.qc-marca-cb:checked')].map(x => x.value);
-        this.filters.precio_min = document.getElementById('filter-price-min')?.value || null;
-        this.filters.precio_max = document.getElementById('filter-price-max')?.value || null;
+        // precio se aplica aparte vía applyPrice(); aquí se conserva lo ya aplicado
         this.filters.en_stock = document.getElementById('filter-stock')?.checked || false;
         // si el usuario filtra desde el sidebar, descartamos el deep-link de categoría única
         if (this.filters.categorias.length) this.filters.categoria = null;
@@ -322,16 +401,18 @@ const Catalogo = {
         this.collectFilters();
         this.currentPage = 1;
         this.loadProducts();
+        this.loadPriceDistribution();   // el set base cambió → refrescar histograma/conteo
     },
 
     clearFilters() {
         document.querySelectorAll('.qc-cat-cb, .qc-marca-cb').forEach(x => x.checked = false);
-        const min = document.getElementById('filter-price-min'); if (min) min.value = '';
-        const max = document.getElementById('filter-price-max'); if (max) max.value = '';
         const st = document.getElementById('filter-stock'); if (st) st.checked = false;
         this.filters = { ordenar: this.filters.ordenar };  // conserva el orden, limpia el resto
+        this.priceDraft = { min: 0, max: this.priceLimit };
+        this.syncPriceControls();
         this.currentPage = 1;
         this.loadProducts();
+        this.loadPriceDistribution();
     },
 
     /**
@@ -340,8 +421,7 @@ const Catalogo = {
     updateCounts(total) {
         const rc = document.getElementById('results-count');
         if (rc) rc.textContent = `${total} resultado${total === 1 ? '' : 's'}`;
-        const bf = document.getElementById('btn-filter');
-        if (bf) bf.textContent = `Filtrar (${total})`;
+        // el botón "Filtrar (N)" lo maneja renderPriceHistogram con el conteo en vivo del borrador
     },
 
     /**
@@ -381,69 +461,137 @@ const Catalogo = {
         const container = document.getElementById('product-detail');
         if (!container) return;
 
+        const img = product.imagen_url
+            ? `<img src="${product.imagen_url}" class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}">`
+            : `<div class="qc-img-ph qc-img-ph-lg"><i class="bi bi-cpu"></i></div>`;
+
+        // ponytail: specs reales de las columnas que tenemos. La tabla rica del
+        // mockup (núcleos, frecuencia, socket…) necesita un modelo de specs que
+        // aún no existe; se agrega cuando haya datos por producto.
+        const specs = [
+            ['Marca', product.marca],
+            ['Categoría', product.categoria_nombre],
+            ['SKU', 'PROD-' + product.id],
+            ['Disponibilidad', product.sin_stock ? 'Agotado' : `${product.stock} unidades`],
+            ['Garantía', '12 meses oficial'],
+        ].filter(([, v]) => v)
+         .map(([k, v]) => `<tr><td class="qc-spec-k">${k}</td><td class="qc-spec-v">${this.escapeHtml(String(v))}</td></tr>`)
+         .join('');
+
         const addButton = product.sin_stock
-            ? '<button class="btn btn-secondary btn-lg" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-lg" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
+            ? '<button class="btn btn-secondary w-100" disabled>Sin Stock</button>'
+            : `<button class="btn btn-accent w-100" id="btn-add-detail"><i class="bi bi-cart-plus"></i> Agregar al carrito</button>`;
 
         container.innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    ${product.imagen_url
-                        ? `<img src="${product.imagen_url}" class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}">`
-                        : `<div class="qc-img-ph qc-img-ph-lg"><i class="bi bi-cpu"></i></div>`}
-                </div>
-                <div class="col-md-6">
-                    <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
-                    <h2>${this.escapeHtml(product.nombre)}</h2>
-                    <h3 class="text-primary mb-3">${product.precio_formateado}</h3>
-                    <p class="lead">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
-                    <div class="mb-3">
-                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} fs-6">
-                            ${product.sin_stock ? 'Sin Stock' : 'Stock: ' + product.stock + ' unidades'}
-                        </span>
+            <div class="qc-detail row g-4">
+                <div class="col-lg-6">${img}</div>
+                <div class="col-lg-6">
+                    <div class="qc-detail-brand">${this.escapeHtml(product.marca || '')}</div>
+                    <h1 class="qc-detail-title">${this.escapeHtml(product.nombre)}</h1>
+                    <div class="qc-detail-rating text-muted small mb-2">
+                        <span class="text-warning">★★★★★</span> Sin reseñas aún
                     </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <input type="number" id="qty-detail" class="form-control" style="width:80px" value="1" min="1" max="${product.stock}">
+                    <div class="qc-detail-price">${product.precio_formateado}</div>
+                    <div class="qc-detail-stock ${product.sin_stock ? 'agotado' : ''}">
+                        <i class="bi ${product.sin_stock ? 'bi-x-circle' : 'bi-check-circle'}"></i>
+                        ${product.sin_stock ? 'Sin stock' : 'En Stock — disponible'}
+                    </div>
+                    <p class="qc-detail-desc">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
+
+                    <div class="qc-spec-title">Especificaciones</div>
+                    <table class="qc-spec-table"><tbody>${specs}</tbody></table>
+
+                    <ul class="qc-detail-info">
+                        <li><i class="bi bi-truck"></i> Envío: <b>Gratis a todo Chile</b></li>
+                        <li><i class="bi bi-clock"></i> Tiempo de entrega: <b>2-3 días hábiles</b></li>
+                        <li><i class="bi bi-shield-check"></i> Garantía: <b>12 meses oficial</b></li>
+                    </ul>
+
+                    ${product.sin_stock ? '' : `
+                    <div class="qc-detail-qty">
+                        <span>Cantidad:</span>
+                        <div class="qc-stepper">
+                            <button type="button" id="qty-minus">−</button>
+                            <input type="number" id="qty-detail" value="1" min="1" max="${product.stock}">
+                            <button type="button" id="qty-plus">+</button>
+                        </div>
+                    </div>`}
+
+                    <div class="qc-detail-actions">
                         ${addButton}
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-uct w-100" id="btn-fav"><i class="bi bi-heart"></i> Agregar a favoritos</button>
+                            <button class="btn btn-outline-uct w-100" id="btn-compare"><i class="bi bi-arrow-left-right"></i> Comparar</button>
+                        </div>
                     </div>
-                    <hr class="my-4">
-                    <p class="text-muted small">SKU: PROD-${product.id} | ${product.sin_stock ? '⚠️ Producto agotado' : '✅ Disponible'}</p>
                 </div>
+            </div>
+            <div class="qc-similares mt-5">
+                <h2 class="qc-similares-title">Productos similares</h2>
+                <div class="row" id="similares-grid"></div>
             </div>`;
 
-        // Botón agregar del detalle
+        this.wireDetail(product);
+        this.loadSimilares(product);
+    },
+
+    /** Conecta stepper, botón agregar, favoritos y comparar del detalle */
+    wireDetail(product) {
+        const qtyInput = document.getElementById('qty-detail');
+        const clampQty = () => {
+            let v = parseInt(qtyInput.value) || 1;
+            qtyInput.value = Math.min(Math.max(v, 1), product.stock || 1);
+        };
+        document.getElementById('qty-minus')?.addEventListener('click', () => { qtyInput.value = (parseInt(qtyInput.value) || 1) - 1; clampQty(); });
+        document.getElementById('qty-plus')?.addEventListener('click', () => { qtyInput.value = (parseInt(qtyInput.value) || 1) + 1; clampQty(); });
+        qtyInput?.addEventListener('change', clampQty);
+
         const btnDetail = document.getElementById('btn-add-detail');
-        if (btnDetail) {
-            btnDetail.addEventListener('click', async () => {
-                const qty = parseInt(document.getElementById('qty-detail').value) || 1;
-                btnDetail.disabled = true;
-                btnDetail.textContent = 'Agregando...';
-
-                try {
-                    const resp = await App.fetchAuth(`${App.apiBase}/carrito`, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            producto_id: product.id,
-                            cantidad: qty,
-                            session_id: App.getSessionId()
-                        })
-                    });
-                    const data = await resp.json();
-
-                    if (data.success) {
-                        App.cartCount = data.data.items ? data.data.items.length : 0;
-                        App.updateCartBadge();
-                        App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
-                    } else {
-                        App.showToast(data.error?.message || 'Error', 'error');
-                    }
-                } catch (err) {
-                    App.showToast('Error de conexión', 'error');
+        btnDetail?.addEventListener('click', async () => {
+            const qty = parseInt(qtyInput.value) || 1;
+            btnDetail.disabled = true;
+            const original = btnDetail.innerHTML;
+            btnDetail.textContent = 'Agregando...';
+            try {
+                const resp = await App.fetchAuth(`${App.apiBase}/carrito`, {
+                    method: 'POST',
+                    body: JSON.stringify({ producto_id: product.id, cantidad: qty, session_id: App.getSessionId() })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    App.cartCount = data.data.items ? data.data.items.length : 0;
+                    App.updateCartBadge();
+                    App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
+                } else {
+                    App.showToast(data.error?.message || 'Error', 'error');
                 }
+            } catch (err) {
+                App.showToast('Error de conexión', 'error');
+            }
+            btnDetail.disabled = false;
+            btnDetail.innerHTML = original;
+        });
 
-                btnDetail.disabled = false;
-                btnDetail.textContent = 'Agregar al Carrito';
-            });
+        // ponytail: favoritos y comparar son stubs hasta su backend (tabla
+        // lista_deseos ya existe; comparar no está en el alcance del plan).
+        document.getElementById('btn-fav')?.addEventListener('click', () => App.showToast('Favoritos: próximamente', 'info'));
+        document.getElementById('btn-compare')?.addEventListener('click', () => App.showToast('Comparar: próximamente', 'info'));
+    },
+
+    /** Carga 4 productos de la misma categoría (excluye el actual) */
+    async loadSimilares(product) {
+        const grid = document.getElementById('similares-grid');
+        if (!grid || !product.id_categoria) return;
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo?categorias=${product.id_categoria}&por_pagina=5`);
+            const data = await resp.json();
+            const items = (data.data || [])
+                .filter(p => p.id !== product.id)
+                .slice(0, 4);
+            grid.innerHTML = items.map(p => this.productCard(p)).join('')
+                || '<p class="text-muted">No hay productos similares.</p>';
+        } catch (e) {
+            grid.innerHTML = '';
         }
     }
 };

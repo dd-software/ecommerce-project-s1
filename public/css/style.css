@@ -411,6 +411,45 @@ a:hover { color: var(--qc-red-hover); }
     padding: 4px 9px; border-radius: 6px;
 }
 .qc-badge-stock.agotado { background: var(--qc-gray); }
+
+/* ── Detalle de producto ── */
+.qc-detail-brand { font-size: 12px; font-weight: 700; letter-spacing: .5px; color: var(--qc-gray); text-transform: uppercase; }
+.qc-detail-title { font-family: 'Poppins', sans-serif; font-size: 28px; font-weight: 700; color: var(--qc-black); margin: 4px 0 6px; }
+.qc-detail-price { font-family: 'Poppins', sans-serif; font-size: 32px; font-weight: 700; color: var(--qc-red); margin: 6px 0; }
+.qc-detail-stock { color: var(--qc-green); font-weight: 600; font-size: 14px; margin-bottom: 12px; }
+.qc-detail-stock.agotado { color: var(--qc-gray); }
+.qc-detail-desc { color: var(--qc-gray); line-height: 1.6; margin-bottom: 20px; }
+.qc-spec-title { font-family: 'Poppins', sans-serif; font-weight: 700; text-align: center; letter-spacing: 1px; text-transform: uppercase; color: var(--qc-red); font-size: 13px; margin: 18px 0 8px; }
+.qc-spec-table { width: 100%; font-size: 14px; }
+.qc-spec-table td { padding: 8px 4px; border-bottom: 1px solid var(--qc-border); }
+.qc-spec-k { color: var(--qc-gray); }
+.qc-spec-v { text-align: right; font-weight: 600; color: var(--qc-black); }
+.qc-detail-info { list-style: none; padding: 0; margin: 18px 0; font-size: 14px; color: var(--qc-gray); }
+.qc-detail-info li { padding: 4px 0; }
+.qc-detail-info i { color: var(--qc-red); margin-right: 6px; }
+.qc-detail-qty { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+.qc-stepper { display: inline-flex; border: 1px solid var(--qc-border); border-radius: 8px; overflow: hidden; }
+.qc-stepper button { width: 36px; border: none; background: var(--qc-gray-light); font-size: 18px; line-height: 1; cursor: pointer; }
+.qc-stepper button:hover { background: var(--qc-border); }
+.qc-stepper input { width: 52px; border: none; text-align: center; -moz-appearance: textfield; }
+.qc-stepper input::-webkit-outer-spin-button, .qc-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qc-detail-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.qc-detail-actions .btn-accent { background: var(--qc-red); border-color: var(--qc-red); color: #fff; font-weight: 600; padding: 12px; }
+.qc-detail-actions .btn-accent:hover { background: var(--qc-red-hover); border-color: var(--qc-red-hover); }
+.qc-similares-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 22px; color: var(--qc-black); margin-bottom: 16px; }
+
+/* ── Rango de precio: histograma + sliders dobles ── */
+.qc-price-hist { display: flex; align-items: flex-end; gap: 2px; height: 56px; margin: 14px 0 18px; }
+.qc-price-hist .qc-bar { flex: 1; min-height: 3px; background: #f0f0f0; border-radius: 2px; align-self: flex-end; transition: background .15s; }
+.qc-price-hist .qc-bar.on { background: rgba(247,79,60,.5); }
+.qc-price-sliders { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+.qc-range { width: 100%; cursor: pointer; accent-color: var(--qc-red); }
+.qc-price-field { flex: 1; }
+.qc-price-field > label { display: block; font-size: 11px; color: #a1a1aa; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; font-weight: 600; }
+.qc-price-input { position: relative; }
+.qc-price-input > span { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #a1a1aa; pointer-events: none; }
+.qc-price-input > input { width: 100%; border: 1.5px solid #f3b6b7; border-radius: 9px; padding: 8px 6px 8px 20px; font-size: 13px; font-weight: 600; color: var(--qc-black); outline: none; }
+.qc-price-input > input:focus { border-color: var(--qc-red); }
 .product-card .card-body { gap: 2px; }
 .product-card .card-category { font-weight: 700; }
 .product-card .card-body { padding: 16px; display: flex; flex-direction: column; }
