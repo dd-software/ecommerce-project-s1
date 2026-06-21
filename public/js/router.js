@@ -166,9 +166,8 @@ const Router = {
         this.show('view-catalogo');
         const cat = params.get('cat');
         const q = params.get('q');
-        // ponytail: solo filtra si la categoría es un ID numérico; los slugs del nav
-        // (repuestos/accesorios…) no matchean las categorías reales del seed.
-        Catalogo.filters.categoria = (cat && /^\d+$/.test(cat)) ? cat : null;
+        // Acepta id numérico o slug (ej. "repuestos"); el backend lo resuelve.
+        Catalogo.filters.categoria = cat || null;
         Catalogo.filters.q = q || null;   // búsqueda del header
         const searchInput = document.getElementById('search-input');
         if (searchInput) searchInput.value = q || '';

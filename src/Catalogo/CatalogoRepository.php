@@ -177,6 +177,15 @@ class CatalogoRepository
         return $stmt->fetchAll();
     }
 
+    /** Resuelve el id de una categoría activa a partir de su slug (o null) */
+    public function buscarCategoriaIdPorSlug(string $slug): ?int
+    {
+        $stmt = $this->db->prepare("SELECT id FROM categorias WHERE slug = :slug AND activo = 1 LIMIT 1");
+        $stmt->execute([':slug' => $slug]);
+        $id = $stmt->fetchColumn();
+        return $id !== false ? (int)$id : null;
+    }
+
     /**
      * Obtiene marcas activas con conteo de productos
      */

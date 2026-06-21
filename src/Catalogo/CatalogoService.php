@@ -76,6 +76,21 @@ class CatalogoService
     }
 
     /**
+     * Resuelve el parámetro de categoría a un id: acepta un id numérico o un slug
+     * (ej. "repuestos"). Devuelve null si no aplica o el slug no existe.
+     */
+    public function resolverCategoria(?string $valor): ?int
+    {
+        if ($valor === null || $valor === '') {
+            return null;
+        }
+        if (ctype_digit($valor)) {
+            return (int)$valor;
+        }
+        return $this->repository->buscarCategoriaIdPorSlug($valor);
+    }
+
+    /**
      * Lista marcas activas con conteo
      */
     public function listarMarcas(): array

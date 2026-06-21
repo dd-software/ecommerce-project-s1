@@ -39,7 +39,7 @@ class CatalogoController
             $marcas       = $this->csvToList($request->getQuery('marcas'));
 
             $resultado = $this->service->listarProductos(
-                categoriaId: $categoria ? (int)$categoria : null,
+                categoriaId: $this->service->resolverCategoria($categoria),
                 busqueda: $busqueda,
                 precioMin: $precioMin !== null ? (int)$precioMin : null,
                 precioMax: $precioMax !== null ? (int)$precioMax : null,
