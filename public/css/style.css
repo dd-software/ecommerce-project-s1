@@ -562,13 +562,24 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 .pedido-pill { border: 1px solid var(--qc-border); background: #fff; border-radius: 999px; padding: 6px 16px; font-size: 13px; font-weight: 600; color: var(--qc-gray); cursor: pointer; transition: .15s; }
 .pedido-pill:hover { border-color: var(--qc-red); color: var(--qc-red); }
 .pedido-pill.active { background: var(--qc-red); border-color: var(--qc-red); color: #fff; }
-.pedidos-table td { padding: 14px 8px; }
-.pedido-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px; }
-.pedido-badge.success { background: #e7f9f1; color: #0a8f5b; }
-.pedido-badge.info { background: #e7f0ff; color: #2563eb; }
-.pedido-badge.warning { background: #fff4e0; color: #b87503; }
-.pedido-badge.danger { background: #fdecec; color: #d33; }
-.pedido-badge.secondary { background: var(--qc-gray-light); color: var(--qc-gray); }
+.pedidos-table td { padding: 16px 8px; }
+.pedidos-table tbody tr { transition: background .12s; }
+.pedidos-table tbody tr:hover { background: var(--qc-gray-light); }
+
+/* Estado: punto de color + etiqueta sobria (no píldora) */
+.pedido-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--qc-black); }
+.pedido-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 8px; }
+.pedido-badge.success .pedido-dot { background: #16a34a; }
+.pedido-badge.info .pedido-dot    { background: #2563eb; }
+.pedido-badge.warning .pedido-dot { background: #d97706; }
+.pedido-badge.danger .pedido-dot  { background: #dc2626; }
+.pedido-badge.secondary .pedido-dot { background: #9ca3af; }
+
+/* Acción: link sutil con chevron en vez de botón sólido */
+.pedido-ver { color: var(--qc-red); font-weight: 600; font-size: 13px; text-decoration: none; white-space: nowrap; }
+.pedido-ver:hover { color: var(--qc-red-hover); }
+.pedido-ver i { font-size: 11px; display: inline-block; transition: transform .15s; }
+.pedido-ver:hover i { transform: translateX(3px); }
 
 .cart-summary {
     background: #fff;

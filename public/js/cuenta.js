@@ -18,8 +18,8 @@ function ordenNumero(id, fecha) {
 }
 
 function badgeEstado(estado) {
-    const [label, color, icon] = ESTADOS_PEDIDO[estado] || [estado, 'secondary', 'bi-dot'];
-    return `<span class="pedido-badge ${color}"><i class="bi ${icon}"></i> ${label}</span>`;
+    const [label, color] = ESTADOS_PEDIDO[estado] || [estado, 'secondary'];
+    return `<span class="pedido-badge ${color}"><span class="pedido-dot"></span>${label}</span>`;
 }
 
 function requireLogin(view, titulo) {
@@ -67,7 +67,7 @@ const Pedidos = {
                 <td class="text-muted">${(p.created_at || '').slice(0, 10)}</td>
                 <td class="text-primary fw-bold">${p.total_formateado || App.formatPrice(p.total)}</td>
                 <td>${badgeEstado(p.estado)}</td>
-                <td class="text-end"><a href="#/pedido/${p.id}" class="btn btn-accent btn-sm">Ver</a></td>
+                <td class="text-end"><a href="#/pedido/${p.id}" class="pedido-ver">Ver detalle <i class="bi bi-chevron-right"></i></a></td>
             </tr>`).join('');
 
         view.innerHTML = `
