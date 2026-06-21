@@ -13,6 +13,7 @@ use App\Checkout\CheckoutService;
 use App\Checkout\CheckoutRepository;
 use App\Inventario\InventarioService;
 use App\Inventario\InventarioRepository;
+use App\Carrito\CarritoRepository;
 
 class PagosService
 {
@@ -86,6 +87,14 @@ class PagosService
                         pedidoId: $pedidoId,
                         motivo: 'Venta - Pedido #' . $pedidoId
                     );
+                }
+
+                // Recién ahora se vacía el carrito (el checkout ya no lo hace): así un
+                // pago rechazado deja el carrito intacto para reintentar.
+                $carritoRepo = new CarritoRepository();
+                $carrito = $carritoRepo->obtenerCarritoActivoPorUsuario($userId);
+                if ($carrito) {
+                    $carritoRepo->desactivarCarrito((int)$carrito['id']);
                 }
 
                 $mensaje = 'Pago aprobado exitosamente.';

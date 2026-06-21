@@ -128,8 +128,9 @@ class CheckoutService
                 $this->repository->aplicarCupon($pedidoId, $cuponId, $descuentoAplicado);
             }
 
-            // Desactivar carrito (se convirtió en pedido)
-            (new CarritoRepository())->desactivarParaCheckout($carritoId);
+            // NO desactivar el carrito acá: si el pago se rechaza, el pedido se cancela
+            // y el carrito debe seguir disponible para reintentar. El carrito se vacía
+            // solo tras un pago APROBADO (ver PagosService::procesarPago).
 
             $db->commit();
 
