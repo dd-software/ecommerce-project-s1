@@ -2,7 +2,15 @@
  * contacto.js — Vista de Contacto (#/contacto)  ·  TAREA LEONARDO #2
  * Solo se edita este archivo + css/leo.css. El form no tiene backend: solo muestra un toast.
  */
-import { CONTACT_INFO } from './contact-data.js';
+
+// Datos de contacto (definidos localmente para no depender de import)
+const CONTACT_INFO = {
+    address: 'Av. Providencia 1234, Santiago, Chile',
+    phone: '+56 2 2123 4567',
+    email: 'contacto@quadcore.cl',
+    schedule: 'Lun a Vie 9:00–18:00 · Sáb 10–14h'
+};
+
 const Contacto = {
     render() {
         const view = document.getElementById('view-generic');
@@ -118,3 +126,6 @@ const Contacto = {
         });
     }
 };
+
+// Hacer Contacto global
+window.Contacto = Contacto;

@@ -2,7 +2,7 @@
  * info-pages.js — Páginas institucionales (Venta Empresas, Tiendas) + menú de
  * categorías del header. Estilo PCFactory adaptado a QuadCore. Contenido estático.
  */
-import { CONTACT_INFO } from './contact-data.js';
+
 const Info = {
     /** #/empresas — landing B2B */
     empresas() {
@@ -76,3 +76,6 @@ const Info = {
         } catch (e) { /* el botón queda sin items */ }
     }
 };
+
+// Hacer Info global (como el resto de objetos)
+window.Info = Info;
