@@ -181,7 +181,7 @@ const Perfil = {
 
                         <hr class="my-3">
                         <h6 class="mb-1">Datos de envío <span class="text-muted fw-normal">(opcional)</span></h6>
-                        <p class="text-muted small mb-3">Si los completás, se autocompletan al momento de pagar.</p>
+                        <p class="text-muted small mb-3">Si los rellenas, se autocompletan al momento de pagar.</p>
                         <label class="form-label">Teléfono</label>
                         <input class="form-control mb-2" id="pf-telefono" value="${v(u.telefono)}" placeholder="+56 2 2123 4567">
                         <label class="form-label">Dirección (calle y número)</label>

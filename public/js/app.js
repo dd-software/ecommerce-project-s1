@@ -62,7 +62,7 @@ const App = {
             this.showToast('Tu pago quedó pendiente de confirmación.', 'info');
             location.hash = '#/pedidos';
         } else {
-            this.showToast('El pago no se completó. Podés reintentarlo.', 'error');
+            this.showToast('El pago no se completó con éxito, favor vuelva a intentarlo.', 'error');
             location.hash = '#/carrito';
         }
     },
