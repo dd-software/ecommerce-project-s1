@@ -36,6 +36,8 @@ const App = {
             if (authLinks) authLinks.classList.add('d-none');
             if (userLinks) userLinks.classList.remove('d-none');
             if (userName) userName.textContent = this.user.nombre || this.user.email;
+            const userNameMenu = document.getElementById('user-name-menu');
+            if (userNameMenu) userNameMenu.textContent = this.user.nombre || this.user.email;
 
             // Mostrar link admin solo si es admin
             if (adminLink) {

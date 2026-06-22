@@ -44,7 +44,8 @@
         <a href="#" class="dropdown-toggle" role="button" data-bs-toggle="dropdown">
           <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
         </a>
-        <ul class="dropdown-menu dropdown-menu-end">
+        <ul class="dropdown-menu dropdown-menu-end qc-dropdown">
+          <li class="qc-dropdown-head"><small>Hola,</small><strong id="user-name-menu">Mi cuenta</strong></li>
           <li><a class="dropdown-item" href="#" data-view="perfil"><i class="bi bi-person"></i> Mi perfil</a></li>
           <li><a class="dropdown-item" href="#" data-view="pedidos"><i class="bi bi-bag"></i> Mis compras</a></li>
           <li><a class="dropdown-item" href="#" data-view="favoritos"><i class="bi bi-heart"></i> Mis favoritos</a></li>
@@ -64,7 +65,7 @@
     <div class="qc-header-nav-inner">
       <div class="dropdown qc-cat-dropdown">
         <a href="#" class="qc-nav-all dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="bi bi-list"></i> Categorías</a>
-        <ul class="dropdown-menu" id="cat-menu"></ul>
+        <ul class="dropdown-menu qc-dropdown" id="cat-menu"></ul>
       </div>
       <a href="#" data-view="catalogo" data-cat="computadores">Computadores</a>
       <a href="#" data-view="catalogo" data-cat="notebooks">Notebooks</a>
