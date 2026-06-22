@@ -4,7 +4,12 @@
 -- Ejecutar como root:
 -- mysql -u root -p < database/setup.sql
 
-CREATE DATABASE IF NOT EXISTS uct_ecommerce
+-- ⚠️ RESET: borra y recrea la BD desde cero, dejándola al día con el esquema y
+-- los seeds (catálogo, imágenes, usuarios demo). Se pierde la data de PRUEBA local
+-- (pedidos, carritos, favoritos, perfiles editados). Solo para DESARROLLO.
+DROP DATABASE IF EXISTS uct_ecommerce;
+
+CREATE DATABASE uct_ecommerce
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
