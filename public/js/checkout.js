@@ -127,6 +127,9 @@ const Checkout = {
             e.stopPropagation();
             new bootstrap.Modal(document.getElementById('terminosModal')).show();
         });
+        // "He leído y acepto" marca el checkbox al cerrar el modal
+        const btnAcceptTerms = document.getElementById('btn-terms-accept');
+        if (btnAcceptTerms) btnAcceptTerms.onclick = () => { document.getElementById('co-terms').checked = true; };
         document.getElementById('co-apply-cupon').addEventListener('click', () => {
             const c = document.getElementById('co-cupon').value.trim();
             // ponytail: el cupón se valida/aplica en el backend al confirmar; sin preview en vivo.
@@ -174,6 +177,18 @@ const Checkout = {
             if (!orderData.success) throw new Error(orderData.error?.message || 'Error al crear el pedido');
             const pedido = orderData.data;
             const pedidoId = pedido.id || pedido.pedido_id;
+
+            // Guardar datos de envío en el perfil para precargarlos la próxima compra (fire-and-forget)
+            App.fetchAuth(`${App.apiBase}/auth/perfil`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    telefono,
+                    direccion: calle,
+                    comuna: document.getElementById('co-ciudad').value.trim(),
+                    region: document.getElementById('co-region').value.trim(),
+                    codigo_postal: document.getElementById('co-cp').value.trim()
+                })
+            }).catch(() => {});  // si falla, no rompe la compra
 
             const payResp = await App.fetchAuth(`${App.apiBase}/pagos/iniciar`, {
                 method: 'POST',
