@@ -66,7 +66,11 @@ const Info = {
         try {
             const data = await (await fetch(`${App.apiBase}/catalogo/categorias`)).json();
             menu.innerHTML = (data.data || []).map(c =>
-                `<li><a class="dropdown-item" href="#/catalogo?cat=${encodeURIComponent(c.slug)}">${Catalogo.escapeHtml(c.nombre)} <span class="text-muted">(${c.total_productos ?? 0})</span></a></li>`
+                `<li><a class="dropdown-item" href="#/catalogo?cat=${encodeURIComponent(c.slug)}">
+                    <i class="bi ${Catalogo.catIcon(c.slug)}"></i>
+                    <span>${Catalogo.escapeHtml(c.nombre)}</span>
+                    <span class="cat-menu-count">${c.total_productos ?? 0}</span>
+                </a></li>`
             ).join('');
         } catch (e) { /* el botón queda sin items */ }
     }
