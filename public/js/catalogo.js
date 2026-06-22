@@ -512,9 +512,9 @@ const Catalogo = {
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    App.cartCount = data.data.items ? data.data.items.length : 0;
-                    App.updateCartBadge();
-                    if (typeof Carrito !== 'undefined') Carrito.loadCart();   // refresca total del header + offcanvas
+                    // actualiza badge + total del header + offcanvas con la respuesta del POST (sin 2do fetch)
+                    if (typeof Carrito !== 'undefined') Carrito.applyCart(data.data);
+                    else { App.cartCount = data.data.items ? data.data.items.length : 0; App.updateCartBadge(); }
                     App.showToast(`${nombre} agregado al carrito`, 'success');
                 } else {
                     App.showToast(data.error?.message || 'Error al agregar', 'error');
@@ -866,9 +866,9 @@ const Catalogo = {
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    App.cartCount = data.data.items ? data.data.items.length : 0;
-                    App.updateCartBadge();
-                    if (typeof Carrito !== 'undefined') Carrito.loadCart();   // refresca total del header + offcanvas
+                    // actualiza badge + total del header + offcanvas con la respuesta del POST (sin 2do fetch)
+                    if (typeof Carrito !== 'undefined') Carrito.applyCart(data.data);
+                    else { App.cartCount = data.data.items ? data.data.items.length : 0; App.updateCartBadge(); }
                     App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
                 } else {
                     App.showToast(data.error?.message || 'Error', 'error');

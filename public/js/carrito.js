@@ -31,6 +31,15 @@ const Carrito = {
         }
     },
 
+    /** Aplica un carrito ya recibido (ej. la respuesta de agregar) sin segundo fetch */
+    applyCart(cart) {
+        if (!cart) return;
+        this.cart = cart;
+        App.cartCount = this.totalUnidades;
+        App.updateCartBadge();
+        this.render();
+    },
+
     /** Re-pinta el mini-carrito y, si está montada, la página #/carrito */
     render() {
         this.renderOffcanvas();
