@@ -34,9 +34,9 @@ const Info = {
     tiendas() {
         const view = document.getElementById('view-generic');
         if (!view) return;
-        const tienda = (nombre, dir, horario) => `
+        const tienda = (nombre, dir, horario, mapSrc) => `
             <div class="qc-info-card qc-tienda">
-                <div class="qc-map" role="img" aria-label="Ubicación ${nombre}"><i class="bi bi-geo-alt-fill"></i><span>${nombre}</span></div>
+                <iframe class="qc-mapframe" title="Mapa ${nombre}" loading="lazy" src="${mapSrc}"></iframe>
                 <h3>${nombre}</h3>
                 <p><i class="bi bi-geo-alt"></i> ${dir}</p>
                 <p><i class="bi bi-clock"></i> ${horario}</p>
@@ -49,8 +49,8 @@ const Info = {
                     <p>Compra online y retira gratis en tienda, o acércate a ver los productos en persona.</p>
                 </div>
                 <div class="qc-info-grid">
-                    ${tienda('QuadCore Providencia', 'Av. Providencia 1234, Santiago', 'Lun a Vie 9–19h · Sáb 10–14h')}
-                    ${tienda('QuadCore Centro', 'Bandera 456, Santiago Centro', 'Lun a Vie 10–19h · Sáb 10–14h')}
+                    ${tienda('QuadCore Providencia', 'Av. Providencia 1234, Santiago', 'Lun a Vie 9–19h · Sáb 10–14h', 'https://www.openstreetmap.org/export/embed.html?bbox=-70.6250,-33.4305,-70.6130,-33.4225&layer=mapnik&marker=-33.4265,-70.6190')}
+                    ${tienda('QuadCore Centro', 'Bandera 456, Santiago Centro', 'Lun a Vie 10–19h · Sáb 10–14h', 'https://www.openstreetmap.org/export/embed.html?bbox=-70.6590,-33.4440,-70.6470,-33.4360&layer=mapnik&marker=-33.4400,-70.6530')}
                 </div>
                 <div class="qc-info-cta">
                     <div><h2>Retiro en tienda gratis</h2><p>Disponible apenas tu pedido esté listo. Te avisamos por correo.</p></div>

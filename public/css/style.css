@@ -472,8 +472,8 @@ a:hover { color: var(--qc-red-hover); }
 .qc-info-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px; background: linear-gradient(120deg, #161616, #3a1410); color: #fff; border-radius: var(--qc-radius-lg); padding: 26px 32px; }
 .qc-info-cta h2 { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 22px; color: #fff; margin: 0 0 4px; }
 .qc-info-cta p { color: rgba(255,255,255,.85); margin: 0; }
-.qc-tienda .qc-map { height: 120px; border-radius: var(--qc-radius); background: linear-gradient(135deg, var(--qc-red), var(--qc-red-dark)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; margin-bottom: 12px; font-weight: 600; }
-.qc-tienda .qc-map i { font-size: 28px; }
+/* iframe de mapa real (OpenStreetMap), compartido por Contacto y Tiendas */
+.qc-mapframe { display: block; width: 100%; height: 170px; border: 0; border-radius: var(--qc-radius); margin-bottom: 12px; }
 .qc-tienda p i { color: var(--qc-red); margin-right: 6px; }
 @media (max-width: 768px) {
     .qc-utilbar { display: none; }

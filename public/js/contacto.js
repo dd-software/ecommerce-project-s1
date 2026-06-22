@@ -64,10 +64,8 @@ const Contacto = {
                     <div class="col-lg-5">
                         <div class="leo-card leo-contacto-info h-100">
                             <h3 class="leo-card-title"><i class="bi bi-geo-alt"></i> Visítanos</h3>
-                            <div class="leo-map" role="img" aria-label="Ubicación de QuadCore en Providencia, Santiago">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                <span>Av. Providencia 1234, Santiago</span>
-                            </div>
+                            <iframe class="qc-mapframe" title="Mapa de QuadCore en Providencia, Santiago" loading="lazy"
+                                src="https://www.openstreetmap.org/export/embed.html?bbox=-70.6250,-33.4305,-70.6130,-33.4225&layer=mapnik&marker=-33.4265,-70.6190"></iframe>
                             <ul class="leo-info-list">
                                 <li><i class="bi bi-geo-alt"></i><div><strong>Dirección</strong><span>Av. Providencia 1234, Santiago, Chile</span></div></li>
                                 <li><i class="bi bi-telephone"></i><div><strong>Teléfono</strong><span>+56 2 2123 4567</span></div></li>
