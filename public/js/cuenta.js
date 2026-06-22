@@ -1,14 +1,14 @@
 /**
- * cuenta.js - Mis compras (#/pedidos, #/pedido/:id) y Perfil (#/perfil)
+ * cuenta.js - Mis pedidos (#/pedidos, #/pedido/:id) y Perfil (#/perfil)
  * Páginas de la cuenta del usuario. Requieren sesión; renderizan en view-generic.
  */
 
 // Estado de pedido → etiqueta + color + ícono (badge)
 const ESTADOS_PEDIDO = {
-    pendiente:      ['Procesando', 'warning', 'bi-hourglass-split'],
-    pagado:         ['Pagado', 'success', 'bi-check-circle'],
-    en_preparacion: ['En preparación', 'info', 'bi-gear'],
-    enviado:        ['Enviado', 'info', 'bi-truck'],
+    pendiente:      ['Pendiente de pago', 'warning', 'bi-hourglass-split'],
+    pagado:         ['Pago confirmado', 'success', 'bi-check-circle'],
+    en_preparacion: ['Preparando pedido', 'info', 'bi-gear'],
+    enviado:        ['En camino', 'info', 'bi-truck'],
     entregado:      ['Entregado', 'success', 'bi-check2-all'],
     cancelado:      ['Cancelado', 'danger', 'bi-x-circle'],
 };
@@ -36,7 +36,7 @@ const Pedidos = {
 
     async openPage() {
         const view = document.getElementById('view-generic');
-        if (!view || requireLogin(view, 'Mis compras')) return;
+        if (!view || requireLogin(view, 'Mis pedidos')) return;
         view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
         try {
             const data = await (await App.fetchAuth(`${App.apiBase}/pedidos`)).json();
@@ -50,7 +50,9 @@ const Pedidos = {
         const view = document.getElementById('view-generic');
         if (!this.pedidos.length) {
             view.innerHTML = `<div class="empty-state"><i class="bi bi-bag"></i>
-                <h5>Aún no tienes compras</h5><a href="#/catalogo" class="btn btn-accent btn-sm mt-2">Ir al catálogo</a></div>`;
+                <h5>Aún no has realizado compras</h5>
+                <p class="text-muted">Explora nuestro catálogo y encuentra lo que necesitas.</p>
+                <a href="#/catalogo" class="btn btn-accent btn-sm mt-2">Ir al catálogo</a></div>`;
             return;
         }
 
@@ -73,7 +75,7 @@ const Pedidos = {
 
         view.innerHTML = `
             <div class="cuenta-page">
-                <h1 class="cart-page-title">Mis Compras <span class="text-muted fs-6">${this.pedidos.length} pedido${this.pedidos.length === 1 ? '' : 's'}</span></h1>
+                <h1 class="cart-page-title">Mis pedidos <span class="text-muted fs-6">${this.pedidos.length} pedido${this.pedidos.length === 1 ? '' : 's'}</span></h1>
                 <div class="pedido-pills mb-3">${pills}</div>
                 <div class="cart-table-card">
                     <table class="cart-table pedidos-table">
@@ -117,7 +119,7 @@ const Pedidos = {
 
         view.innerHTML = `
             <div class="cuenta-page">
-                <a href="#/pedidos" class="cart-keep-shopping mb-2"><i class="bi bi-arrow-left"></i> Volver a mis compras</a>
+                <a href="#/pedidos" class="cart-keep-shopping mb-2"><i class="bi bi-arrow-left"></i> Volver a mis pedidos</a>
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                     <h1 class="cart-page-title mb-0">Pedido ${ordenNumero(pedido.id, pedido.created_at)}</h1>
                     ${badgeEstado(pedido.estado)}
