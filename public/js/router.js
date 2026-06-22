@@ -176,20 +176,33 @@ const Router = {
             return;
         }
 
-        // Catálogo: filtros + grid (default para rutas desconocidas)
-        this.show('view-catalogo');
-        const cat = params.get('cat');
-        const q = params.get('q');
-        // Acepta id numérico o slug (ej. "repuestos"); el backend lo resuelve.
-        Catalogo.filters.categoria = cat || null;
-        Catalogo.filters.q = q || null;   // búsqueda del header
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) searchInput.value = q || '';
-        Catalogo.currentPage = 1;
-        Catalogo.loadProducts();
-        Catalogo.loadPriceDistribution();
-        this.crumbs(q
-            ? [['Inicio', '#/'], ['Catálogo', '#/catalogo'], [`Búsqueda: "${q}"`]]
-            : [['Inicio', '#/'], ['Catálogo']]);
+        // Catálogo (ruta explícita)
+        if (path === 'catalogo') {
+            this.show('view-catalogo');
+            const cat = params.get('cat');
+            const q = params.get('q');
+            Catalogo.filters.categoria = cat || null;
+            Catalogo.filters.q = q || null;
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = q || '';
+            Catalogo.currentPage = 1;
+            Catalogo.loadProducts();
+            Catalogo.loadPriceDistribution();
+            this.crumbs(q
+                ? [['Inicio', '#/'], ['Catálogo', '#/catalogo'], [`Búsqueda: "${q}"`]]
+                : [['Inicio', '#/'], ['Catálogo']]);
+            return;
+        }
+
+        // 404 - Página no encontrada (para cualquier otra ruta)
+        this.show('view-generic');
+        this.crumbs([['Inicio', '#/'], ['Página no encontrada']]);
+        document.getElementById('view-generic').innerHTML = `
+            <div class="empty-state">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Página no encontrada</h5>
+            <p class="text-muted">La ruta que buscas no existe en nuestro sitio.</p>
+            <a href="#/" class="btn btn-outline-uct btn-sm mt-2">Volver al inicio</a>
+        </div>`;
     }
 };
