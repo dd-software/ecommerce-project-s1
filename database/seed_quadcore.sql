@@ -152,6 +152,8 @@ INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, s
 (13, 'Tarjeta de Video NVIDIA RTX 4070 12GB', 'gpu-rtx-4070-12gb', 'GPU RTX 4070 12GB GDDR6X, excelente para 1440p con ray tracing.', 619990, 6, 2, 'NVIDIA', NULL, 1, 'RTX 4070 12GB.'),
 (13, 'Tarjeta de Video RTX 4070 Ti Super', 'gpu-rtx-4070-ti-super', 'GPU RTX 4070 Ti Super 16GB, gaming 1440p/4K de alto rendimiento.', 899990, 4, 2, 'NVIDIA', NULL, 1, 'RTX 4070 Ti Super.'),
 (13, 'Tarjeta de Video AMD RX 7800 XT 16GB', 'gpu-rx-7800-xt-16gb', 'GPU AMD Radeon RX 7800 XT 16GB GDDR6, gran relación precio/rendimiento.', 559990, 7, 2, 'AMD', NULL, 1, 'RX 7800 XT 16GB.'),
+(13, 'Tarjeta de Video NVIDIA RTX 4060 8GB', 'gpu-rtx-4060-8gb', 'GPU NVIDIA GeForce RTX 4060 8GB GDDR6, DLSS 3, ideal 1080p.', 379990, 9, 3, 'NVIDIA', NULL, 1, 'RTX 4060 8GB.'),
+
 -- Almacenamiento
 (14, 'SSD Samsung 980 Pro 1TB NVMe', 'ssd-samsung-980-pro-1tb', 'SSD Samsung 980 Pro 1TB PCIe 4.0, lecturas hasta 7000 MB/s.', 89990, 22, 6, 'Samsung', NULL, 1, 'SSD Samsung 980 Pro 1TB.'),
 (14, 'SSD Crucial MX500 2TB SATA', 'ssd-crucial-mx500-2tb', 'SSD Crucial MX500 2TB SATA 2.5", confiable para todo equipo.', 119990, 14, 4, 'Crucial', NULL, 1, 'SSD Crucial MX500 2TB.'),
@@ -206,6 +208,21 @@ INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, s
 (20, 'Pack 5 Paños de Microfibra', 'pack-panos-microfibra', 'Pack de 5 paños de microfibra premium para equipos y lentes.', 5990, 50, 15, 'QuadCore', NULL, 1, 'Pack 5 paños microfibra.'),
 (20, 'Alcohol Isopropílico 250ml', 'alcohol-isopropilico-250ml', 'Alcohol isopropílico 99% 250ml para limpieza de electrónica.', 6990, 45, 12, 'QuadCore', NULL, 1, 'Alcohol isopropílico 250ml.'),
 -- Accesorios (extra)
+(2, 'Audífonos Sony WI-C100 Negro', 'audifonos-sony-wi-c100', 'Audífonos inalámbricos Sony WI-C100 in-ear con banda para el cuello, Bluetooth 5.0, hasta 25 horas de batería, IPX4 resistente a salpicaduras, DSEE y micrófono integrado.',29990, 20, 6, 'Sony', NULL, 1, 'Audífonos inalámbricos Sony WI-C100 25h IPX4.'),
+(2, 'Audífonos Sony WF-C510 True Wireless Negro', 'audifonos-sony-wf-c510-true-wireless', 'Audífonos True Wireless Sony WF-C510, Bluetooth 5.3, hasta 22 horas de batería total, modo sonido ambiente, IPX4, micrófono integrado y carga rápida.',  44990, 18, 6, 'Sony', NULL, 1, 'Audífonos True Wireless Sony WF-C510 22h IPX4.'),
+(2, 'Audífonos Xiaomi Redmi Buds 8 Active Negro',  'audifonos-xiaomi-redmi-buds-8-active','Audífonos TWS Xiaomi Redmi Buds 8 Active, diseño semi in-ear ergonómico, driver 14.2 mm con diafragma de titanio, reducción de ruido AI, Bluetooth 5.4, hasta 7 horas por carga.', 34990, 25, 8, 'Xiaomi', NULL, 1, 'Audífonos TWS Xiaomi Redmi Buds 8 Active.'),
+(2, 'Audífonos Xiaomi Redmi Buds 8 Lite Negro','audifonos-xiaomi-redmi-buds-8-lite', 'Audífonos TWS Xiaomi Redmi Buds 8 Lite con cancelación activa de ruido hasta 42 dB, driver 12.4 mm diafragma de titanio, Bluetooth 5.4, hasta 36 horas de batería total con carga rápida.', 24990, 30, 8, 'Xiaomi', NULL, 1, 'Audífonos TWS Xiaomi Redmi Buds 8 Lite con ANC 42dB.'),
+(2, 'Audífonos Gamer JBL Quantum 100 V2 Negro', 'audifonos-gamer-jbl-quantum-100-v2', 'Audífonos gamer JBL Quantum 100 V2 over-ear con cable 3.5 mm, tecnología JBL QuantumSOUND Signature, micrófono direccional desmontable con silenciador, almohadillas de espuma viscoelástica, compatibles con PC, PS, Xbox y Switch.', 24990, 22, 6, 'JBL', NULL, 1, 'Headset gamer JBL Quantum 100 V2 over-ear 3.5mm.'),
+(2, 'Audífonos Gamer Razer BlackShark V2 X Negro', 'audifonos-gamer-razer-blackshark-v2-x', 'Headset gamer Razer BlackShark V2 X con drivers de 50 mm con diafragma de titanio, micrófono cardioide HyperClear, sonido envolvente 7.1, cancelación pasiva de ruido, conexión 3.5 mm.', 39990, 16, 5, 'Razer', NULL, 1, 'Headset gamer Razer BlackShark V2 X 50mm 7.1.'),
+(2, 'Audífonos Gamer Razer Barracuda X Inalámbrico Negro',  'audifonos-gamer-razer-barracuda-x', 'Headset gamer inalámbrico Razer Barracuda X con conexión USB-C 2.4 GHz y Bluetooth 5.2, drivers TriForce de 40 mm, micrófono cardioide desmontable, hasta 50 horas de batería.', 89990, 12, 4, 'Razer', NULL, 1, 'Headset inalámbrico Razer Barracuda X 50h batería.'),
+(2, 'Mouse Gamer Corsair IronClaw RGB Alámbrico Negro', 'mouse-gamer-corsair-ironclaw-rgb', 'Mouse gamer alámbrico Corsair IronClaw RGB, sensor óptico hasta 18.000 DPI, diseño ergonómico para manos grandes, 7 botones programables, iluminación RGB por zonas.', 49990, 15, 5, 'Corsair', NULL, 1, 'Mouse gamer Corsair IronClaw RGB 18000 DPI.'),
+(2, 'Mouse Vertical Kensington Pro Fit EQ Ergo Inalámbrico Negro',  'mouse-vertical-kensington-pro-fit-eq-ergo',  'Mouse vertical ergonómico inalámbrico Kensington Pro Fit EQ Ergo recargable, diseño vertical reduce tensión en muñeca, receptor USB nano, hasta 4 meses de batería.', 49990, 10, 4, 'Kensington', NULL, 1, 'Mouse vertical ergonómico Kensington Pro Fit EQ Ergo recargable.'),
+(2, 'Mouse Gamer Inalámbrico Logitech G703 LightSpeed Negro',  'mouse-gamer-logitech-g703-lightspeed', 'Mouse gamer inalámbrico Logitech G703 LightSpeed, sensor HERO 25K, hasta 25.600 DPI, 6 botones programables, iluminación RGB, compatible con POWERPLAY, hasta 60 horas de batería.', 69990, 14, 5, 'Logitech', NULL, 1, 'Mouse gamer inalámbrico Logitech G703 LightSpeed HERO 25K.'),
+(2, 'Mouse Alámbrico Logitech M90 Negro', 'mouse-alambrico-logitech-m90', 'Mouse alámbrico Logitech M90, sensor óptico 1000 DPI, cable USB de 1.8 m, diseño ambidiestro, plug and play sin drivers.', 7990, 40, 12, 'Logitech', NULL, 1, 'Mouse alámbrico Logitech M90 ambidiestro 1000 DPI.'),
+(2, 'Teclado Gamer HyperX Alloy Core RGB Negro', 'teclado-gamer-hyperx-alloy-core-rgb', 'Teclado gamer HyperX Alloy Core RGB de membrana, retroiluminación RGB por tecla, resistente a derrames, teclas multimedia dedicadas, cable USB trenzado desmontable.',  34990, 18, 6, 'HyperX', NULL, 1, 'Teclado gamer HyperX Alloy Core RGB membrana anti-derrames.'),
+(2, 'Mousepad Trust M Negro', 'mousepad-trust-m', 'Mousepad Trust M de tamaño mediano, superficie textil optimizada para mouse óptico y láser, base antideslizante de goma, bordes cosidos.', 4990, 35, 10, 'Trust', NULL, 1, 'Mousepad Trust M superficie textil base antideslizante.'),
+(2, 'Webcam Gear Enfoque Automático 2K','webcam-gear-enfoque-automatico-2k', 'Webcam Gear 2K con enfoque automático, micrófono integrado con reducción de ruido, campo visual 90°, compatible con Windows, macOS y Linux, conexión USB.',29990, 14, 5, 'Gear', NULL, 1, 'Webcam Gear 2K enfoque automático micrófono integrado.'),
+(2, 'Webcam Trust Teza UHD 4K','webcam-trust-teza-uhd-4k','Webcam Trust Teza UHD 4K con micrófono estéreo integrado, enfoque automático, campo visual 90°, compatible con Windows y macOS, ideal para streaming y videollamadas profesionales.', 49990, 10, 4, 'Trust', NULL, 1, 'Webcam Trust Teza 4K UHD estéreo enfoque automático.');    
 (2, 'Webcam Logitech C920 Full HD', 'webcam-logitech-c920', 'Webcam Logitech C920 Full HD 1080p con micrófono estéreo.', 49990, 18, 5, 'Logitech', NULL, 1, 'Webcam Logitech C920.'),
 (2, 'Micrófono HyperX QuadCast', 'microfono-hyperx-quadcast', 'Micrófono USB HyperX QuadCast con filtro antipop y luz RGB.', 99990, 10, 3, 'HyperX', NULL, 1, 'Micrófono HyperX QuadCast.'),
 (2, 'Mousepad Gamer XL', 'mousepad-gamer-xl', 'Mousepad gamer XL 80x30cm, base antideslizante, superficie suave.', 12990, 30, 8, 'QuadCore', NULL, 1, 'Mousepad gamer XL.'),
@@ -228,6 +245,17 @@ UPDATE productos SET precio_anterior = 59990   WHERE slug = 'juego-god-of-war-ra
 UPDATE productos SET precio_anterior = 199990  WHERE slug = 'silla-gamer-quadcore-pro';
 UPDATE productos SET precio_anterior = 84990   WHERE slug = 'headset-hyperx-cloud-2';
 UPDATE productos SET precio_anterior = 64990   WHERE slug = 'router-tplink-ax1500';
+UPDATE productos SET precio_anterior = 29990 WHERE slug = 'audifonos-xiaomi-redmi-buds-8-lite';
+UPDATE productos SET precio_anterior = 44990 WHERE slug = 'audifonos-xiaomi-redmi-buds-8-active';
+UPDATE productos SET precio_anterior = 39990 WHERE slug = 'audifonos-sony-wi-c100';
+UPDATE productos SET precio_anterior = 59990 WHERE slug = 'audifonos-sony-wf-c510-true-wireless';
+UPDATE productos SET precio_anterior = 34990 WHERE slug = 'audifonos-gamer-jbl-quantum-100-v2';
+UPDATE productos SET precio_anterior = 54990 WHERE slug = 'audifonos-gamer-razer-blackshark-v2-x';
+UPDATE productos SET precio_anterior = 119990 WHERE slug = 'audifonos-gamer-razer-barracuda-x';
+UPDATE productos SET precio_anterior = 69990 WHERE slug = 'mouse-gamer-corsair-ironclaw-rgb';
+UPDATE productos SET precio_anterior = 89990 WHERE slug = 'mouse-gamer-logitech-g703-lightspeed';
+UPDATE productos SET precio_anterior = 44990 WHERE slug = 'teclado-gamer-hyperx-alloy-core-rgb';
+UPDATE productos SET precio_anterior = 64990 WHERE slug = 'webcam-trust-teza-uhd-4k';
 
 -- ============================================================
 -- Productos de rango medio ($120k–$800k) para que el histograma de precios

@@ -31,6 +31,16 @@ UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1563297007-
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1639506060078-83c565d0e51a?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' WHERE slug = 'teclado-redragon-kumara';
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1760377821967-8bb2f250e041?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' WHERE slug = 'cable-hdmi-2-1-belkin-8k-2m';
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1578016980868-197203ff4b02?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' WHERE slug = 'cable-sata-iii-pack-x3';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600' WHERE slug = 'audifonos-xiaomi-redmi-buds-8-lite';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600' WHERE slug = 'audifonos-xiaomi-redmi-buds-8-active';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600'WHERE slug = 'audifonos-sony-wi-c100';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600' WHERE slug = 'audifonos-sony-wf-c510-true-wireless';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600' WHERE slug IN ( 'audifonos-gamer-jbl-quantum-100-v2', 'audifonos-gamer-razer-blackshark-v2-x', 'audifonos-gamer-razer-barracuda-x');
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1563297007-0686b7003af7?w=600'WHERE slug IN ( 'mouse-gamer-corsair-ironclaw-rgb',  'mouse-gamer-logitech-g703-lightspeed' );
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=600' WHERE slug IN ( 'mouse-vertical-kensington-pro-fit-eq-ergo', 'mouse-alambrico-logitech-m90' );
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=600' WHERE slug = 'teclado-gamer-hyperx-alloy-core-rgb';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1629429407759-01cd3d7cfb38?w=600'WHERE slug = 'mousepad-trust-m';
+UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=600' WHERE slug IN ( 'webcam-gear-enfoque-automatico-2k',  'webcam-trust-teza-uhd-4k' );
 
 -- Herramientas
 UPDATE productos SET imagen_url = 'https://images.unsplash.com/photo-1770386582823-3a7094e35b22?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' WHERE slug = 'kit-destornilladores-precision-32';
