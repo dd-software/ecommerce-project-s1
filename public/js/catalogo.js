@@ -346,22 +346,14 @@ const Catalogo = {
     },
 
     /** Un carrusel por cada categoría que tenga productos */
-    async loadCategorySections() {
-        const box = document.getElementById('home-secciones');
-        if (!box) return;
-        try {
-            const cats = (await (await fetch(`${App.apiBase}/catalogo/categorias`)).json()).data || [];
-            const conProductos = cats.filter(c => (c.total_productos ?? 0) > 0).slice(0, 4);
-            box.innerHTML = conProductos.map(c => `
-                <div class="qc-section-head">
-                    <h2 class="section-title mb-0">${this.escapeHtml(c.nombre)}</h2>
-                    <a href="#/catalogo?cat=${encodeURIComponent(c.slug)}" class="qc-section-link">Ver todo →</a>
-                </div>
-                <div class="qc-carousel" id="home-cat-${c.id}"></div>`).join('');
-            conProductos.forEach(c =>
-                this.loadCarousel(`home-cat-${c.id}`, `${App.apiBase}/catalogo?categoria=${c.id}&por_pagina=10`));
-        } catch (e) { box.innerHTML = ''; };
-        
+async loadCategorySections() {
+    const box = document.getElementById('home-secciones');
+    if (!box) return;
+    try {
+        const cats = (await (await fetch(`${App.apiBase}/catalogo/categorias`)).json()).data || [];
+        const conProductos = cats.filter(c => (c.total_productos ?? 0) > 0).slice(0, 4);
+
+        // 👇 Chequeo ANTES de renderizar
         if (conProductos.length === 0) {
             UI.mostrarVacio(box, {
                 icono: 'bi-grid',
@@ -369,8 +361,22 @@ const Catalogo = {
                 descripcion: 'Estamos ampliando nuestro catálogo. Vuelve pronto.',
                 variante: 'inline'
             });
-    return;
-}
+            return;
+        }
+
+        // Renderizar solo si hay productos
+        box.innerHTML = conProductos.map(c => `
+            <div class="qc-section-head">
+                <h2 class="section-title mb-0">${this.escapeHtml(c.nombre)}</h2>
+                <a href="#/catalogo?cat=${encodeURIComponent(c.slug)}" class="qc-section-link">Ver todo →</a>
+            </div>
+            <div class="qc-carousel" id="home-cat-${c.id}"></div>`).join('');
+        conProductos.forEach(c =>
+            this.loadCarousel(`home-cat-${c.id}`, `${App.apiBase}/catalogo?categoria=${c.id}&por_pagina=10`));
+    } catch (e) {
+        box.innerHTML = '';
+    }
+
     },
 
     /**
