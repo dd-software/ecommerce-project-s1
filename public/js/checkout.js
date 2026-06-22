@@ -27,12 +27,19 @@ const Checkout = {
             return;
         }
         this.cart = data.data;
+        // Datos guardados del perfil para precargar la dirección/teléfono
+        try {
+            const pd = await (await App.fetchAuth(`${App.apiBase}/auth/perfil`)).json();
+            this.perfil = pd.success ? pd.data : {};
+        } catch (e) { this.perfil = {}; }
         this.renderPage();
     },
 
     renderPage() {
         const view = document.getElementById('view-generic');
         const u = App.user || {};
+        const p = this.perfil || {};   // datos guardados para precargar envío
+        const pf = (x) => Catalogo.escapeHtml(x || '');
         const itemsResumen = this.cart.items.map(i => `
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <div><span class="fw-semibold">${Catalogo.escapeHtml(i.nombre)}</span>
@@ -53,23 +60,23 @@ const Checkout = {
                             <div class="col-md-6"><label class="form-label">Email *</label>
                                 <input type="email" class="form-control mb-2" id="co-email" value="${Catalogo.escapeHtml(u.email || '')}" required></div>
                             <div class="col-md-6"><label class="form-label">Teléfono *</label>
-                                <input type="tel" class="form-control mb-2" id="co-telefono" placeholder="+56 9 1234 5678" required></div>
+                                <input type="tel" class="form-control mb-2" id="co-telefono" value="${pf(p.telefono)}" placeholder="+56 2 2123 4567" required></div>
                         </div>
                     </div>
 
                     <div class="checkout-step">
                         <h6><span class="checkout-step-n">2</span> Dirección de envío</h6>
                         <label class="form-label">Calle y número *</label>
-                        <input class="form-control mb-2" id="co-calle" placeholder="Ej: Av. Alemania 0671" required>
+                        <input class="form-control mb-2" id="co-calle" value="${pf(p.direccion)}" placeholder="Ej: Av. Alemania 0671" required>
                         <label class="form-label">Apartamento / Casa (opcional)</label>
                         <input class="form-control mb-2" id="co-apto" placeholder="Ej: Depto 402, Torre B">
                         <div class="row">
-                            <div class="col-md-5"><label class="form-label">Ciudad *</label>
-                                <input class="form-control mb-2" id="co-ciudad" required></div>
+                            <div class="col-md-5"><label class="form-label">Comuna / Ciudad *</label>
+                                <input class="form-control mb-2" id="co-ciudad" value="${pf(p.comuna)}" required></div>
                             <div class="col-md-4"><label class="form-label">Región *</label>
-                                <input class="form-control mb-2" id="co-region" required></div>
+                                <input class="form-control mb-2" id="co-region" value="${pf(p.region)}" required></div>
                             <div class="col-md-3"><label class="form-label">Código postal</label>
-                                <input class="form-control mb-2" id="co-cp"></div>
+                                <input class="form-control mb-2" id="co-cp" value="${pf(p.codigo_postal)}"></div>
                         </div>
                     </div>
 
@@ -82,7 +89,7 @@ const Checkout = {
 
                     <div class="form-check mt-3">
                         <input class="form-check-input" type="checkbox" id="co-terms" required>
-                        <label class="form-check-label" for="co-terms">Acepto los términos y condiciones y la política de privacidad *</label>
+                        <label class="form-check-label" for="co-terms">Acepto los <a href="#" class="qc-terms-link">términos y condiciones y la política de privacidad</a> *</label>
                     </div>
                 </div>
 
@@ -115,6 +122,12 @@ const Checkout = {
         </div>`;
 
         document.getElementById('checkout-form').addEventListener('submit', (e) => { e.preventDefault(); this.placeOrder(); });
+        // Link "términos y condiciones" → modal (stopPropagation: que el label no togglee el checkbox)
+        document.querySelector('.qc-terms-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            new bootstrap.Modal(document.getElementById('terminosModal')).show();
+        });
         document.getElementById('co-apply-cupon').addEventListener('click', () => {
             const c = document.getElementById('co-cupon').value.trim();
             // ponytail: el cupón se valida/aplica en el backend al confirmar; sin preview en vivo.

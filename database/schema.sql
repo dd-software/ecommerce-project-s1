@@ -19,6 +19,12 @@ CREATE TABLE usuarios (
     apellido      VARCHAR(100)     NOT NULL,
     email         VARCHAR(255)     NOT NULL,
     password_hash VARCHAR(255)     NOT NULL,
+    -- Datos opcionales para precargar el checkout (perfil)
+    telefono      VARCHAR(30)      NULL,
+    direccion     VARCHAR(255)     NULL,
+    comuna        VARCHAR(100)     NULL,
+    region        VARCHAR(100)     NULL,
+    codigo_postal VARCHAR(20)      NULL,
     rol           ENUM('cliente','admin','vendedor','supervisor') NOT NULL DEFAULT 'cliente',
     activo        TINYINT(1)       NOT NULL DEFAULT 1,
     intentos_fallidos INT UNSIGNED NOT NULL DEFAULT 0,

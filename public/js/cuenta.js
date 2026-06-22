@@ -159,21 +159,39 @@ const Perfil = {
         } catch (e) { u = null; }
         if (!u) { view.innerHTML = '<div class="alert alert-danger">No se pudo cargar el perfil.</div>'; return; }
 
+        const v = (x) => Catalogo.escapeHtml(x || '');
         view.innerHTML = `
-            <div class="cuenta-page" style="max-width:560px">
+            <div class="cuenta-page" style="max-width:620px">
                 <h1 class="cart-page-title">Mi Perfil</h1>
                 <div class="cart-summary-card">
                     <form id="perfil-form">
                         <div class="row">
                             <div class="col-md-6"><label class="form-label">Nombre</label>
-                                <input class="form-control mb-2" id="pf-nombre" value="${Catalogo.escapeHtml(u.nombre || '')}" required></div>
+                                <input class="form-control mb-2" id="pf-nombre" value="${v(u.nombre)}" required></div>
                             <div class="col-md-6"><label class="form-label">Apellido</label>
-                                <input class="form-control mb-2" id="pf-apellido" value="${Catalogo.escapeHtml(u.apellido || '')}" required></div>
+                                <input class="form-control mb-2" id="pf-apellido" value="${v(u.apellido)}" required></div>
                         </div>
                         <label class="form-label">Email</label>
-                        <input class="form-control mb-2" value="${Catalogo.escapeHtml(u.email || '')}" disabled>
-                        <p class="text-muted small">Cuenta ${Catalogo.escapeHtml(u.rol || '')} · miembro desde ${(u.created_at || '').slice(0, 10)}</p>
-                        <button class="btn btn-accent" type="submit">Guardar cambios</button>
+                        <input class="form-control mb-2" value="${v(u.email)}" disabled>
+
+                        <hr class="my-3">
+                        <h6 class="mb-1">Datos de envío <span class="text-muted fw-normal">(opcional)</span></h6>
+                        <p class="text-muted small mb-3">Si los completás, se autocompletan al momento de pagar.</p>
+                        <label class="form-label">Teléfono</label>
+                        <input class="form-control mb-2" id="pf-telefono" value="${v(u.telefono)}" placeholder="+56 2 2123 4567">
+                        <label class="form-label">Dirección (calle y número)</label>
+                        <input class="form-control mb-2" id="pf-direccion" value="${v(u.direccion)}" placeholder="Av. Providencia 1234">
+                        <div class="row">
+                            <div class="col-md-5"><label class="form-label">Comuna</label>
+                                <input class="form-control mb-2" id="pf-comuna" value="${v(u.comuna)}"></div>
+                            <div class="col-md-4"><label class="form-label">Región</label>
+                                <input class="form-control mb-2" id="pf-region" value="${v(u.region)}"></div>
+                            <div class="col-md-3"><label class="form-label">Cód. postal</label>
+                                <input class="form-control mb-2" id="pf-cp" value="${v(u.codigo_postal)}"></div>
+                        </div>
+
+                        <p class="text-muted small mt-1">Cuenta ${v(u.rol)} · miembro desde ${(u.created_at || '').slice(0, 10)}</p>
+                        <button class="btn btn-primary" type="submit">Guardar cambios</button>
                     </form>
                 </div>
             </div>`;
@@ -183,11 +201,13 @@ const Perfil = {
             const btn = e.target.querySelector('button[type=submit]');
             btn.disabled = true;
             try {
+                const val = (id) => document.getElementById(id).value.trim();
                 const resp = await App.fetchAuth(`${App.apiBase}/auth/perfil`, {
                     method: 'PATCH',
                     body: JSON.stringify({
-                        nombre: document.getElementById('pf-nombre').value.trim(),
-                        apellido: document.getElementById('pf-apellido').value.trim()
+                        nombre: val('pf-nombre'), apellido: val('pf-apellido'),
+                        telefono: val('pf-telefono'), direccion: val('pf-direccion'),
+                        comuna: val('pf-comuna'), region: val('pf-region'), codigo_postal: val('pf-cp')
                     })
                 });
                 const data = await resp.json();
