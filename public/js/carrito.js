@@ -21,7 +21,7 @@ const Carrito = {
             const data = await resp.json();
             if (data.success) {
                 this.cart = data.data;
-                App.cartCount = this.cart.items ? this.cart.items.length : 0;
+                App.cartCount = this.totalUnidades;
                 App.updateCartBadge();
                 this.render();
             }
@@ -47,6 +47,11 @@ const Carrito = {
         return !this.cart || !this.cart.items || this.cart.items.length === 0;
     },
 
+    /** Cantidad TOTAL de unidades (suma de cantidades), no la cantidad de líneas */
+    get totalUnidades() {
+        return this.cart?.items?.reduce((n, i) => n + (i.cantidad || 0), 0) || 0;
+    },
+
     // ─────────────────────────── Mini-carrito (offcanvas) ───────────────────────────
     renderOffcanvas() {
         const container = document.getElementById('cart-items');
@@ -65,11 +70,16 @@ const Carrito = {
         summary?.classList.remove('d-none');
 
         container.innerHTML = this.cart.items.map(item => `
-            <div class="mini-cart-item d-flex align-items-center gap-2" data-item-id="${item.id}">
+            <div class="mini-cart-item d-flex align-items-start gap-2" data-item-id="${item.id}">
                 ${this.thumb(item, 'mini-cart-img')}
                 <div class="flex-grow-1">
                     <div class="mini-cart-name">${this.escapeHtml(item.nombre)}</div>
-                    <small class="text-muted">x${item.cantidad} · ${item.subtotal_formateado || App.formatPrice(item.subtotal)}</small>
+                    <small class="text-muted d-block mb-1">${item.subtotal_formateado || App.formatPrice(item.subtotal)}</small>
+                    <div class="qc-stepper qc-stepper-sm">
+                        <button type="button" class="btn-qty" data-action="minus" data-id="${item.id}">−</button>
+                        <input type="number" class="qty-input" value="${item.cantidad}" min="1" max="${item.stock || 99}" data-id="${item.id}" data-stock="${item.stock || 99}">
+                        <button type="button" class="btn-qty" data-action="plus" data-id="${item.id}">+</button>
+                    </div>
                 </div>
                 <button class="btn btn-sm btn-link text-danger btn-remove p-0" data-id="${item.id}" title="Quitar"><i class="bi bi-x-lg"></i></button>
             </div>`).join('');
@@ -131,7 +141,7 @@ const Carrito = {
 
         root.innerHTML = `
             <div class="cart-page">
-                <h1 class="cart-page-title">Mi Carrito <span class="text-muted fs-6">${this.cart.items.length} producto${this.cart.items.length === 1 ? '' : 's'}</span></h1>
+                <h1 class="cart-page-title">Mi Carrito <span class="text-muted fs-6">${this.totalUnidades} producto${this.totalUnidades === 1 ? '' : 's'}</span></h1>
                 <div class="row g-4">
                     <div class="col-lg-8">
                         <div class="cart-table-card">
@@ -244,7 +254,7 @@ const Carrito = {
                 method: 'PATCH', body: JSON.stringify({ cantidad: quantity })
             });
             const data = await resp.json();
-            if (data.success) { this.cart = data.data; App.cartCount = this.cart.items.length; App.updateCartBadge(); this.render(); }
+            if (data.success) { this.cart = data.data; App.cartCount = this.totalUnidades; App.updateCartBadge(); this.render(); }
             else { App.showToast(data.error?.message || 'Error al actualizar', 'error'); this.loadCart(); }
         } catch (err) { App.showToast('Error de conexión', 'error'); }
     },
