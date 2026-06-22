@@ -57,10 +57,11 @@ const Auth = {
 
                     // Redirigir según rol
                     const redirect = new URLSearchParams(window.location.search).get('redirect');
+                    const basePath = typeof App !== 'undefined' && App.getBasePath ? App.getBasePath() : '';
                     if (data.data.usuario.rol === 'admin') {
-                        window.location.href = window.location.pathname.replace(/\/+$/, '') + '/admin.html';
+                        window.location.href = basePath + '/backend/views/dashboard.php';
                     } else {
-                        window.location.href = redirect || '/';
+                        window.location.href = redirect || basePath + '/';
                     }
                 } else {
                     if (errorDiv) {
@@ -135,7 +136,8 @@ const Auth = {
 
                 if (data.success) {
                     App.setAuth(data.data.token, data.data.usuario);
-                    window.location.href = '/';
+                    const basePath = typeof App !== 'undefined' && App.getBasePath ? App.getBasePath() : '';
+                    window.location.href = basePath + '/';
                 } else {
                     if (errorDiv) {
                         errorDiv.textContent = data.error?.message || 'Error al registrar.';

@@ -4,7 +4,18 @@
  */
 
 const App = {
-    apiBase: window.location.pathname.replace(/\/(index\.html|index\.php|setup\.php)$/i, '').replace(/\/+$/, '') + '/api',
+    getBasePath() {
+        let path = window.location.pathname;
+        if (path.endsWith('/')) {
+            return path.slice(0, -1);
+        }
+        return path.substring(0, path.lastIndexOf('/'));
+    },
+
+    get apiBase() {
+        return this.getBasePath() + '/api';
+    },
+
     token: null,
     user: null,
     cartCount: 0,
@@ -35,8 +46,8 @@ const App = {
         if (this.user) {
             if (authLinks) authLinks.classList.add('d-none');
             if (userLinks) {
-                userLinks.classList.remove('d-none');
-                const adminHtml = (this.user.rol === 'admin') ? '<li><a class="dropdown-item" href="admin.html"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>' : '';
+                const basePath = this.getBasePath();
+                const adminHtml = (this.user.rol === 'admin') ? `<li><a class="dropdown-item" href="${basePath}/backend/views/dashboard.php"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>` : '';
                 userLinks.innerHTML = `
                     <div class="dropdown">
                         <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -79,7 +90,7 @@ const App = {
                 e.preventDefault();
                 const query = document.getElementById('search-input').value.trim();
                 if (query) {
-                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?q=' + encodeURIComponent(query);
+                    window.location.href = App.getBasePath() + '/?q=' + encodeURIComponent(query);
                 }
             });
         }
@@ -139,7 +150,7 @@ const App = {
         localStorage.removeItem('uct_user');
         this.token = null;
         this.user = null;
-        window.location.href = '/';
+        window.location.href = this.getBasePath() + '/';
     },
 
     /**

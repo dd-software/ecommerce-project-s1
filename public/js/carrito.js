@@ -186,9 +186,9 @@ const Carrito = {
         document.addEventListener('click', (e) => {
             if (e.target.id === 'btn-checkout') {
                 if (!App.user) {
-                    window.location.href = '/login.html';
+                    window.location.href = App.getBasePath() + '/login.html';
                 } else {
-                    window.location.href = '/checkout.html';
+                    window.location.href = App.getBasePath() + '/checkout.html';
                 }
             }
         }); */

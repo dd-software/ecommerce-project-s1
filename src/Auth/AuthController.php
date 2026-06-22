@@ -86,6 +86,25 @@ class AuthController
             Session::set('user_id', $usuario['id']);
             Session::set('user_role', $usuario['rol']);
 
+            // Si es admin, inicializar también la sesión del panel de administración
+            if ($usuario['rol'] === 'admin') {
+                session_write_close(); // Cierra la sesión pública temporalmente
+                require_once __DIR__ . '/../../backend/config/session.php';
+                require_once __DIR__ . '/../../backend/middleware/AuthMiddleware.php';
+                iniciarSesionAdmin();
+                
+                $_SESSION['admin_id'] = $usuario['id'];
+                $_SESSION['admin_email'] = $usuario['email'];
+                $_SESSION['admin_nombre'] = $usuario['nombre'] . ' ' . $usuario['apellido'];
+                $_SESSION['admin_role'] = $usuario['rol'];
+                $_SESSION['admin_last_activity'] = time();
+                $_SESSION['admin_created_at'] = time();
+                $_SESSION['admin_fingerprint'] = \AuthMiddleware::generarFingerprint();
+                $_SESSION['admin_jwt_token'] = $token;
+                
+                session_write_close(); // Cierra la sesión admin para que se envíen ambas cookies
+            }
+
             $response->json([
                 'token'   => $token,
                 'usuario' => [

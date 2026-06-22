@@ -3,7 +3,19 @@ RewriteEngine On
 
 # Permitir acceso directo a archivos reales en la raíz
 RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} !^/backend/ [NC]
 RewriteRule ^ - [L]
+
+# Si es un archivo real dentro del backend, dejarlo pasar
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_URI} ^/backend/ [NC]
+RewriteRule ^ - [L]
+
+# Proteger acceso directo a directorios del backend
+RewriteRule ^backend/((config|middleware|auth|helpers|payments)/.*|.*\.sql|.*\.log)$ backend/auth/login-view.php [R=301,L]
+
+# Redirigir aliases a dashboard
+RewriteRule ^(admin|dashboard|admin\.html)$ backend/views/dashboard.php [R=301,L]
 
 RewriteRule ^$ public/ [L]
 RewriteRule (.*) public/$1 [L]

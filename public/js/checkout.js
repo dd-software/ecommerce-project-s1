@@ -12,7 +12,7 @@ const Checkout = {
      */
     async init() {
         if (!App.user) {
-            window.location.href = '/login.html?redirect=checkout.html';
+            window.location.href = App.getBasePath() + '/login.html?redirect=checkout.html';
             return;
         }
 
@@ -162,6 +162,27 @@ const Checkout = {
         paypalContainer.classList.remove('d-none');
         paypalContainer.innerHTML = ''; // Limpiar si ya había botones
 
+        // Cargar script de PayPal dinámicamente si no existe
+        if (!window.paypal) {
+            try {
+                const configResp = await fetch(App.apiBase.replace('/api', '') + '/backend/payments/paypal-config.php');
+                const configData = await configResp.json();
+                
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = `https://www.paypal.com/sdk/js?client-id=${configData.client_id}&currency=USD`;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            } catch (e) {
+                App.showToast('No se pudo inicializar PayPal', 'error');
+                if (btn) btn.classList.remove('d-none');
+                paypalContainer.classList.add('d-none');
+                return;
+            }
+        }
+
         // Renderizar PayPal usando lógica Server-Side
         paypal.Buttons({
             createOrder: async (data, actions) => {
@@ -201,7 +222,7 @@ const Checkout = {
                     if (captureData.success) {
                         App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
                         setTimeout(() => {
-                            window.location.href = `/pedido-confirmado.html?pedido_id=${captureData.data.pedido_id}`;
+                            window.location.href = App.getBasePath() + `/pedido-confirmado.html?pedido_id=${captureData.data.pedido_id}`;
                         }, 2000);
                         
                         const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));

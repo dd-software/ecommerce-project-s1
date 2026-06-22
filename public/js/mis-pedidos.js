@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!App.user) {
-        window.location.href = 'index.html';
+        window.location.href = App.getBasePath() + '/index.html';
         return;
     }
 

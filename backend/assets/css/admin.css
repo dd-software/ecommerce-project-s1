@@ -1,0 +1,116 @@
+/* CSS para el Panel de Administración */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fc;
+    color: #495057;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* Wrapper principal */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    transition: all 0.3s;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    background: #1e293b !important;
+}
+
+.sidebar .nav-link {
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 2px;
+    transition: all 0.2s;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff !important;
+    opacity: 1 !important;
+}
+
+.sidebar .nav-link.active {
+    background: linear-gradient(90deg, rgba(66, 153, 225, 0.2) 0%, transparent 100%);
+    border-left: 4px solid #4299e1;
+    color: #fff !important;
+    opacity: 1 !important;
+}
+
+/* Contenido Principal */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.admin-header {
+    z-index: 10;
+}
+
+/* Cards y Glassmorphism */
+.admin-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+}
+
+.admin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.admin-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background-color: transparent;
+}
+
+.admin-card-body {
+    padding: 1.25rem;
+}
+
+/* Tablas */
+.table-responsive {
+    border-radius: 8px;
+}
+
+.table th {
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table td {
+    vertical-align: middle;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        height: 100vh;
+    }
+    
+    .sidebar.show {
+        left: 0;
+    }
+}

@@ -44,7 +44,8 @@ cargarEnv(dirname(__DIR__) . '/.env');
 // Constantes de la aplicación
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
 define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
-define('APP_URL', $_ENV['APP_URL'] ?? 'http://localhost/');
+define('APP_URL', rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/'));
+define('BASE_URL', rtrim(parse_url(APP_URL, PHP_URL_PATH) ?? '', '/'));
 define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'clave_secreta_por_defecto_cambiar_en_produccion');
 define('JWT_EXPIRY', (int)($_ENV['JWT_EXPIRY'] ?? 7200));
 define('SMTP_HOST', $_ENV['SMTP_HOST'] ?? 'smtp.example.com');
