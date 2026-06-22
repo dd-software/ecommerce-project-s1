@@ -191,4 +191,39 @@ class AdminService
 
         return $slug;
     }
+
+    // ========== Categorías ==========
+
+    public function listarCategorias(): array
+    {
+        return $this->repository->listarCategorias();
+    }
+
+    public function crearCategoria(array $data): array
+    {
+        return $this->repository->crearCategoria([
+            'nombre' => trim($data['nombre']),
+            'slug' => trim($data['slug']),
+            'descripcion' => $data['descripcion'] ?? '',
+            'id_padre' => isset($data['id_padre']) ? (int)$data['id_padre'] : null,
+            'activo' => 1
+        ]);
+    }
+
+    public function actualizarCategoria(int $id, array $data): array
+    {
+        $campos = [];
+        if (isset($data['nombre'])) $campos['nombre'] = trim($data['nombre']);
+        if (isset($data['slug'])) $campos['slug'] = trim($data['slug']);
+        if (isset($data['descripcion'])) $campos['descripcion'] = trim($data['descripcion']);
+        if (isset($data['id_padre'])) $campos['id_padre'] = (int)$data['id_padre'];
+        if (isset($data['activo'])) $campos['activo'] = (int)$data['activo'];
+
+        return $this->repository->actualizarCategoria($id, $campos);
+    }
+
+    public function eliminarCategoria(int $id): void
+    {
+        $this->repository->eliminarCategoria($id);
+    }
 }

@@ -166,4 +166,26 @@ class IntegracionController
             $response->error('SERVER_ERROR', 'Error al encolar notificación.', 500);
         }
     }
+
+    /**
+     * GET /api/integracion/inventario
+     * Consulta de inventario para sistemas externos
+     */
+    public function consultarInventario(Request $request, Response $response, array $params): void
+    {
+        $apiKeyHeader = $_SERVER['HTTP_X_API_KEY'] ?? '';
+        $expectedKey = $_ENV['API_KEY_INTEGRACION'] ?? getenv('API_KEY_INTEGRACION');
+
+        if (!$expectedKey || $apiKeyHeader !== $expectedKey) {
+            $response->error('UNAUTHORIZED', 'API Key inválida o no proporcionada.', 401);
+            return;
+        }
+
+        try {
+            $inventario = $this->service->exportarProductos();
+            $response->json($inventario);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al consultar el inventario.', 500);
+        }
+    }
 }

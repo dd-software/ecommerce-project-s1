@@ -221,4 +221,51 @@ class AdminController
             $response->error('SERVER_ERROR', 'Error al obtener reporte.', 500);
         }
     }
+
+    // ========== Categorías CRUD ==========
+
+    public function listarCategorias(Request $request, Response $response, array $params): void
+    {
+        try {
+            $categorias = $this->service->listarCategorias();
+            $response->json($categorias);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al listar categorías.', 500);
+        }
+    }
+
+    public function crearCategoria(Request $request, Response $response, array $params): void
+    {
+        try {
+            $data = $request->getBody();
+            $request->validateRequired(['nombre', 'slug']);
+            $categoria = $this->service->crearCategoria($data);
+            $response->json($categoria, 201);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al crear categoría.', 500);
+        }
+    }
+
+    public function actualizarCategoria(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $data = $request->getBody();
+            $categoria = $this->service->actualizarCategoria($id, $data);
+            $response->json($categoria);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al actualizar categoría.', 500);
+        }
+    }
+
+    public function eliminarCategoria(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $this->service->eliminarCategoria($id);
+            $response->json(['mensaje' => 'Categoría eliminada exitosamente.']);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al eliminar categoría.', 500);
+        }
+    }
 }

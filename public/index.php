@@ -45,10 +45,10 @@ if (APP_ENV === 'development') {
 $router = new Router();
 
 // Rutas base para servir la interfaz si se accede directamente
-$router->get('/', function(Request $request, Response $response) {
+$router->get('/', function (Request $request, Response $response) {
     $response->html(file_get_contents(__DIR__ . '/index.html'));
 });
-$router->get('/index.php', function(Request $request, Response $response) {
+$router->get('/index.php', function (Request $request, Response $response) {
     $response->html(file_get_contents(__DIR__ . '/index.html'));
 });
 
@@ -101,6 +101,10 @@ $router->get('/api/admin/productos', [AdminController::class, 'listarProductos']
 $router->post('/api/admin/productos', [AdminController::class, 'crearProducto'], auth: true, admin: true);
 $router->put('/api/admin/productos/{id}', [AdminController::class, 'actualizarProducto'], auth: true, admin: true);
 $router->delete('/api/admin/productos/{id}', [AdminController::class, 'eliminarProducto'], auth: true, admin: true);
+$router->get('/api/admin/categorias', [AdminController::class, 'listarCategorias'], auth: true, admin: true);
+$router->post('/api/admin/categorias', [AdminController::class, 'crearCategoria'], auth: true, admin: true);
+$router->put('/api/admin/categorias/{id}', [AdminController::class, 'actualizarCategoria'], auth: true, admin: true);
+$router->delete('/api/admin/categorias/{id}', [AdminController::class, 'eliminarCategoria'], auth: true, admin: true);
 $router->get('/api/admin/pedidos', [AdminController::class, 'listarPedidos'], auth: true, admin: true);
 $router->patch('/api/admin/pedidos/{id}/estado', [AdminController::class, 'cambiarEstadoPedido'], auth: true, admin: true);
 $router->get('/api/admin/usuarios', [AdminController::class, 'listarUsuarios'], auth: true, admin: true);
@@ -116,6 +120,7 @@ $router->post('/api/notificaciones/confirmacion-pedido', [IntegracionController:
 $router->get('/api/exportar/pedidos', [IntegracionController::class, 'exportarPedidos'], auth: true);
 $router->get('/api/exportar/productos', [IntegracionController::class, 'exportarProductos'], auth: true);
 $router->get('/api/exportar/reporte-ventas', [IntegracionController::class, 'exportarReporteVentas'], auth: true);
+$router->get('/api/integracion/inventario', [IntegracionController::class, 'consultarInventario']);
 
 // ============================================
 // Despachar la petición

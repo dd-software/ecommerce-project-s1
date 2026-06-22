@@ -363,4 +363,55 @@ class AdminRepository
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    // ========== Categorías ==========
+
+    public function listarCategorias(): array
+    {
+        $stmt = $this->db->query("SELECT * FROM categorias ORDER BY id DESC");
+        return $stmt->fetchAll();
+    }
+
+    public function crearCategoria(array $data): array
+    {
+        $stmt = $this->db->prepare(
+            "INSERT INTO categorias (nombre, slug, descripcion, id_padre, activo)
+             VALUES (:nombre, :slug, :desc, :padre, :activo)"
+        );
+        $stmt->execute([
+            ':nombre' => $data['nombre'],
+            ':slug'   => $data['slug'],
+            ':desc'   => $data['descripcion'],
+            ':padre'  => $data['id_padre'],
+            ':activo' => $data['activo'],
+        ]);
+        $data['id'] = (int)$this->db->lastInsertId();
+        return $data;
+    }
+
+    public function actualizarCategoria(int $id, array $campos): array
+    {
+        if (empty($campos)) {
+            return [];
+        }
+        $sets = [];
+        $params = [':id' => $id];
+        foreach ($campos as $k => $v) {
+            $sets[] = "{$k} = :{$k}";
+            $params[":{$k}"] = $v;
+        }
+        $stmt = $this->db->prepare("UPDATE categorias SET " . implode(', ', $sets) . " WHERE id = :id");
+        $stmt->execute($params);
+
+        $stmt = $this->db->prepare("SELECT * FROM categorias WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch() ?: [];
+    }
+
+    public function eliminarCategoria(int $id): void
+    {
+        // soft delete or hard delete if no products attached. We will just disable it.
+        $stmt = $this->db->prepare("UPDATE categorias SET activo = 0 WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+    }
 }
