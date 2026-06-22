@@ -96,7 +96,7 @@ const Catalogo = {
         if (this.filters.en_stock) params.set('en_stock', '1');
         if (this.filters.ordenar) params.set('ordenar', this.filters.ordenar);
         params.set('pagina', this.currentPage);
-        params.set('por_pagina', 12);
+        params.set('por_pagina', 16);
         // La búsqueda (this.filters.q) la setea el router desde #/catalogo?q=…
 
         try {
