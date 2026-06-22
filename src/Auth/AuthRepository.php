@@ -42,7 +42,8 @@ class AuthRepository
     public function buscarPorId(int $id): ?array
     {
         $stmt = $this->db->prepare(
-            "SELECT id, nombre, apellido, email, rol, activo, created_at, ultimo_login
+            "SELECT id, nombre, apellido, email, rol, activo, created_at, ultimo_login,
+                    telefono, direccion, comuna, region, codigo_postal
              FROM usuarios
              WHERE id = :id AND deleted_at IS NULL"
         );

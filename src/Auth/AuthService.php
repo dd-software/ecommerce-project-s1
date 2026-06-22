@@ -94,7 +94,7 @@ class AuthService
      */
     public function actualizarPerfil(int $userId, array $data): ?array
     {
-        $camposPermitidos = ['nombre', 'apellido', 'telefono'];
+        $camposPermitidos = ['nombre', 'apellido', 'telefono', 'direccion', 'comuna', 'region', 'codigo_postal'];
         $actualizacion = [];
 
         foreach ($camposPermitidos as $campo) {
