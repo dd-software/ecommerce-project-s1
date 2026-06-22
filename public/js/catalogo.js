@@ -227,8 +227,77 @@ const Catalogo = {
      */
     async loadFeatured() {
         this.loadCategoryTiles();
-        this.loadCarousel('home-ofertas', `${App.apiBase}/catalogo/ofertas`);
+        this.loadOfertasMosaic();
         this.loadCategorySections();
+    },
+
+    /**
+     * Mosaico "Ofertas y Lanzamientos": 2 cards grandes (mayor prioridad) + 4 chicas.
+     * Jerarquía: las ofertas vienen ordenadas por mayor % de descuento desde el
+     * backend → las 2 primeras van grandes, las siguientes 4 chicas. Sin hardcodear.
+     */
+    async loadOfertasMosaic() {
+        const box = document.getElementById('home-ofertas');
+        if (!box) return;
+        box.innerHTML = '<div class="text-center py-4 w-100"><div class="spinner-border text-primary"></div></div>';
+        try {
+            const data = await (await fetch(`${App.apiBase}/catalogo/ofertas`)).json();
+            const ofertas = data.data || [];
+            if (!ofertas.length) { box.innerHTML = '<p class="text-muted">No hay ofertas por ahora.</p>'; return; }
+            // Grandes = productos importantes: mayor AHORRO absoluto (no solo %).
+            // Chicas = el resto de las mejores ofertas (vienen ordenadas por % desc).
+            const big = [...ofertas].sort((a, b) => (b.precio_anterior - b.precio) - (a.precio_anterior - a.precio)).slice(0, 2);
+            const bigIds = new Set(big.map(p => p.id));
+            const small = ofertas.filter(p => !bigIds.has(p.id)).slice(0, 4);
+            // Orden del DOM para el mosaico: [chica, chica, GRANDE] · [GRANDE, chica, chica]
+            box.innerHTML = [
+                this.offerCardSmall(small[0]), this.offerCardSmall(small[1]),
+                this.offerCardBig(big[0]),
+                this.offerCardBig(big[1]),
+                this.offerCardSmall(small[2]), this.offerCardSmall(small[3]),
+            ].join('');
+        } catch (e) { box.innerHTML = ''; }
+    },
+
+    /** Bloque de precio reutilizable (oscuro, con precio actual/anterior + % acento) */
+    ofertaPrecio(p) {
+        return `<div class="oferta-precio">
+            <div class="oferta-precio-main">
+                <span class="precio-now">${p.precio_formateado || App.formatPrice(p.precio)}</span>
+                ${p.precio_anterior_formateado ? `<span class="precio-old">${p.precio_anterior_formateado}</span>` : ''}
+            </div>
+            ${p.descuento_pct ? `<span class="oferta-pct">-${p.descuento_pct}%</span>` : ''}
+        </div>`;
+    },
+
+    ofertaImg(p) {
+        return p.imagen_url
+            ? `<img src="${p.imagen_url}" alt="${this.escapeHtml(p.nombre)}">`
+            : '<div class="qc-img-ph w-100 h-100"><i class="bi bi-box-seam"></i></div>';
+    },
+
+    offerCardSmall(p) {
+        if (!p) return '';
+        return `<a href="#/producto/${p.id}" class="oferta-sm">
+            <div class="oferta-sm-img">${this.ofertaImg(p)}</div>
+            <div class="oferta-sm-body">
+                <h4>${this.escapeHtml(p.nombre)}</h4>
+                <p class="oferta-desc">${this.escapeHtml(p.descripcion || '')}</p>
+                ${this.ofertaPrecio(p)}
+            </div>
+        </a>`;
+    },
+
+    offerCardBig(p) {
+        if (!p) return '';
+        return `<a href="#/producto/${p.id}" class="oferta-big">
+            <div class="oferta-big-info">
+                <h3>${this.escapeHtml(p.nombre)}</h3>
+                <p class="oferta-desc subtitle">${this.escapeHtml(p.descripcion || '')}</p>
+                ${this.ofertaPrecio(p)}
+            </div>
+            <div class="oferta-big-img">${this.ofertaImg(p)}</div>
+        </a>`;
     },
 
     async loadCategoryTiles() {
