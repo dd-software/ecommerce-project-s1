@@ -134,10 +134,13 @@ const Catalogo = {
         } catch (e) {
             this.priceBase = [];
         }
-        // Tope = máximo redondeado a 10.000, fijado una sola vez para estabilidad
+        // Tope = percentil 90 (no el máximo) redondeado a 10.000, fijado una vez.
+        // Así el grueso de productos llena el histograma y los pocos caros no estiran
+        // la escala; en el filtro, el tope equivale a "sin límite superior".
         if (!this.priceLimit) {
-            const maxP = this.priceBase.length ? Math.max(...this.priceBase) : 300000;
-            this.priceLimit = Math.max(10000, Math.ceil(maxP / 10000) * 10000);
+            const sorted = [...this.priceBase].sort((a, b) => a - b);
+            const p90 = sorted.length ? sorted[Math.floor(sorted.length * 0.9)] : 300000;
+            this.priceLimit = Math.max(10000, Math.ceil((p90 || 300000) / 10000) * 10000);
             this.priceDraft = { min: 0, max: this.priceLimit };
         }
         this.syncPriceControls();
@@ -160,8 +163,11 @@ const Catalogo = {
         const box = document.getElementById('price-histogram');
         if (!box || !this.priceDraft) return;
         const BUCKETS = 22, step = this.priceLimit / BUCKETS;
-        const counts = Array.from({ length: BUCKETS }, (_, i) =>
-            this.priceBase.filter(p => p >= i * step && p < (i + 1) * step).length);
+        // el último bucket absorbe todo lo que supera el tope (productos premium)
+        const counts = Array.from({ length: BUCKETS }, (_, i) => {
+            const lo = i * step;
+            return this.priceBase.filter(p => p >= lo && (i === BUCKETS - 1 || p < lo + step)).length;
+        });
         const maxC = Math.max(1, ...counts);
         const { min, max } = this.priceDraft;
         box.innerHTML = counts.map((c, i) => {
@@ -169,7 +175,9 @@ const Catalogo = {
             const h = Math.max(Math.round((c / maxC) * 100), 5);
             return `<span class="qc-bar${inRange ? ' on' : ''}" style="height:${h}%"></span>`;
         }).join('');
-        const live = this.priceBase.filter(p => p >= min && p <= max).length;
+        // si el tope está al máximo = "sin límite superior" (incluye los premium)
+        const noUpper = max >= this.priceLimit;
+        const live = this.priceBase.filter(p => p >= min && (noUpper || p <= max)).length;
         const bf = document.getElementById('btn-filter');
         if (bf) bf.textContent = `Filtrar (${live} productos)`;
     },
