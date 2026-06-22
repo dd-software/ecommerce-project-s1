@@ -155,8 +155,8 @@ const Catalogo = {
             : '';
 
         const addButton = p.sin_stock
-            ? '<button class="btn btn-secondary btn-sm w-100" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
+            ? '<button class="btn btn-secondary btn-sm w-100 fw-bold" disabled>Sin Stock</button>'
+            : `<button class="btn btn-primary btn-sm w-100 fw-bold add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}"><i class="bi bi-cart-plus"></i> Agregar al Carrito</button>`;
 
         return `
             <div class="col-md-4 col-lg-3 mb-4">
@@ -296,8 +296,12 @@ const Catalogo = {
                     const data = await resp.json();
 
                     if (data.success) {
-                        App.cartCount = data.data.items ? data.data.items.length : 0;
-                        App.updateCartBadge();
+                        if (typeof Carrito !== 'undefined') {
+                            await Carrito.loadCart();
+                        } else {
+                            App.cartCount = data.data.items ? data.data.items.length : 0;
+                            App.updateCartBadge();
+                        }
                         App.showToast(`${nombre} agregado al carrito`, 'success');
                     } else {
                         App.showToast(data.error?.message || 'Error al agregar', 'error');
@@ -399,8 +403,12 @@ const Catalogo = {
                     const data = await resp.json();
 
                     if (data.success) {
-                        App.cartCount = data.data.items ? data.data.items.length : 0;
-                        App.updateCartBadge();
+                        if (typeof Carrito !== 'undefined') {
+                            await Carrito.loadCart();
+                        } else {
+                            App.cartCount = data.data.items ? data.data.items.length : 0;
+                            App.updateCartBadge();
+                        }
                         App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
                     } else {
                         App.showToast(data.error?.message || 'Error', 'error');

@@ -115,10 +115,12 @@ class AdminController
     {
         try {
             $estado = $request->getQuery('estado');
+            $fecha = $request->getQuery('fecha');
+            $usuario = $request->getQuery('usuario');
             $pagina = max(1, (int)($request->getQuery('pagina', 1)));
             $porPagina = min(100, max(1, (int)($request->getQuery('por_pagina', 20))));
 
-            $resultado = $this->service->listarPedidosAdmin($estado, $pagina, $porPagina);
+            $resultado = $this->service->listarPedidosAdmin($estado, $fecha, $usuario, $pagina, $porPagina);
             $response->paginated($resultado['pedidos'], $resultado['total'], $pagina, $porPagina);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al listar pedidos.', 500);

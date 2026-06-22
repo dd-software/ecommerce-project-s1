@@ -117,7 +117,7 @@ class PagosService
     }
 
     /**
-     * Simula una pasarela de pago (Webpay)
+     * Simula una pasarela de pago (Webpay/PayPal)
      * Aprueba pagos con token que no empiecen con "fail_"
      */
     private function simularPasarelaPago(string $tokenTarjeta, int $monto): array
@@ -134,20 +134,12 @@ class PagosService
             ];
         }
 
-        // 90% de probabilidad de aprobación en simulación
-        if (random_int(1, 10) <= 9) {
-            return [
-                'estado'  => 'aprobado',
-                'codigo'  => 'APPROVED',
-                'mensaje' => 'Transacción aprobada.',
-                'cuotas'  => 1,
-            ];
-        }
-
+        // Para PayPal u otros tokens válidos (desde frontend o simulación) aprobamos siempre
         return [
-            'estado'  => 'rechazado',
-            'codigo'  => 'INSUFFICIENT_FUNDS',
-            'mensaje' => 'Fondos insuficientes.',
+            'estado'  => 'aprobado',
+            'codigo'  => 'APPROVED',
+            'mensaje' => 'Transacción aprobada.',
+            'cuotas'  => 1,
         ];
     }
 

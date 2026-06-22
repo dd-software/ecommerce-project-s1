@@ -107,4 +107,61 @@ class PagosController
             $response->error('WEBHOOK_ERROR', 'Error al procesar webhook.', 500);
         }
     }
+    /**
+     * POST /api/pagos/paypal/create
+     */
+    public function createPayPalOrder(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $data = $request->getBody();
+            if (empty($data['carrito_id'])) {
+                $response->error('VALIDATION_ERROR', 'carrito_id requerido.', 422);
+                return;
+            }
+
+            $paypalService = new PayPalService();
+            $result = $paypalService->createOrder((int)$data['carrito_id'], (int)$user['id']);
+            $response->json($result);
+
+        } catch (\Exception $e) {
+            $response->error('PAYPAL_CREATE_ERROR', $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/pagos/paypal/capture
+     */
+    public function capturePayPalOrder(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $data = $request->getBody();
+            if (empty($data['paypal_order_id'])) {
+                $response->error('VALIDATION_ERROR', 'paypal_order_id requerido.', 422);
+                return;
+            }
+
+            $paypalService = new PayPalService();
+            $result = $paypalService->captureOrder($data['paypal_order_id'], (int)$user['id']);
+            
+            // Vaciar el carrito aquí ya que la compra fue exitosa
+            // Esto asume que el carrito está ligado al Session o Usuario
+            // Dependiendo de la implementación de App\Carrito\CarritoService
+            $response->json($result);
+
+        } catch (\Exception $e) {
+            $response->error('PAYPAL_CAPTURE_ERROR', $e->getMessage(), 500);
+        }
+    }
 }

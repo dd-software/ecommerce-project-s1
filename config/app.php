@@ -52,7 +52,9 @@ define('SMTP_PORT', (int)($_ENV['SMTP_PORT'] ?? 587));
 define('SMTP_USER', $_ENV['SMTP_USER'] ?? '');
 define('SMTP_PASS', $_ENV['SMTP_PASS'] ?? '');
 define('SMTP_FROM', $_ENV['SMTP_FROM'] ?? 'noreply@example.com');
-
+define('PAYPAL_CLIENT_ID', $_ENV['PAYPAL_CLIENT_ID'] ?? '');
+define('PAYPAL_SECRET', $_ENV['PAYPAL_SECRET'] ?? '');
+define('PAYPAL_MODE', $_ENV['PAYPAL_MODE'] ?? 'sandbox');
 // Configuración de error según entorno
 if (APP_DEBUG) {
     error_reporting(E_ALL);

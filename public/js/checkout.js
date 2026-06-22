@@ -135,7 +135,7 @@ const Checkout = {
     },
 
     /**
-     * Crea el pedido y procesa el pago
+     * Valida el formulario y muestra botones de PayPal
      */
     async placeOrder() {
         const btn = document.getElementById('btn-place-order');
@@ -146,12 +146,7 @@ const Checkout = {
             return;
         }
 
-        // Recopilar datos del formulario
         const direccion = document.getElementById('shipping-address')?.value.trim();
-        const telefono = document.getElementById('shipping-phone')?.value.trim();
-        const notas = document.getElementById('order-notes')?.value.trim();
-        const cupon = document.getElementById('coupon-code')?.value.trim() || null;
-
         if (!direccion) {
             if (errorDiv) {
                 errorDiv.textContent = 'La dirección de envío es obligatoria.';
@@ -161,71 +156,77 @@ const Checkout = {
         }
 
         if (errorDiv) errorDiv.classList.add('d-none');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Procesando...';
-        }
+        if (btn) btn.classList.add('d-none'); // Ocultar botón normal
+        
+        const paypalContainer = document.getElementById('paypal-button-container');
+        paypalContainer.classList.remove('d-none');
+        paypalContainer.innerHTML = ''; // Limpiar si ya había botones
 
-        try {
-            // Paso 1: Crear pedido
-            const orderResp = await App.fetchAuth(`${App.apiBase}/checkout`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    carrito_id: this.cartId,
-                    direccion_envio: direccion,
-                    telefono: telefono,
-                    notas: notas,
-                    cupon: cupon
-                })
-            });
-
-            const orderData = await orderResp.json();
-
-            if (!orderData.success) {
-                throw new Error(orderData.error?.message || 'Error al crear el pedido');
-            }
-
-            const pedido = orderData.data;
-
-            // Paso 2: Procesar pago (simulación)
-            App.showToast('Pedido creado. Procesando pago...', 'info');
-
-            const paymentResp = await App.fetchAuth(`${App.apiBase}/pagos/procesar`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    pedido_id: pedido.id || pedido.pedido_id,
-                    metodo_pago: 'webpay',
-                    token_tarjeta: 'tok_sim_' + Date.now()
-                })
-            });
-
-            const paymentData = await paymentResp.json();
-
-            if (paymentData.success && paymentData.data.estado === 'aprobado') {
-                // Éxito
-                App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
-                // Redirigir a confirmación
-                setTimeout(() => {
-                    window.location.href = `/pedido-confirmado.html?pedido_id=${pedido.id || pedido.pedido_id}`;
-                }, 2000);
-            } else {
-                App.showToast('Pago rechazado: ' + (paymentData.data?.mensaje || 'Error'), 'error');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = 'Reintentar Pago';
+        // Renderizar PayPal usando lógica Server-Side
+        paypal.Buttons({
+            createOrder: async (data, actions) => {
+                try {
+                    const resp = await App.fetchAuth(`${App.apiBase}/pagos/paypal/create`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            carrito_id: this.cartId
+                        })
+                    });
+                    
+                    const orderData = await resp.json();
+                    
+                    if (!orderData.success) {
+                        throw new Error(orderData.error?.message || 'Error al inicializar el pago');
+                    }
+                    
+                    return orderData.data.paypal_order_id;
+                } catch (e) {
+                    App.showToast(e.message, 'error');
+                    throw e;
                 }
+            },
+            onApprove: async (data, actions) => {
+                try {
+                    App.showToast('Procesando pago, no cierres esta ventana...', 'info');
+                    
+                    const resp = await App.fetchAuth(`${App.apiBase}/pagos/paypal/capture`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            paypal_order_id: data.orderID
+                        })
+                    });
+                    
+                    const captureData = await resp.json();
+                    
+                    if (captureData.success) {
+                        App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
+                        setTimeout(() => {
+                            window.location.href = `/pedido-confirmado.html?pedido_id=${captureData.data.pedido_id}`;
+                        }, 2000);
+                        
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                        if (modal) modal.hide();
+                        
+                        // Vaciar el carrito en el frontend ya que se procesó
+                        if (typeof Carrito !== 'undefined') {
+                            await Carrito.clearCart();
+                        }
+                    } else {
+                        throw new Error(captureData.error?.message || 'Error al confirmar pago');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    App.showToast(err.message || 'Error en la transacción', 'error');
+                    if (btn) btn.classList.remove('d-none');
+                    paypalContainer.classList.add('d-none');
+                }
+            },
+            onError: (err) => {
+                console.error('PayPal Error:', err);
+                App.showToast('Ocurrió un error con PayPal', 'error');
+                if (btn) btn.classList.remove('d-none');
+                paypalContainer.classList.add('d-none');
             }
-        } catch (err) {
-            if (errorDiv) {
-                errorDiv.textContent = err.message;
-                errorDiv.classList.remove('d-none');
-            }
-            App.showToast(err.message, 'error');
-        }
-
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Confirmar Pedido';
-        }
+        }).render('#paypal-button-container');
     }
 };

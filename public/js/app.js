@@ -34,16 +34,23 @@ const App = {
 
         if (this.user) {
             if (authLinks) authLinks.classList.add('d-none');
-            if (userLinks) userLinks.classList.remove('d-none');
-            if (userName) userName.textContent = this.user.nombre || this.user.email;
-
-            // Mostrar link admin solo si es admin
-            if (adminLink) {
-                if (this.user.rol === 'admin') {
-                    adminLink.classList.remove('d-none');
-                } else {
-                    adminLink.classList.add('d-none');
-                }
+            if (userLinks) {
+                userLinks.classList.remove('d-none');
+                const adminHtml = (this.user.rol === 'admin') ? '<li><a class="dropdown-item" href="admin.html"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>' : '';
+                userLinks.innerHTML = `
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i> ${this.user.nombre || 'Usuario'}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header">${this.user.email}</h6></li>
+                            <li><a class="dropdown-item" href="mis-pedidos.html"><i class="bi bi-bag-check me-2"></i>Mis Pedidos</a></li>
+                            ${adminHtml}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="btn-logout"><i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión</a></li>
+                        </ul>
+                    </div>`;
+                this.initEventListeners();
             }
         } else {
             if (authLinks) authLinks.classList.remove('d-none');
@@ -72,7 +79,7 @@ const App = {
                 e.preventDefault();
                 const query = document.getElementById('search-input').value.trim();
                 if (query) {
-                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?search=' + encodeURIComponent(query);
+                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?q=' + encodeURIComponent(query);
                 }
             });
         }
