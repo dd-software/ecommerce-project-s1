@@ -279,8 +279,11 @@ const Checkout = {
                   body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;background:#ececec;margin:0;padding:28px 12px}
                   .receipt{max-width:680px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.10)}
                   .r-head{display:flex;justify-content:space-between;align-items:center;padding:22px 28px;color:#fff;background:linear-gradient(135deg,#1c1413 0%,#C82F1D 130%);-webkit-print-color-adjust:exact;print-color-adjust:exact}
-                  .r-brand{font-size:22px;font-weight:800;line-height:1}
-                  .r-brand small{display:block;font-size:10px;letter-spacing:2px;opacity:.8;font-weight:700}
+                  .r-brand{display:flex;align-items:center;gap:10px}
+                  .r-mark{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:#F74F3C;border-radius:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+                  .r-mark svg{width:20px;height:20px}
+                  .r-name{font-size:22px;font-weight:800;line-height:1}
+                  .r-name small{display:block;font-size:10px;letter-spacing:2px;opacity:.8;font-weight:700}
                   .r-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
                   .badge{background:#e6f7ef;color:#00a06a;font-weight:700;font-size:12px;padding:5px 12px;border-radius:999px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
                   .r-meta .doc{font-size:11px;letter-spacing:1px;opacity:.85;text-transform:uppercase}
@@ -303,7 +306,7 @@ const Checkout = {
                 </style></head><body>
                   <div class="receipt">
                     <div class="r-head">
-                      <div class="r-brand">QuadCore<small>ELECTR&Oacute;NICA</small></div>
+                      <div class="r-brand"><span class="r-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2.5-6 3.5 12 3-9 1.5 3H22"/></svg></span><span class="r-name">QuadCore<small>ELECTR&Oacute;NICA</small></span></div>
                       <div class="r-meta"><span class="badge">&#10003; Pagado</span><span class="doc">Recibo de compra</span></div>
                     </div>
                     <div class="r-body">

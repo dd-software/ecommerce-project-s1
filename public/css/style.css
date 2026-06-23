@@ -992,7 +992,7 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 .qc-login-brand .qc-login-ecg {
     position: absolute; left: -12%; width: 124%; top: 44%; height: 72px;
     color: var(--qc-red); opacity: .3; z-index: 0; pointer-events: none;
-    transform: rotate(-4deg);
+    transform: rotate(5deg);
 }
 .qc-login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
 .qc-login-mark { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: var(--qc-red); border-radius: 11px; flex-shrink: 0; }
