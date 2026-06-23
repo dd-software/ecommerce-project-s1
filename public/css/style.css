@@ -981,18 +981,27 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 #loginModal .modal-content.qc-login { flex-direction: row; overflow: hidden; border: none; border-radius: var(--qc-radius-lg); }
 .qc-login-brand {
     flex: 0 0 42%;
-    background: linear-gradient(160deg, var(--qc-red) 0%, var(--qc-red-dark) 100%);
+    position: relative; overflow: hidden; z-index: 0;
+    background:
+      radial-gradient(130% 90% at 18% 2%, rgba(247,79,60,.5) 0%, rgba(200,47,29,.14) 34%, transparent 62%),
+      linear-gradient(155deg, #20100d 0%, #120e0e 65%, #0e0d0d 100%);
     color: #fff; padding: 36px 30px; display: flex; flex-direction: column;
 }
+.qc-login-brand > * { position: relative; z-index: 1; }
+.qc-login-brand .qc-login-ecg {
+    position: absolute; left: 0; right: 0; top: 52%; width: 100%; height: 56px;
+    color: var(--qc-red); opacity: .35; z-index: 0; pointer-events: none;
+}
 .qc-login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
-.qc-login-logo img { background: #fff; border-radius: 8px; padding: 3px; }
+.qc-login-logo img { background: var(--qc-red); border-radius: 8px; padding: 3px; }
 .qc-login-logo span { font-family: var(--qc-font-display); font-weight: 700; font-size: 20px; line-height: 1.05; }
+.qc-login-logo b { color: var(--qc-red); font-weight: 700; }
 .qc-login-logo small { display: block; font-size: 9px; letter-spacing: 2px; opacity: .85; font-weight: 600; }
 .qc-login-welcome { font-family: var(--qc-font-display); font-weight: 800; font-size: 30px; line-height: 1.1; margin: 0 0 12px; }
 .qc-login-lead { font-size: 14px; opacity: .9; margin-bottom: 24px; }
 .qc-login-benefits { list-style: none; padding: 0; margin: 0 0 auto; }
 .qc-login-benefits li { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 14px; }
-.qc-login-benefits i { color: #fff; }
+.qc-login-benefits i { background: var(--qc-red); color: #fff; border-radius: 5px; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
 .qc-login-trust { display: flex; align-items: center; gap: 12px; margin-top: 24px; background: rgba(255,255,255,.12); border-radius: var(--qc-radius); padding: 12px 14px; }
 .qc-login-trust > i { font-size: 22px; }
 .qc-login-trust strong { display: block; font-size: 13px; }
