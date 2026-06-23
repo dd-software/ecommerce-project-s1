@@ -990,8 +990,9 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 }
 .qc-login-brand > * { position: relative; z-index: 1; }
 .qc-login-brand .qc-login-ecg {
-    position: absolute; left: 0; right: 0; top: 52%; width: 100%; height: 56px;
-    color: var(--qc-red); opacity: .35; z-index: 0; pointer-events: none;
+    position: absolute; left: -12%; width: 124%; top: 44%; height: 72px;
+    color: var(--qc-red); opacity: .3; z-index: 0; pointer-events: none;
+    transform: rotate(-7deg);
 }
 .qc-login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
 .qc-login-mark { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; background: var(--qc-red); border-radius: 11px; flex-shrink: 0; }
