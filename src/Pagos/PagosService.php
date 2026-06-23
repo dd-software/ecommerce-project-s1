@@ -183,4 +183,132 @@ class PagosService
             $this->checkoutService->actualizarEstado($pedidoId, 'pagado', null, 'Confirmado por webhook');
         }
     }
+
+    /**
+     * Crea una preferencia de pago en Mercado Pago
+     * RN-E01 + RN-E02: Crea preferencia pero no descuenta stock ni cambia estado hasta confirmación
+     */
+    public function crearPreferenciaMercadoPago(int $pedidoId, int $userId): array
+    {
+        // Verificar que el pedido existe y está pendiente
+        $pedido = $this->checkoutService->obtenerPedido($pedidoId);
+        if (!$pedido) {
+            throw new \RuntimeException('Pedido no encontrado.');
+        }
+
+        if ($pedido['estado'] !== 'pendiente') {
+            throw new \RuntimeException('El pedido ya fue procesado. Estado actual: ' . $pedido['estado']);
+        }
+
+        try {
+            $mpService = new MercadoPagoService();
+            
+            $datosPedido = [
+                'id' => $pedidoId,
+                'monto' => $pedido['total'],
+                'email' => $pedido['email'] ?? '',
+                'nombre' => $pedido['cliente_nombre'] ?? '',
+                'apellido' => $pedido['apellido'] ?? '',
+                'telefono' => $pedido['telefono'] ?? '',
+            ];
+
+            $resultado = $mpService->crearPreferencia($datosPedido);
+
+            if (!$resultado['success']) {
+                throw new \RuntimeException($resultado['error'] ?? 'Error al crear preferencia');
+            }
+
+            // Registrar intento de pago en estado pendiente
+            $this->repository->registrarPago(
+                pedidoId: $pedidoId,
+                metodoPago: 'mercado_pago',
+                monto: (int)$pedido['total'],
+                referenciaExterna: $resultado['preference_id'],
+                estado: 'pendiente',
+                respuesta: json_encode([
+                    'preference_id' => $resultado['preference_id'],
+                    'init_point' => $resultado['init_point'],
+                    'public_key' => $resultado['public_key'],
+                ])
+            );
+
+            return $resultado;
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error en Mercado Pago: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Procesa confirmación de pago desde Mercado Pago
+     */
+    public function confirmarPagoMercadoPago(int $pedidoId, string $paymentId, int $userId): array
+    {
+        try {
+            $mpService = new MercadoPagoService();
+            $estadoPago = $mpService->obtenerEstadoPago($paymentId);
+
+            if (!$estadoPago['success']) {
+                throw new \RuntimeException($estadoPago['error'] ?? 'Error al consultar pago');
+            }
+
+            $estado = MercadoPagoService::mapearEstado($estadoPago['status']);
+
+            // Actualizar registro de pago
+            $pago = $this->repository->obtenerPagoPorPedido($pedidoId);
+            if ($pago) {
+                $this->repository->actualizarEstadoPago(
+                    (int)$pago['id'],
+                    $estado,
+                    $paymentId
+                );
+            }
+
+            if ($estado === 'aprobado') {
+                // Descontar stock y actualizar estado del pedido
+                $this->checkoutService->descontarStock($pedidoId);
+                $this->checkoutService->actualizarEstado(
+                    pedidoId: $pedidoId,
+                    nuevoEstado: 'pagado',
+                    userId: $userId,
+                    comentario: 'Pago confirmado por Mercado Pago. ID: ' . $paymentId
+                );
+
+                // Registrar movimiento de inventario
+                $pedido = $this->checkoutService->obtenerPedido($pedidoId);
+                $inventarioService = new InventarioService(new InventarioRepository());
+                $detalles = $pedido['detalle'] ?? [];
+                foreach ($detalles as $detalle) {
+                    $inventarioService->registrarEgreso(
+                        productoId: (int)$detalle['id_producto'],
+                        cantidad: (int)$detalle['cantidad'],
+                        pedidoId: $pedidoId,
+                        motivo: 'Venta - Pedido #' . $pedidoId
+                    );
+                }
+
+                return [
+                    'success' => true,
+                    'estado' => 'aprobado',
+                    'mensaje' => 'Pago confirmado exitosamente.',
+                    'payment_id' => $paymentId,
+                ];
+            } else {
+                $this->checkoutService->actualizarEstado(
+                    pedidoId: $pedidoId,
+                    nuevoEstado: 'cancelado',
+                    userId: $userId,
+                    comentario: 'Pago no aprobado. Estado: ' . $estado
+                );
+
+                return [
+                    'success' => false,
+                    'estado' => $estado,
+                    'mensaje' => 'El pago no fue aprobado.',
+                    'payment_id' => $paymentId,
+                ];
+            }
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error confirmando pago: ' . $e->getMessage());
+        }
+    }
 }

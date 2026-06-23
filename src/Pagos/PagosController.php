@@ -107,4 +107,73 @@ class PagosController
             $response->error('WEBHOOK_ERROR', 'Error al procesar webhook.', 500);
         }
     }
+
+    /**
+     * POST /api/pagos/mercado-pago/preferencia
+     * Crea una preferencia de pago en Mercado Pago
+     */
+    public function crearPreferenciaMercadoPago(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $data = $request->getBody();
+            $request->validateRequired(['pedido_id']);
+
+            $resultado = $this->service->crearPreferenciaMercadoPago(
+                pedidoId: (int)$data['pedido_id'],
+                userId: (int)$user['id']
+            );
+
+            $response->json($resultado);
+
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\RuntimeException $e) {
+            $response->error('PAYMENT_ERROR', $e->getMessage(), 402);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al crear preferencia de pago.', 500);
+        }
+    }
+
+    /**
+     * POST /api/pagos/mercado-pago/confirmar
+     * Confirma un pago recibido desde Mercado Pago
+     */
+    public function confirmarPagoMercadoPago(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $data = $request->getBody();
+            $request->validateRequired(['pedido_id', 'payment_id']);
+
+            $resultado = $this->service->confirmarPagoMercadoPago(
+                pedidoId: (int)$data['pedido_id'],
+                paymentId: $data['payment_id'],
+                userId: (int)$user['id']
+            );
+
+            if ($resultado['success']) {
+                $response->json($resultado);
+            } else {
+                $response->error('PAYMENT_REJECTED', $resultado['mensaje'], 402);
+            }
+
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\RuntimeException $e) {
+            $response->error('PAYMENT_ERROR', $e->getMessage(), 402);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al confirmar pago.', 500);
+        }
+    }
 }
