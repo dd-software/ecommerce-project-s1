@@ -84,6 +84,15 @@ const App = {
             });
         }
 
+        // Redirección dinámica al Panel Admin
+        const adminLink = document.getElementById('admin-link');
+        if (adminLink) {
+            adminLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = this.getBasePath() + '/admin.html';
+            });
+        }
+
         // Búsqueda global
         const searchForm = document.getElementById('search-form');
         if (searchForm) {
