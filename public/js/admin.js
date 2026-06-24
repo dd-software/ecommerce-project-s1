@@ -346,11 +346,15 @@ const Admin = {
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button class="btn btn-sm ${u.activo == 1 ? 'btn-outline-warning' : 'btn-outline-success'} btn-action me-1"
-                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})" title="${u.activo == 1 ? 'Deshabilitar' : 'Activar'}">
+                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})" 
+                                                title="${u.id == App.user?.id ? 'No puedes deshabilitar tu propia cuenta' : (u.activo == 1 ? 'Deshabilitar' : 'Activar')}"
+                                                ${u.id == App.user?.id ? 'disabled' : ''}>
                                             <i class="bi ${u.activo == 1 ? 'bi-slash-circle' : 'bi-check-circle'}"></i>
                                         </button>
                                         <button class="btn btn-sm btn-outline-danger btn-action"
-                                                onclick="Admin.deleteUser(${u.id})" title="Eliminar">
+                                                onclick="Admin.deleteUser(${u.id})" 
+                                                title="${u.id == App.user?.id ? 'No puedes eliminar tu propia cuenta' : 'Eliminar'}"
+                                                ${u.id == App.user?.id ? 'disabled' : ''}>
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
@@ -708,10 +712,12 @@ const Admin = {
         }
     },
 
-    /**
-     * Activa/desactiva usuario
-     */
     async toggleUser(userId, activo) {
+        if (App.user && parseInt(App.user.id) === parseInt(userId) && activo === 0) {
+            App.showToast('No puedes deshabilitar tu propia cuenta.', 'error');
+            return;
+        }
+
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${userId}/estado`, {
                 method: 'PATCH',
@@ -833,6 +839,22 @@ const Admin = {
                 const modalEl = document.getElementById('userModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+
+                // Si actualizamos nuestra propia cuenta, actualizamos los datos locales y recargamos
+                if (App.user && parseInt(id) === parseInt(App.user.id)) {
+                    App.user.nombre = nombre + ' ' + apellido;
+                    App.user.email = email;
+                    App.user.rol = rol;
+                    localStorage.setItem('uct_user', JSON.stringify(App.user));
+                    
+                    if (rol !== 'admin') {
+                        App.logout();
+                    } else {
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                    return;
+                }
+
                 this.loadUsuarios();
             } else {
                 App.showToast(data.error?.message || 'Error al guardar', 'error');

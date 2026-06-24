@@ -198,16 +198,19 @@ class AdminController
         }
     }
 
-    /**
-     * PATCH /api/admin/usuarios/{id}/estado
-     * Activa/desactiva un usuario
-     */
     public function toggleUsuario(Request $request, Response $response, array $params): void
     {
         try {
             $id = (int)$params['id'];
             $data = $request->getBody();
             $activo = isset($data['activo']) ? (int)$data['activo'] : null;
+
+            // Evitar que el administrador se deshabilite a sí mismo
+            $currentUser = $request->getAttribute('authenticated_user');
+            if ($currentUser && (int)$currentUser['id'] === $id && $activo === 0) {
+                $response->error('BAD_REQUEST', 'No puedes deshabilitar tu propia cuenta.', 400);
+                return;
+            }
 
             $this->service->cambiarEstadoUsuario($id, $activo);
             $response->json(['mensaje' => 'Estado de usuario actualizado.']);
