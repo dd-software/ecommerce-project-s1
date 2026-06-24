@@ -1240,3 +1240,55 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 .cmp-yes{color:#1f8a5b; font-weight:600;} .cmp-no{color:var(--qc-red); font-weight:600;}
 
 @media (max-width:560px){ #compare-tray{left:12px; right:12px; transform:none; justify-content:space-between;} }
+
+/* ============================================================
+   ACCIONES DE PRODUCTO · rediseño (Opción B · grafito tinta)
+   Importado de Claude Design "QuadCore Botones Producto".
+   --c-1/--c-2 = grafito tinta; comparte la lógica JS existente.
+   ============================================================ */
+.pc-actions{display:flex; flex-direction:column; gap:10px; margin-top:auto; padding-top:10px;
+  --c-1:#2a2320; --c-2:#1b1614; --c-sh:rgba(27,22,20,.55);}
+
+/* Botón primario: Agregar al carrito */
+.pc-actions .btn-add{
+  position:relative; overflow:hidden; isolation:isolate;
+  width:100%; height:48px; border:none; border-radius:13px; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  font-family:var(--qc-font-body); font-weight:800; font-size:14px; color:#fff;
+  background:linear-gradient(180deg, var(--c-1), var(--c-2));
+  box-shadow:0 1px 0 rgba(255,255,255,.22) inset, 0 12px 24px -12px var(--c-sh);
+  transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.pc-actions .btn-add::after{
+  content:""; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.30) 47%, transparent 64%);
+  transform:translateX(-120%); transition:transform .6s ease;
+}
+.pc-actions .btn-add:hover{transform:translateY(-2px); box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 18px 30px -14px var(--c-sh);}
+.pc-actions .btn-add:hover::after{transform:translateX(120%);}
+.pc-actions .btn-add:active{transform:translateY(0); filter:brightness(.97);}
+.pc-actions .btn-add i{font-size:1rem;}
+.pc-actions .btn-add.is-disabled{background:#cfc9c3; color:#fff; box-shadow:none; cursor:not-allowed;}
+
+/* Fila secundaria: Ver detalle + Comparar */
+.pc-actions .pc-sub{display:flex; gap:10px;}
+.pc-actions .btn-detail{
+  flex:1; height:44px; border-radius:12px; cursor:pointer; text-decoration:none;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  font-family:var(--qc-font-body); font-weight:800; font-size:13px; color:var(--qc-black);
+  background:#fff; border:1.5px solid var(--qc-border);
+  transition:border-color .16s, background .16s, transform .16s;
+}
+.pc-actions .btn-detail i{color:var(--qc-gray); transition:color .16s, transform .16s;}
+.pc-actions .btn-detail:hover{border-color:var(--qc-black); background:#fbfaf8; transform:translateY(-2px);}
+.pc-actions .btn-detail:hover i{color:var(--qc-black); transform:translateX(2px);}
+
+.pc-actions .btn-compare{
+  flex:none; width:44px; height:44px; border-radius:12px; cursor:pointer;
+  display:grid; place-items:center; color:var(--qc-gray);
+  background:#fff; border:1.5px solid var(--qc-border);
+  transition:.16s;
+}
+.pc-actions .btn-compare:hover{border-color:var(--c-1); color:var(--c-1); transform:translateY(-2px);}
+.pc-actions .btn-compare.active{background:var(--c-1); border-color:var(--c-1); color:#fff;}
+.pc-actions .btn-compare.active:hover{background:var(--c-2); color:#fff;}

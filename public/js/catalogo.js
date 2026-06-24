@@ -414,8 +414,8 @@ async loadCategorySections() {
             : `<div class="qc-img-ph"><i class="bi bi-cpu"></i></div>`;
 
         const addButton = p.sin_stock
-            ? '<button class="btn btn-secondary btn-sm w-100" disabled>Sin stock</button>'
-            : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}"><i class="bi bi-cart-plus"></i> Agregar al carrito</button>`;
+            ? '<button class="btn-add is-disabled" disabled><i class="bi bi-x-circle"></i><span class="lbl">Sin stock</span></button>'
+            : `<button class="btn-add add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}"><i class="bi bi-cart-plus"></i><span class="lbl">Agregar al carrito</span></button>`;
 
         const ofertaBadge = p.descuento_pct ? `<span class="qc-badge-oferta">-${p.descuento_pct}%</span>` : '';
         const precioAnterior = p.precio_anterior_formateado ? `<span class="card-price-old">${p.precio_anterior_formateado}</span>` : '';
@@ -432,11 +432,11 @@ async loadCategorySections() {
                         <span class="card-category">${this.escapeHtml(p.marca || p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
                         <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>${precioAnterior}
-                        <div class="card-actions">
+                        <div class="card-actions pc-actions">
                             ${addButton}
-                            <div class="d-flex gap-2 mt-1">
-                                <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm flex-grow-1">Ver detalle</a>
-                                <button type="button" class="btn btn-outline-uct btn-sm qc-compare-toggle${window.Compare?.isSelected(p.id) ? ' active' : ''}" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}" title="Comparar" aria-label="Comparar"><i class="bi bi-arrow-left-right"></i></button>
+                            <div class="pc-sub">
+                                <a href="#/producto/${p.id}" class="btn-detail">Ver detalle <i class="bi bi-arrow-right"></i></a>
+                                <button type="button" class="btn-compare qc-compare-toggle${window.Compare?.isSelected(p.id) ? ' active' : ''}" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}" title="Comparar" aria-label="Comparar"><i class="bi bi-arrow-left-right"></i></button>
                             </div>
                             ${extra}
                         </div>

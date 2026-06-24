@@ -164,4 +164,57 @@ class AuthController
         Session::destruir();
         $response->json(['mensaje' => 'Sesión cerrada exitosamente.']);
     }
+
+    /**
+     * POST /api/auth/recuperar
+     * Solicita un enlace de recuperación. Respuesta siempre genérica para no
+     * revelar qué correos están registrados.
+     */
+    public function recuperar(Request $request, Response $response, array $params): void
+    {
+        try {
+            $request->validateRequired(['email']);
+            $email = $request->getBody()['email'];
+
+            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->service->solicitarReset($email);
+            }
+
+            $response->json(['mensaje' => 'Si el correo está registrado, te enviamos un enlace para restablecer tu contraseña.']);
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error interno del servidor.', 500);
+        }
+    }
+
+    /**
+     * POST /api/auth/restablecer
+     * Fija la nueva contraseña a partir del token recibido por correo.
+     */
+    public function restablecer(Request $request, Response $response, array $params): void
+    {
+        try {
+            $request->validateRequired(['token', 'password']);
+            $data = $request->getBody();
+
+            $password = $data['password'];
+            if (strlen($password) < 8
+                || !preg_match('/[A-Z]/', $password)
+                || !preg_match('/[0-9]/', $password)
+                || !preg_match('/[^A-Za-z0-9]/', $password)) {
+                $response->error('WEAK_PASSWORD', 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.', 422, 'password');
+                return;
+            }
+
+            $this->service->restablecerPassword($data['token'], $password);
+            $response->json(['mensaje' => 'Contraseña actualizada. Ya podés iniciar sesión.']);
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\RuntimeException $e) {
+            $response->error('INVALID_TOKEN', $e->getMessage(), 400);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error interno del servidor.', 500);
+        }
+    }
 }

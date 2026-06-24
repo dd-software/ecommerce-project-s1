@@ -144,4 +144,43 @@ class AuthRepository
         );
         $stmt->execute([':id' => $id]);
     }
+
+    /**
+     * Guarda el hash del token de reset y su expiración.
+     */
+    public function guardarTokenReset(int $id, string $tokenHash, string $expira): void
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE usuarios SET reset_token_hash = :hash, reset_expira = :exp
+             WHERE id = :id AND deleted_at IS NULL"
+        );
+        $stmt->execute([':hash' => $tokenHash, ':exp' => $expira, ':id' => $id]);
+    }
+
+    /**
+     * Busca un usuario por el hash del token de reset, solo si no expiró.
+     */
+    public function buscarPorTokenReset(string $tokenHash): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id FROM usuarios
+             WHERE reset_token_hash = :hash AND reset_expira > NOW() AND deleted_at IS NULL"
+        );
+        $stmt->execute([':hash' => $tokenHash]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * Fija una nueva contraseña, invalida el token y desbloquea la cuenta.
+     */
+    public function actualizarPassword(int $id, string $passwordHash): void
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE usuarios
+             SET password_hash = :hash, reset_token_hash = NULL, reset_expira = NULL,
+                 intentos_fallidos = 0, bloqueado_hasta = NULL
+             WHERE id = :id AND deleted_at IS NULL"
+        );
+        $stmt->execute([':hash' => $passwordHash, ':id' => $id]);
+    }
 }

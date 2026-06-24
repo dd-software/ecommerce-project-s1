@@ -168,6 +168,19 @@ class PagosService
             $db->rollback();
             throw $e;
         }
+
+        // Confirmación por email. Fuera de la transacción y tolerante a fallos:
+        // el pedido ya está pagado, un problema de correo no debe revertirlo.
+        $email = (string)($pedido['cliente_email'] ?? '');
+        if ($email !== '') {
+            try {
+                $nombre = trim((string)($pedido['cliente_nombre'] ?? '')) ?: 'cliente';
+                $integracion = new \App\Integracion\IntegracionService(new \App\Integracion\IntegracionRepository());
+                $integracion->notificarConfirmacionPedido($pedidoId, $email, $nombre);
+            } catch (\Throwable $e) {
+                error_log('Confirmación de pedido #' . $pedidoId . ' no enviada: ' . $e->getMessage());
+            }
+        }
     }
 
     /** Pago simulado (sin credenciales MP): aprueba al instante. Solo dev. */

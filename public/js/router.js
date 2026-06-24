@@ -161,6 +161,15 @@ const Router = {
             return;
         }
 
+        // Reset de contraseña (enlace desde el correo)
+        if (path === 'reset') {
+            this.show('view-generic');
+            this.crumbs([['Inicio', '#/'], ['Nueva contraseña']]);
+            Auth.renderReset(params.get('token') || '');
+            this.setTitle('reset');
+            return;
+        }
+
         // Comparar productos
         if (path === 'comparar') {
             this.show('view-generic');

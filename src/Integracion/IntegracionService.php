@@ -76,13 +76,19 @@ class IntegracionService
     }
 
     /**
-     * Simula el envío de un email (en producción conectaría con SMTP)
-     * RN-H02: Patrón Adapter para aislar la implementación concreta
+     * Envía el email. Si hay SMTP configurado (SMTP_HOST/USER reales) usa
+     * SmtpMailer; si no (dev/local con placeholders), cae al log para no romper.
+     * RN-H02: Patrón Adapter para aislar la implementación concreta.
      */
     private function simularEnvioEmail(string $destinatario, string $asunto, string $cuerpo): void
     {
-        // En producción, esto usaría mail() o PHPMailer/SwiftMailer
-        // Por ahora, simulamos escritura en log
+        if ($this->smtpConfigurado()) {
+            $mailer = new SmtpMailer(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM);
+            $mailer->send($destinatario, $asunto, $cuerpo);
+            return;
+        }
+
+        // Sin SMTP real: registramos en log (dev/local).
         $logDir = dirname(__DIR__, 2) . '/var/log';
         if (!is_dir($logDir)) {
             @mkdir($logDir, 0755, true);
@@ -98,6 +104,14 @@ class IntegracionService
         );
 
         @file_put_contents($logFile, $logEntry, FILE_APPEND);
+    }
+
+    /** Hay SMTP usable si host/usuario/clave están definidos y no son placeholders. */
+    private function smtpConfigurado(): bool
+    {
+        return SMTP_HOST !== '' && SMTP_HOST !== 'smtp.example.com'
+            && SMTP_USER !== '' && SMTP_USER !== 'noreply@example.com'
+            && SMTP_PASS !== '' && SMTP_PASS !== 'smtp_password_here';
     }
 
     /**
@@ -173,7 +187,7 @@ class IntegracionService
                 . "Tu pedido #{$pedidoId} ha sido confirmado y está siendo procesado.\n\n"
                 . "Puedes revisar el estado de tu pedido en tu cuenta.\n\n"
                 . "Gracias por tu compra.\n"
-                . "Equipo UCT Ecommerce";
+                . "Equipo QuadCore";
 
         $this->encolarEmail($emailCliente, $asunto, $cuerpo, 'confirmacion_pedido');
     }
