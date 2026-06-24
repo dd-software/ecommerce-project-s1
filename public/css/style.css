@@ -762,20 +762,20 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 .admin-nav-link.active { background: var(--qc-gray-light); color: var(--qc-red); box-shadow: inset 3px 0 0 var(--qc-red); }
 .admin-nav-link.active i { color: var(--qc-red); }
 
-.admin-page-title { font-family: var(--qc-font-display); font-weight: 800; font-size: 28px; letter-spacing: -.02em; color: var(--qc-black); margin-bottom: 20px; }
+.admin-page-title { font-family: var(--qc-font-display); font-weight: 600; font-size: 26px; letter-spacing: -.01em; color: var(--qc-black); margin-bottom: 20px; }
 
 /* Tarjetas de métrica · sobrio monocromo (sin arcoíris, chips ni efectos) */
 .qc-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .qc-stat { background: #fff; border: 1px solid var(--qc-border); border-radius: 14px; padding: 18px 20px; box-shadow: var(--qc-shadow); }
 /* Variantes de color desactivadas a propósito (.accent/.warn/.blue/.green) — todo neutro */
 .qc-stat-top { display: flex; align-items: center; justify-content: space-between; }
-.qc-stat-label { font-size: 11px; color: var(--qc-gray); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.qc-stat-label { font-size: 11px; color: var(--qc-gray); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
 .qc-stat-icon { width: auto; height: auto; background: none; color: var(--qc-gray); font-size: 16px; opacity: .6; }
-.qc-stat-value { font-family: var(--qc-font-display); font-size: 28px; font-weight: 800; letter-spacing: -.02em; color: var(--qc-black); margin: 10px 0 2px; }
+.qc-stat-value { font-family: var(--qc-font-display); font-size: 28px; font-weight: 600; letter-spacing: -.01em; color: var(--qc-black); margin: 10px 0 2px; }
 .qc-stat-sub { font-size: 12.5px; color: var(--qc-gray); }
 
 .admin-card-head { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 12px; border-bottom: 1px solid var(--qc-border); margin-bottom: 4px; }
-.admin-card-head h6 { font-weight: 800; margin: 0; }
+.admin-card-head h6 { font-weight: 600; margin: 0; }
 .admin-stock-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--qc-border); font-size: 14px; }
 .admin-stock-item:last-child { border-bottom: none; }
 .admin-stock-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -785,7 +785,9 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 .admin-page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
 .admin-thumb { width: 46px; height: 46px; flex: 0 0 46px; object-fit: cover; border-radius: 11px; font-size: 18px; }
 .admin-table td { font-size: 14px; }
-.admin-main .cart-table thead th { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--qc-gray); }
+.admin-main .cart-table thead th { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--qc-gray); }
+/* Cifras en tabla: peso medio, no negrita dura */
+.admin-main .cart-table td.fw-bold, .admin-main .cart-table td .fw-bold { font-weight: 600; }
 .admin-main .cart-table tbody tr { transition: background .12s; }
 .admin-main .cart-table tbody tr:hover { background: #faf8f5; }
 
@@ -813,11 +815,11 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 .qc-kpi-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; background: #fff; border: 1px solid var(--qc-border); border-radius: 18px; overflow: hidden; box-shadow: 0 22px 46px -38px rgba(26,26,26,.4); }
 .qc-kpi { padding: 18px 22px; border-right: 1px solid var(--qc-border); }
 .qc-kpi:last-child { border-right: none; }
-.qc-kpi small { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--qc-gray); }
-.qc-kpi b { font-family: var(--qc-font-display); font-weight: 800; font-size: 22px; letter-spacing: -.02em; display: block; margin-top: 8px; color: var(--qc-black); }
+.qc-kpi small { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--qc-gray); }
+.qc-kpi b { font-family: var(--qc-font-display); font-weight: 600; font-size: 22px; letter-spacing: -.01em; display: block; margin-top: 8px; color: var(--qc-black); }
 @media (max-width: 560px) { .qc-kpi-strip { grid-template-columns: 1fr; } .qc-kpi { border-right: none; border-bottom: 1px solid var(--qc-border); } .qc-kpi:last-child { border-bottom: none; } }
 
-.admin-rank { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--qc-gray-light); color: var(--qc-gray); font-family: var(--qc-font-display); font-weight: 800; font-size: 13px; }
+.admin-rank { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--qc-gray-light); color: var(--qc-gray); font-family: var(--qc-font-display); font-weight: 600; font-size: 13px; }
 .admin-rank.top { background: var(--qc-black); color: #fff; }
 
 .qc-chart-legend { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--qc-gray); }
@@ -837,6 +839,8 @@ div.cart-item-img { display: flex; align-items: center; justify-content: center;
 /* main crece y empuja la paginación al fondo, cerca del footer */
 main.container { flex: 1; display: flex; flex-direction: column; }
 #pagination-container { margin-top: auto; margin-bottom: 0; padding-top: 24px; }
+/* En el admin la paginación va después de la tabla: le damos aire para no romper la jerarquía */
+.admin-main .qc-pagination { margin-top: 24px; }
 .qc-pagination .pagination { gap: 4px; margin-bottom: 0; }
 .qc-pagination .page-item .page-link {
     min-width: 36px;

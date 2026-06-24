@@ -210,14 +210,19 @@ const Admin = {
                     </table>
                 </div>`;
 
-                // Paginación
+                // Paginación (mismo estilo que el catálogo, por coherencia)
                 if (pag && pag.total_pages > 1) {
-                    html += `<nav><ul class="pagination justify-content-center">`;
+                    html += `<nav class="qc-pagination"><ul class="pagination justify-content-center">`;
+                    html += `<li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="${page <= 1 ? 'return false' : `Admin.loadProductos(${page - 1});return false`}">Anterior</a></li>`;
                     for (let i = 1; i <= pag.total_pages; i++) {
                         html += `<li class="page-item ${i === page ? 'active' : ''}">
                             <a class="page-link" href="#" onclick="Admin.loadProductos(${i});return false">${i}</a></li>`;
                     }
+                    html += `<li class="page-item ${page >= pag.total_pages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="${page >= pag.total_pages ? 'return false' : `Admin.loadProductos(${page + 1});return false`}">Siguiente</a></li>`;
                     html += `</ul></nav>`;
+                    html += `<div class="qc-pagination-info">Mostrando página ${page} de ${pag.total_pages} · ${pag.total} productos</div>`;
                 }
             } else {
                     UI.mostrarVacio(container, {
