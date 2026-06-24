@@ -417,21 +417,25 @@ async loadCategorySections() {
             ? '<button class="btn-add is-disabled" disabled><i class="bi bi-x-circle"></i><span class="lbl">Sin stock</span></button>'
             : `<button class="btn-add add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}"><i class="bi bi-cart-plus"></i><span class="lbl">Agregar al carrito</span></button>`;
 
-        const ofertaBadge = p.descuento_pct ? `<span class="qc-badge-oferta">-${p.descuento_pct}%</span>` : '';
+        const ratingChip = p.rating_total > 0
+            ? `<span class="qc-card-rating"><i class="bi bi-star-fill"></i>${p.rating}</span>`
+            : '';
         const precioAnterior = p.precio_anterior_formateado ? `<span class="card-price-old">${p.precio_anterior_formateado}</span>` : '';
+        const ofertaBadge = p.descuento_pct ? `<span class="qc-badge-oferta-card">-${p.descuento_pct}%</span>` : '';
 
         return `
             <div class="col-6 col-lg-4 col-xl-3 mb-4">
                 <div class="product-card position-relative">
                     <a href="#/producto/${p.id}" class="qc-card-media" aria-label="Ver ${this.escapeHtml(p.nombre)}">
                         ${media}
-                        ${ofertaBadge}
                         ${stockBadge}
+                        ${ofertaBadge}
+                        ${ratingChip}
                     </a>
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.marca || p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
-                        <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>${precioAnterior}
+                        <div class="card-price-row"><span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>${precioAnterior}</div>
                         <div class="card-actions pc-actions">
                             ${addButton}
                             <div class="pc-sub">

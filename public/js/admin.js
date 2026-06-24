@@ -121,9 +121,9 @@ const Admin = {
                 <h1 class="admin-page-title">Dashboard</h1>
                 <div class="qc-stats-grid">
                     ${stat('Ventas del mes', d.total_ventas_mes?.total_ventas_formateado || '$0', `${d.total_ventas_mes?.total_pedidos || 0} pedidos pagados`, 'bi-graph-up-arrow', 'accent')}
-                    ${stat('Pedidos totales', d.total_pedidos, `${d.pedidos_pendientes || 0} pendiente${d.pedidos_pendientes === 1 ? '' : 's'}`, 'bi-bag-check', '')}
-                    ${stat('Productos', d.total_productos, agotados > 0 ? `${agotados} agotado${agotados === 1 ? '' : 's'}` : 'Catálogo activo', 'bi-box-seam', agotados > 0 ? 'warn' : '')}
-                    ${stat('Usuarios', d.total_usuarios, 'Registrados', 'bi-people', '')}
+                    ${stat('Pedidos totales', d.total_pedidos, `${d.pedidos_pendientes || 0} pendiente${d.pedidos_pendientes === 1 ? '' : 's'}`, 'bi-bag-check', 'warn')}
+                    ${stat('Productos', d.total_productos, agotados > 0 ? `${agotados} agotado${agotados === 1 ? '' : 's'}` : 'Catálogo activo', 'bi-box-seam', 'blue')}
+                    ${stat('Usuarios', d.total_usuarios, 'Registrados', 'bi-people', 'green')}
                 </div>
 
                 <div class="row g-4 mt-1">
@@ -176,7 +176,7 @@ const Admin = {
             let html = `
                 <div class="admin-page-head">
                     <h1 class="admin-page-title mb-0">Gestión de productos</h1>
-                    <button class="btn btn-accent" id="btn-new-product" onclick="Admin.showProductForm()">
+                    <button class="btn-grafito" id="btn-new-product" onclick="Admin.showProductForm()">
                         <i class="bi bi-plus-lg"></i> Nuevo producto
                     </button>
                 </div>`;
@@ -362,48 +362,87 @@ const Admin = {
         if (!container) return;
 
         try {
-            const [ventasResp, topResp] = await Promise.all([
-                App.fetchAuth(`${App.apiBase}/admin/reportes/ventas?periodo=mes`),
-                App.fetchAuth(`${App.apiBase}/admin/reportes/productos-mas-vendidos`)
-            ]);
-
-            const ventas = await ventasResp.json();
-            const top = await topResp.json();
+            const top = await (await App.fetchAuth(`${App.apiBase}/admin/reportes/productos-mas-vendidos`)).json();
 
             let html = `<h1 class="admin-page-title">Reportes</h1>`;
+
+            // KPIs + gráfico (se llenan según el período elegido)
+            html += `<div class="qc-kpi-strip mb-4" id="kpi-strip"></div>`;
 
             // Productos más vendidos
             html += `<div class="cart-table-card mb-4">
                 <div class="admin-card-head"><h6>Productos más vendidos</h6></div>`;
             if (top.success && top.data && top.data.length > 0) {
+                const clp = n => '$' + new Intl.NumberFormat('es-CL').format(n);
                 html += `<table class="cart-table admin-table">
-                    <thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th class="text-end">Recaudación</th></tr></thead>
+                    <thead><tr><th style="width:56px">#</th><th>Producto</th><th>Unidades</th><th class="text-end">Recaudación</th></tr></thead>
                     <tbody>${top.data.map((p, i) => `
                         <tr>
-                            <td class="text-muted">${i + 1}</td>
+                            <td><span class="admin-rank${i === 0 ? ' top' : ''}">${i + 1}</span></td>
                             <td class="cart-row-name">${this.escapeHtml(p.nombre_producto)}</td>
                             <td class="fw-bold">${p.total_vendido}</td>
-                            <td class="text-primary fw-bold text-end">$${new Intl.NumberFormat('es-CL').format(Math.round(p.total_recaudado))}</td>
+                            <td class="text-primary fw-bold text-end">${clp(Math.round(p.total_recaudado))}</td>
                         </tr>`).join('')}</tbody></table>`;
             } else {
-                html += '<p class="text-muted mb-0">No hay datos de ventas aún.</p>';
+                html += '<p class="text-muted mb-0 px-1 pb-1">Todavía no hay ventas registradas.</p>';
             }
             html += '</div>';
 
-            // Ventas por día
+            // Ventas por día, con selector de período
             html += `<div class="cart-table-card">
-                <div class="admin-card-head"><h6>Ventas últimos 30 días</h6></div>
-                <div id="sales-chart"></div>
+                <div class="admin-card-head">
+                    <h6>Ventas por día</h6>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="qc-chart-legend"><span class="sw"></span>Ingresos diarios</span>
+                        <select id="ventas-periodo" class="form-select form-select-sm admin-status-select" onchange="Admin.refreshVentas(this.value)">
+                            <option value="semana">Última semana</option>
+                            <option value="mes" selected>Últimos 30 días</option>
+                            <option value="trimestre">Últimos 3 meses</option>
+                            <option value="semestre">Últimos 6 meses</option>
+                            <option value="anio">Último año</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="sales-chart" style="padding:18px 18px 0"></div>
             </div>`;
 
             container.innerHTML = html;
-
-            // Renderizar gráfico si hay datos
-            if (ventas.success && ventas.data && ventas.data.length > 0) {
-                this.renderSalesChart(ventas.data);
-            }
+            await this.refreshVentas('mes');
         } catch (e) {
             container.innerHTML = '<div class="alert alert-danger">Error al cargar reportes.</div>';
+        }
+    },
+
+    /**
+     * Refresca KPIs + gráfico de ventas para el período elegido.
+     */
+    async refreshVentas(periodo) {
+        const kpiBox = document.getElementById('kpi-strip');
+        const chartBox = document.getElementById('sales-chart');
+        if (!kpiBox || !chartBox) return;
+
+        const clp = n => '$' + new Intl.NumberFormat('es-CL').format(n);
+        let ventasArr = [];
+        try {
+            const ventas = await (await App.fetchAuth(`${App.apiBase}/admin/reportes/ventas?periodo=${encodeURIComponent(periodo)}`)).json();
+            ventasArr = (ventas.success && Array.isArray(ventas.data)) ? ventas.data : [];
+        } catch (e) { /* deja vacío */ }
+
+        const totalPeriodo = ventasArr.reduce((s, x) => s + Math.round(x.total_ventas), 0);
+        const totalPedidos = ventasArr.reduce((s, x) => s + (Number(x.total_pedidos) || 0), 0);
+        const ticket = totalPedidos ? Math.round(totalPeriodo / totalPedidos) : 0;
+        const mejor = ventasArr.reduce((b, x) => (Math.round(x.total_ventas) > (b ? Math.round(b.total_ventas) : -1) ? x : b), null);
+        const fechaCorta = f => new Date(f + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+
+        kpiBox.innerHTML = `
+            <div class="qc-kpi"><small>Total período</small><b>${clp(totalPeriodo)}</b></div>
+            <div class="qc-kpi"><small>Ticket promedio</small><b>${clp(ticket)}</b></div>
+            <div class="qc-kpi"><small>Mejor día</small><b>${mejor ? `${fechaCorta(mejor.fecha)} · ${clp(Math.round(mejor.total_ventas))}` : '—'}</b></div>`;
+
+        if (ventasArr.length > 0) {
+            this.renderSalesChart(ventasArr);
+        } else {
+            chartBox.innerHTML = '<p class="text-muted text-center py-5 mb-0">Sin ventas en el período. El gráfico se llena a medida que entran pedidos pagados.</p>';
         }
     },
 
@@ -438,7 +477,7 @@ const Admin = {
             }
         });
         html += '</div>';
-        ctx.outerHTML = html;
+        ctx.innerHTML = html;
     },
 
     /**
