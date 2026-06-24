@@ -108,7 +108,10 @@ $router->delete('/api/admin/productos/{id}', [AdminController::class, 'eliminarP
 $router->get('/api/admin/pedidos', [AdminController::class, 'listarPedidos'], auth: true, admin: true);
 $router->patch('/api/admin/pedidos/{id}/estado', [AdminController::class, 'cambiarEstadoPedido'], auth: true, admin: true);
 $router->get('/api/admin/usuarios', [AdminController::class, 'listarUsuarios'], auth: true, admin: true);
+$router->get('/api/admin/usuarios/{id}', [AdminController::class, 'obtenerUsuario'], auth: true, admin: true);
+$router->put('/api/admin/usuarios/{id}', [AdminController::class, 'actualizarUsuario'], auth: true, admin: true);
 $router->patch('/api/admin/usuarios/{id}/estado', [AdminController::class, 'toggleUsuario'], auth: true, admin: true);
+$router->delete('/api/admin/usuarios/{id}', [AdminController::class, 'eliminarUsuario'], auth: true, admin: true);
 $router->get('/api/admin/reportes/ventas', [AdminController::class, 'reporteVentas'], auth: true, admin: true);
 $router->get('/api/admin/reportes/productos-mas-vendidos', [AdminController::class, 'productosMasVendidos'], auth: true, admin: true);
 

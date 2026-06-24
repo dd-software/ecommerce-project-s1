@@ -57,7 +57,7 @@ const Auth = {
 
                     // Redirigir según rol
                     const redirect = new URLSearchParams(window.location.search).get('redirect');
-                    const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+                    const base = App.getBasePath();
                     if (data.data.usuario.rol === 'admin') {
                         window.location.href = base + '/admin.html';
                     } else {
@@ -136,7 +136,7 @@ const Auth = {
 
                 if (data.success) {
                     App.setAuth(data.data.token, data.data.usuario);
-                    const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+                    const base = App.getBasePath();
                     window.location.href = base + '/';
                 } else {
                     if (errorDiv) {

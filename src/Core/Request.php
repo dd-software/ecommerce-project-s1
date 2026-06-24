@@ -28,8 +28,15 @@ class Request
         }
         
         $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-        if ($basePath !== '' && str_starts_with($path, $basePath)) {
-            $path = substr($path, strlen($basePath));
+        if ($basePath !== '') {
+            if (str_starts_with($path, $basePath)) {
+                $path = substr($path, strlen($basePath));
+            } else {
+                $projectBase = preg_replace('/\/public$/', '', $basePath);
+                if ($projectBase !== '' && str_starts_with($path, $projectBase)) {
+                    $path = substr($path, strlen($projectBase));
+                }
+            }
         }
         
         $this->uri = '/' . ltrim($path, '/');

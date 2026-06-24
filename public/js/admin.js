@@ -11,7 +11,7 @@ const Admin = {
      */
     async init() {
         if (!App.token || !App.user || App.user.rol !== 'admin') {
-            const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+            const base = App.getBasePath();
             window.location.href = base + '/index.html?showLogin=true';
             return;
         }
@@ -341,9 +341,21 @@ const Admin = {
                                     <td><span class="badge ${u.activo == 1 ? 'bg-success' : 'bg-danger'}">${u.activo == 1 ? 'Activo' : 'Deshabilitado'}</span></td>
                                     <td>${u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-CL') : 'Nunca'}</td>
                                     <td>
-                                        <button class="btn btn-sm ${u.activo == 1 ? 'btn-outline-danger' : 'btn-outline-success'} btn-action"
-                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})">
-                                            ${u.activo == 1 ? 'Deshabilitar' : 'Activar'}
+                                        <button class="btn btn-sm btn-outline-primary btn-action me-1"
+                                                onclick="Admin.showUserForm(${u.id})" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm ${u.activo == 1 ? 'btn-outline-warning' : 'btn-outline-success'} btn-action me-1"
+                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})" 
+                                                title="${u.id == App.user?.id ? 'No puedes deshabilitar tu propia cuenta' : (u.activo == 1 ? 'Deshabilitar' : 'Activar')}"
+                                                ${u.id == App.user?.id ? 'disabled' : ''}>
+                                            <i class="bi ${u.activo == 1 ? 'bi-slash-circle' : 'bi-check-circle'}"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-action"
+                                                onclick="Admin.deleteUser(${u.id})" 
+                                                title="${u.id == App.user?.id ? 'No puedes eliminar tu propia cuenta' : 'Eliminar'}"
+                                                ${u.id == App.user?.id ? 'disabled' : ''}>
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -700,10 +712,12 @@ const Admin = {
         }
     },
 
-    /**
-     * Activa/desactiva usuario
-     */
     async toggleUser(userId, activo) {
+        if (App.user && parseInt(App.user.id) === parseInt(userId) && activo === 0) {
+            App.showToast('No puedes deshabilitar tu propia cuenta.', 'error');
+            return;
+        }
+
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${userId}/estado`, {
                 method: 'PATCH',
@@ -716,6 +730,169 @@ const Admin = {
             }
         } catch (e) {
             App.showToast('Error', 'error');
+        }
+    },
+
+    async showUserForm(id) {
+        let user = null;
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${id}`);
+            const data = await resp.json();
+            if (data.success) {
+                user = data.data;
+            } else {
+                App.showToast(data.error?.message || 'Error al obtener usuario', 'error');
+                return;
+            }
+        } catch (e) {
+            App.showToast('Error al cargar datos del usuario', 'error');
+            return;
+        }
+
+        const modalHtml = `
+        <div class="modal fade" id="userModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header modal-header-uct">
+                        <h5 class="modal-title">Editar Perfil de Usuario</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="user-form">
+                            <input type="hidden" id="edit-user-id" value="${user.id}">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="edit-user-nombre" value="${this.escapeHtml(user.nombre)}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="edit-user-apellido" value="${this.escapeHtml(user.apellido)}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="edit-user-email" value="${this.escapeHtml(user.email)}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rol *</label>
+                                <select class="form-select" id="edit-user-rol" required>
+                                    <option value="cliente" ${user.rol === 'cliente' ? 'selected' : ''}>Cliente</option>
+                                    <option value="admin" ${user.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+                                    <option value="vendedor" ${user.rol === 'vendedor' ? 'selected' : ''}>Vendedor</option>
+                                    <option value="supervisor" ${user.rol === 'supervisor' ? 'selected' : ''}>Supervisor</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nueva Contraseña (dejar en blanco para conservar)</label>
+                                <input type="password" class="form-control" id="edit-user-password" placeholder="Mínimo 6 caracteres">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-accent" id="btn-save-user" onclick="Admin.saveUser()">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        const oldModal = document.getElementById('userModal');
+        if (oldModal) oldModal.remove();
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modal = new bootstrap.Modal(document.getElementById('userModal'));
+        modal.show();
+    },
+
+    async saveUser() {
+        const id = document.getElementById('edit-user-id').value;
+        const nombre = document.getElementById('edit-user-nombre').value.trim();
+        const apellido = document.getElementById('edit-user-apellido').value.trim();
+        const email = document.getElementById('edit-user-email').value.trim();
+        const rol = document.getElementById('edit-user-rol').value;
+        const password = document.getElementById('edit-user-password').value;
+
+        if (!nombre || !apellido || !email || !rol) {
+            App.showToast('Los campos con asterisco (*) son obligatorios.', 'warning');
+            return;
+        }
+
+        if (password && password.length < 6) {
+            App.showToast('La nueva contraseña debe tener al menos 6 caracteres.', 'warning');
+            return;
+        }
+
+        const btn = document.getElementById('btn-save-user');
+        btn.disabled = true;
+
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ nombre, apellido, email, rol, password })
+            });
+
+            const data = await resp.json();
+
+            if (data.success) {
+                App.showToast('Usuario actualizado correctamente', 'success');
+                const modalEl = document.getElementById('userModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                // Si actualizamos nuestra propia cuenta, actualizamos los datos locales y recargamos
+                if (App.user && parseInt(id) === parseInt(App.user.id)) {
+                    App.user.nombre = nombre + ' ' + apellido;
+                    App.user.email = email;
+                    App.user.rol = rol;
+                    localStorage.setItem('uct_user', JSON.stringify(App.user));
+                    
+                    if (rol !== 'admin') {
+                        App.logout();
+                    } else {
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                    return;
+                }
+
+                this.loadUsuarios();
+            } else {
+                App.showToast(data.error?.message || 'Error al guardar', 'error');
+            }
+        } catch (e) {
+            App.showToast('Error de conexión', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    },
+
+    async deleteUser(userId) {
+        // Prevent deleting oneself on frontend too
+        if (App.user && parseInt(App.user.id) === parseInt(userId)) {
+            App.showToast('No puedes eliminarte a ti mismo.', 'error');
+            return;
+        }
+
+        const confirmText = prompt("Para eliminar este usuario permanentemente, debes ingresar la palabra 'Eliminar':");
+        if (confirmText !== 'Eliminar') {
+            App.showToast('Eliminación cancelada o palabra de confirmación incorrecta', 'info');
+            return;
+        }
+
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${userId}`, {
+                method: 'DELETE'
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                App.showToast('Usuario eliminado correctamente', 'success');
+                this.loadUsuarios();
+            } else {
+                App.showToast(data.error?.message || 'Error al eliminar', 'error');
+            }
+        } catch (e) {
+            App.showToast('Error de conexión', 'error');
         }
     },
 

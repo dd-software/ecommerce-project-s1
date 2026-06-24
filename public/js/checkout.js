@@ -227,7 +227,7 @@ const Checkout = {
                 App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
                 // Redirigir a página existente en el mismo proyecto
                 setTimeout(() => {
-                    window.location.href = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'index.html';
+                    window.location.href = App.getBasePath() + '/index.html';
                 }, 2000);
             } else {
                 App.showToast('Pago rechazado: ' + (paymentData.data?.mensaje || 'Error'), 'error');

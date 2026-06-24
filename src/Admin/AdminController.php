@@ -198,16 +198,19 @@ class AdminController
         }
     }
 
-    /**
-     * PATCH /api/admin/usuarios/{id}/estado
-     * Activa/desactiva un usuario
-     */
     public function toggleUsuario(Request $request, Response $response, array $params): void
     {
         try {
             $id = (int)$params['id'];
             $data = $request->getBody();
             $activo = isset($data['activo']) ? (int)$data['activo'] : null;
+
+            // Evitar que el administrador se deshabilite a sí mismo
+            $currentUser = $request->getAttribute('authenticated_user');
+            if ($currentUser && (int)$currentUser['id'] === $id && $activo === 0) {
+                $response->error('BAD_REQUEST', 'No puedes deshabilitar tu propia cuenta.', 400);
+                return;
+            }
 
             $this->service->cambiarEstadoUsuario($id, $activo);
             $response->json(['mensaje' => 'Estado de usuario actualizado.']);
@@ -227,6 +230,63 @@ class AdminController
             $response->json($reporte);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al obtener reporte.', 500);
+        }
+    }
+
+    /**
+     * GET /api/admin/usuarios/{id}
+     */
+    public function obtenerUsuario(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $usuario = $this->service->obtenerUsuario($id);
+            $response->json($usuario);
+        } catch (\RuntimeException $e) {
+            $response->error('NOT_FOUND', $e->getMessage(), 404);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al obtener detalles del usuario.', 500);
+        }
+    }
+
+    /**
+     * PUT /api/admin/usuarios/{id}
+     */
+    public function actualizarUsuario(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $data = $request->getBody();
+            $this->service->actualizarUsuario($id, $data);
+            $response->json(['mensaje' => 'Usuario actualizado correctamente.']);
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 400);
+        } catch (\RuntimeException $e) {
+            $response->error('NOT_FOUND', $e->getMessage(), 404);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al actualizar usuario.', 500);
+        }
+    }
+
+    /**
+     * DELETE /api/admin/usuarios/{id}
+     */
+    public function eliminarUsuario(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+
+            // Evitar que el administrador se elimine a sí mismo
+            $currentUser = $request->getAttribute('authenticated_user');
+            if ($currentUser && (int)$currentUser['id'] === $id) {
+                $response->error('BAD_REQUEST', 'No puedes eliminarte a ti mismo.', 400);
+                return;
+            }
+
+            $this->service->eliminarUsuario($id);
+            $response->json(['mensaje' => 'Usuario eliminado correctamente.']);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al eliminar usuario.', 500);
         }
     }
 }

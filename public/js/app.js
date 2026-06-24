@@ -10,6 +10,17 @@ const App = {
     cartCount: 0,
 
     /**
+     * Obtiene la ruta base del proyecto de forma robusta
+     */
+    getBasePath() {
+        let base = window.location.pathname;
+        if (base.endsWith('.html') || base.endsWith('.php')) {
+            base = base.substring(0, base.lastIndexOf('/'));
+        }
+        return base.replace(/\/+$/, '');
+    },
+
+    /**
      * Inicializa la aplicación
      */
     init() {
@@ -70,6 +81,15 @@ const App = {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.logout();
+            });
+        }
+
+        // Redirección dinámica al Panel Admin
+        const adminLink = document.getElementById('admin-link');
+        if (adminLink) {
+            adminLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = this.getBasePath() + '/admin.html';
             });
         }
 
@@ -140,7 +160,7 @@ const App = {
         localStorage.removeItem('uct_user');
         this.token = null;
         this.user = null;
-        const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+        const base = this.getBasePath();
         window.location.href = base + '/';
     },
 

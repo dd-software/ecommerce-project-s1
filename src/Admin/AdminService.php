@@ -160,6 +160,53 @@ class AdminService
     }
 
     /**
+     * Obtiene un usuario por ID
+     */
+    public function obtenerUsuario(int $id): array
+    {
+        $usuario = $this->repository->obtenerUsuarioPorId($id);
+        if (!$usuario) {
+            throw new \RuntimeException('Usuario no encontrado.');
+        }
+        return $usuario;
+    }
+
+    /**
+     * Actualiza los datos de un usuario
+     */
+    public function actualizarUsuario(int $id, array $data): void
+    {
+        if (empty($data['nombre']) || empty($data['apellido']) || empty($data['email']) || empty($data['rol'])) {
+            throw new \InvalidArgumentException('Todos los campos excepto la contraseña son obligatorios.');
+        }
+
+        if ($this->repository->existeEmail($data['email'], $id)) {
+            throw new \InvalidArgumentException('El correo electrónico ya está registrado por otro usuario.');
+        }
+
+        $updateData = [
+            'nombre'   => trim($data['nombre']),
+            'apellido' => trim($data['apellido']),
+            'email'    => strtolower(trim($data['email'])),
+            'rol'      => trim($data['rol']),
+        ];
+
+        if (!empty($data['password'])) {
+            $updateData['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
+        }
+
+        $this->repository->actualizarUsuario($id, $updateData);
+    }
+
+    /**
+     * Elimina un usuario (soft delete)
+     */
+    public function eliminarUsuario(int $id): void
+    {
+        $this->repository->eliminarUsuario($id);
+    }
+
+    /**
      * Reporte de ventas
      */
     public function obtenerReporteVentas(string $periodo): array
