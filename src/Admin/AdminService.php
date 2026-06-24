@@ -149,6 +149,45 @@ class AdminService
         }
 
         $this->repository->actualizarEstadoPedido($pedidoId, $nuevoEstado, $userId, $comentario);
+
+        // Avisar al cliente por correo del nuevo estado (no rompe el cambio si falla)
+        $this->notificarCambioEstado($pedido, $nuevoEstado, $pedidoId);
+    }
+
+    /**
+     * Envía un correo al cliente según el nuevo estado del pedido.
+     * Salta 'pagado' (ese ya recibe el correo de confirmación de pago).
+     */
+    private function notificarCambioEstado(array $pedido, string $estado, int $pedidoId): void
+    {
+        $email = (string)($pedido['cliente_email'] ?? '');
+        if ($email === '') {
+            return;
+        }
+
+        $mensajes = [
+            'en_preparacion' => ['Tu pedido está en preparación', 'Estamos preparando tu pedido para despacharlo. Te avisamos en cuanto salga.'],
+            'enviado'        => ['Tu pedido va en camino',        'Tu pedido fue despachado y ya está en camino. Pronto lo vas a recibir.'],
+            'entregado'      => ['Tu pedido fue entregado',        '¡Tu pedido fue entregado! Esperamos que lo disfrutes. Gracias por comprar en QuadCore.'],
+            'cancelado'      => ['Tu pedido fue cancelado',        'Tu pedido fue cancelado. Si crees que es un error o tenés dudas, escribinos y te ayudamos.'],
+        ];
+        if (!isset($mensajes[$estado])) {
+            return;
+        }
+
+        [$asunto, $detalle] = $mensajes[$estado];
+        $nombre = trim((string)($pedido['cliente_nombre'] ?? '')) ?: 'cliente';
+        $cuerpo = "Hola {$nombre},\n\n"
+                . "{$detalle}\n\n"
+                . "Pedido #{$pedidoId}.\n\n"
+                . "Equipo QuadCore";
+
+        try {
+            $integracion = new \App\Integracion\IntegracionService(new \App\Integracion\IntegracionRepository());
+            $integracion->encolarEmail($email, "{$asunto} · QuadCore", $cuerpo, 'estado_pedido');
+        } catch (\Throwable $e) {
+            error_log("Correo de estado pedido #{$pedidoId} no enviado: " . $e->getMessage());
+        }
     }
 
     /**
