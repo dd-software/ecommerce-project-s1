@@ -11,7 +11,7 @@ const Admin = {
      */
     async init() {
         if (!App.token || !App.user || App.user.rol !== 'admin') {
-            const base = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+            const base = App.getBasePath();
             window.location.href = base + '/index.html?showLogin=true';
             return;
         }
