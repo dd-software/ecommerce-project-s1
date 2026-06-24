@@ -184,6 +184,15 @@ class CarritoService
     }
 
     /**
+     * Ata un carrito (de visitante) a un usuario. Se usa al crear el pedido
+     * para que el carrito quede ligado al usuario y se pueda vaciar al pagar.
+     */
+    public function asignarAUsuario(int $carritoId, int $userId): void
+    {
+        $this->repository->asignarCarritoAUsuario($carritoId, $userId);
+    }
+
+    /**
      * Obtiene o crea un carrito y retorna su ID
      */
     private function obtenerOCrearCarritoId(?int $userId, ?string $sessionId): int

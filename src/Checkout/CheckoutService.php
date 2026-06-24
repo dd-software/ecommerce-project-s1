@@ -52,6 +52,10 @@ class CheckoutService
                 throw new \RuntimeException('El carrito está vacío. No se puede crear el pedido.');
             }
 
+            // Atar el carrito al usuario: si se creó como invitado (id_usuario NULL),
+            // el vaciado tras el pago no lo encontraría y se podría volver a comprar.
+            $this->carritoService->asignarAUsuario($carritoId, $userId);
+
             // Validar stock de cada producto (RN-D03, RN-001)
             foreach ($items as $item) {
                 $productoId = (int)$item['id_producto'];
