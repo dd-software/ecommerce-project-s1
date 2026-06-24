@@ -25,9 +25,15 @@ FLUSH PRIVILEGES;
 
 USE uct_ecommerce;
 
+-- NOTA: el comentario va en su propia línea. MySQL toma TODO lo que sigue a
+-- SOURCE (hasta el fin de línea) como nombre de archivo, así que un comentario
+-- al lado rompía la carga ("Failed to open file '...seed.sql -- ...'").
 SOURCE database/schema.sql;
-SOURCE database/seed.sql;          -- usuarios, direcciones, cupones (+ catálogo demo)
-SOURCE database/seed_quadcore.sql; -- reemplaza el catálogo demo por el real QuadCore
-SOURCE database/seed_imagenes.sql; -- imágenes de productos (trabajo de Leonardo)
+-- usuarios, direcciones, cupones (+ catálogo demo)
+SOURCE database/seed.sql;
+-- reemplaza el catálogo demo por el real QuadCore
+SOURCE database/seed_quadcore.sql;
+-- imágenes de productos (trabajo de Leonardo)
+SOURCE database/seed_imagenes.sql;
 
 SELECT '✅ Base de datos configurada correctamente' AS mensaje;

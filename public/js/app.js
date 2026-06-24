@@ -20,6 +20,51 @@ const App = {
         this.initEventListeners();
         this.loadCartCount();
         if (typeof Auth !== 'undefined') Auth.init();
+        this.handlePaymentReturn();
+    },
+
+    /**
+     * Maneja la vuelta desde MercadoPago. MP redirige a /?pago=ok&pedido=ID&payment_id=...
+     * Confirmamos el pago contra MP (vía backend) y mandamos a la página de confirmación.
+     */
+    async handlePaymentReturn() {
+        const qs = new URLSearchParams(location.search);
+        const pago = qs.get('pago');
+        if (!pago) return;
+
+        const paymentId = qs.get('payment_id') || qs.get('collection_id');
+        const pedidoId = qs.get('pedido');
+        // Limpiar la query para que un refresh no re-dispare la confirmación.
+        history.replaceState({}, '', location.pathname + location.hash);
+
+        if (pago === 'ok' && paymentId && this.token) {
+            try {
+                await this.fetchAuth(`${this.apiBase}/pagos/confirmar`, {
+                    method: 'POST', body: JSON.stringify({ payment_id: paymentId })
+                });
+            } catch (e) { /* el webhook confirma igual del lado servidor */ }
+
+            if (typeof Carrito !== 'undefined') await Carrito.loadCart();
+
+            if (pedidoId && typeof Checkout !== 'undefined') {
+                try {
+                    const d = await (await this.fetchAuth(`${this.apiBase}/pedidos/${pedidoId}`)).json();
+                    if (d.success) Checkout.lastOrder = {
+                        id: d.data.id,
+                        total: d.data.total_formateado || this.formatPrice(d.data.total),
+                        direccion: d.data.direccion_envio || '',
+                        email: this.user?.email || ''
+                    };
+                } catch (e) { /* confirmacion mostrará el estado igual */ }
+            }
+            location.hash = '#/confirmacion';
+        } else if (pago === 'pending') {
+            this.showToast('Tu pago quedó pendiente de confirmación.', 'info');
+            location.hash = '#/pedidos';
+        } else {
+            this.showToast('El pago no se completó con éxito, favor vuelva a intentarlo.', 'error');
+            location.hash = '#/carrito';
+        }
     },
 
     /**
@@ -212,7 +257,7 @@ const App = {
             spinner = document.createElement('div');
             spinner.id = 'loading-spinner';
             spinner.className = 'spinner-overlay';
-            spinner.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>';
+            spinner.innerHTML = UI.loader();
             document.body.appendChild(spinner);
         }
         spinner.style.display = 'flex';

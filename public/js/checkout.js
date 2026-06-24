@@ -18,12 +18,11 @@ const Checkout = {
             new bootstrap.Modal(document.getElementById('loginModal')).show();
             return;
         }
-        view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        view.innerHTML = UI.loader();
 
         const data = await (await App.fetchAuth(`${App.apiBase}/carrito`)).json();
         if (!data.success || !data.data.items || data.data.items.length === 0) {
-            view.innerHTML = `<div class="empty-state"><i class="bi bi-cart-x"></i>
-                <h5>Tu carrito está vacío</h5><a href="#/catalogo" class="btn btn-accent btn-sm mt-2">Ir al catálogo</a></div>`;
+            UI.mostrarVacio(view, { icono: 'bi-cart-x', titulo: 'Tu carrito está vacío', textoBoton: 'Ir al catálogo', enlaceBoton: '#/catalogo' });
             return;
         }
         this.cart = data.data;
@@ -128,6 +127,9 @@ const Checkout = {
             e.stopPropagation();
             new bootstrap.Modal(document.getElementById('terminosModal')).show();
         });
+        // "He leído y acepto" marca el checkbox al cerrar el modal
+        const btnAcceptTerms = document.getElementById('btn-terms-accept');
+        if (btnAcceptTerms) btnAcceptTerms.onclick = () => { document.getElementById('co-terms').checked = true; };
         document.getElementById('co-apply-cupon').addEventListener('click', () => {
             const c = document.getElementById('co-cupon').value.trim();
             // ponytail: el cupón se valida/aplica en el backend al confirmar; sin preview en vivo.
@@ -176,13 +178,33 @@ const Checkout = {
             const pedido = orderData.data;
             const pedidoId = pedido.id || pedido.pedido_id;
 
-            const payResp = await App.fetchAuth(`${App.apiBase}/pagos/procesar`, {
+            // Guardar datos de envío en el perfil para precargarlos la próxima compra (fire-and-forget)
+            App.fetchAuth(`${App.apiBase}/auth/perfil`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    telefono,
+                    direccion: calle,
+                    comuna: document.getElementById('co-ciudad').value.trim(),
+                    region: document.getElementById('co-region').value.trim(),
+                    codigo_postal: document.getElementById('co-cp').value.trim()
+                })
+            }).catch(() => {});  // si falla, no rompe la compra
+
+            const payResp = await App.fetchAuth(`${App.apiBase}/pagos/iniciar`, {
                 method: 'POST',
-                body: JSON.stringify({ pedido_id: pedidoId, metodo_pago: metodo, token_tarjeta: 'tok_sim_' + Date.now() })
+                body: JSON.stringify({ pedido_id: pedidoId, email: document.getElementById('co-email').value.trim() })
             });
             const payData = await payResp.json();
+            if (!payData.success) throw new Error(payData.error?.message || 'No se pudo iniciar el pago');
 
-            if (payData.success && payData.data.estado === 'aprobado') {
+            // MercadoPago: salimos del SPA hacia el checkout de MP. Vuelve a /?pago=ok&pedido=...
+            if (payData.data.modo === 'mercadopago' && payData.data.init_point) {
+                window.location.href = payData.data.init_point;
+                return;
+            }
+
+            // Simulado (sin credenciales MP): aprobado al instante.
+            if (payData.data.estado === 'aprobado') {
                 this.lastOrder = {
                     id: pedidoId,
                     total: pedido.total_formateado || App.formatPrice(pedido.total),
@@ -194,7 +216,7 @@ const Checkout = {
             } else {
                 // El carrito sigue activo tras un rechazo (el checkout ya no lo vacía),
                 // así que reintentar crea un pedido nuevo del mismo carrito.
-                show('Pago rechazado: ' + (payData.data?.mensaje || 'Inténtalo nuevamente'));
+                show('No se pudo procesar el pago. Inténtalo nuevamente.');
                 btn.disabled = false;
                 btn.innerHTML = 'Reintentar pago';
             }
@@ -211,8 +233,7 @@ const Checkout = {
         if (!view) return;
         const o = this.lastOrder;
         if (!o) {   // entraron directo sin comprar
-            view.innerHTML = `<div class="empty-state"><i class="bi bi-bag"></i>
-                <h5>No hay un pedido reciente</h5><a href="#/catalogo" class="btn btn-accent btn-sm mt-2">Ir al catálogo</a></div>`;
+            UI.mostrarVacio(view, { icono: 'bi-bag', titulo: 'No hay un pedido reciente', textoBoton: 'Ir al catálogo', enlaceBoton: '#/catalogo' });
             return;
         }
         const numero = `#QC-${new Date().getFullYear()}-${String(o.id).padStart(6, '0')}`;
@@ -234,11 +255,84 @@ const Checkout = {
             <div class="confirm-actions">
                 <button class="btn btn-accent w-100" id="confirm-receipt"><i class="bi bi-download"></i> Descargar recibo</button>
                 <a href="#/" class="btn btn-outline-uct w-100">Volver al inicio</a>
-                <a href="#/pedidos" class="btn btn-outline-uct w-100">Ver mis compras</a>
+                <a href="#/pedidos" class="btn btn-outline-uct w-100">Ver Mis Pedidos</a>
             </div>
             <p class="text-muted small mt-3"><i class="bi bi-shield-lock"></i> Transacción 100% segura y encriptada</p>
         </div>`;
-        // ponytail: "Descargar recibo" es stub; hay endpoint /api/exportar/pedidos para PDF/CSV real si se pide.
-        document.getElementById('confirm-receipt')?.addEventListener('click', () => App.showToast('Descarga de recibo: próximamente', 'info'));
+        // "Descargar recibo": arma un comprobante imprimible (Guardar como PDF del navegador).
+        // Sin librerías; los datos salen de /api/pedidos/{id}.
+        document.getElementById('confirm-receipt')?.addEventListener('click', async () => {
+            try {
+                const data = await (await App.fetchAuth(`${App.apiBase}/pedidos/${o.id}`)).json();
+                if (!data.success) throw new Error('fetch');
+                const p = data.data;
+                const esc = (s) => Catalogo.escapeHtml(String(s ?? ''));
+                const filas = (p.detalle || []).map(d =>
+                    `<tr><td>${esc(d.nombre_producto)}</td><td class="c">x${d.cantidad}</td><td class="r">${App.formatPrice(d.precio_unitario * d.cantidad)}</td></tr>`
+                ).join('');
+                const win = window.open('', '_blank', 'width=620,height=800');
+                if (!win) { App.showToast('Permití las ventanas emergentes para descargar el recibo.', 'info'); return; }
+                const cliente = ((App.user?.nombre || '') + ' ' + (App.user?.apellido || '')).trim();
+                win.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Recibo ${esc(numero)}</title>
+                <style>
+                  *{box-sizing:border-box}
+                  body{font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;background:#ececec;margin:0;padding:18px 10px}
+                  .receipt{max-width:520px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.10)}
+                  .r-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;color:#fff;background:linear-gradient(135deg,#1c1413 0%,#C82F1D 130%);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+                  .r-brand{display:flex;align-items:center;gap:10px}
+                  .r-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:#F74F3C;border-radius:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+                  .r-mark svg{width:17px;height:17px}
+                  .r-name{font-size:18px;font-weight:800;line-height:1}
+                  .r-name small{display:block;font-size:10px;letter-spacing:2px;opacity:.8;font-weight:700}
+                  .r-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+                  .badge{background:#e6f7ef;color:#00a06a;font-weight:700;font-size:12px;padding:5px 12px;border-radius:999px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+                  .r-meta .doc{font-size:11px;letter-spacing:1px;opacity:.85;text-transform:uppercase}
+                  .r-body{padding:18px 20px}
+                  .ordn{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
+                  .lbl{font-size:10px;letter-spacing:1px;color:#999;text-transform:uppercase}
+                  .ordn .n{font-size:20px;font-weight:800}
+                  .muted{color:#888;font-size:12px}
+                  table{width:100%;border-collapse:collapse;margin:6px 0}
+                  th{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#999;text-align:left;border-bottom:2px solid #eee;padding:8px}
+                  td{padding:10px 8px;border-bottom:1px solid #eee;font-size:14px}
+                  .c{text-align:center}.r{text-align:right}
+                  .tot{display:flex;justify-content:space-between;font-size:14px;padding:4px 0;color:#444}
+                  .tot.big{background:#1a1a1a;color:#fff;font-weight:800;font-size:16px;border-radius:9px;padding:12px 14px;margin-top:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+                  .boxes{display:flex;gap:14px;margin-top:20px}
+                  .box{flex:1;background:#f6f6f6;border-radius:10px;padding:14px;font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+                  .box .t{font-size:10px;letter-spacing:1px;color:#999;font-weight:700;text-transform:uppercase;margin-bottom:8px}
+                  .foot{text-align:center;color:#999;font-size:12px;margin-top:22px;padding-top:16px;border-top:1px solid #eee}
+                  @media print{body{background:#fff;padding:0}.receipt{box-shadow:none;border-radius:0;max-width:none}}
+                </style></head><body>
+                  <div class="receipt">
+                    <div class="r-head">
+                      <div class="r-brand"><span class="r-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l2.5-6 3.5 12 3-9 1.5 3H22"/></svg></span><span class="r-name">QuadCore<small>ELECTR&Oacute;NICA</small></span></div>
+                      <div class="r-meta"><span class="badge">&#10003; Pagado</span><span class="doc">Recibo de compra</span></div>
+                    </div>
+                    <div class="r-body">
+                      <div class="ordn">
+                        <div><div class="lbl">N&deg; de orden</div><div class="n">${esc(numero)}</div></div>
+                        <div class="muted r">Fecha de emisi&oacute;n<br><b>${esc((p.created_at || '').slice(0, 10))}</b></div>
+                      </div>
+                      <table><thead><tr><th>Producto</th><th class="c">Cant.</th><th class="r">Subtotal</th></tr></thead><tbody>${filas}</tbody></table>
+                      <div class="tot"><span>Subtotal</span><span>${esc(p.subtotal_formateado || '')}</span></div>
+                      ${p.iva_formateado ? `<div class="tot"><span>IVA (19%)</span><span>${esc(p.iva_formateado)}</span></div>` : ''}
+                      <div class="tot"><span>Despacho</span><span>Gratis</span></div>
+                      <div class="tot big"><span>TOTAL</span><span>${esc(p.total_formateado || o.total)}</span></div>
+                      <div class="boxes">
+                        <div class="box"><div class="t">Despacho a domicilio</div><b>${esc(cliente)}</b><br>${esc(o.direccion)}</div>
+                        <div class="box"><div class="t">M&eacute;todo de pago</div>Pago aprobado<br>v&iacute;a Mercado Pago<br><span class="muted">${esc(o.email)}</span></div>
+                      </div>
+                      <div class="foot">&iexcl;Gracias por tu compra en QuadCore!<br>&iquest;Dudas con tu pedido? Escribinos a soporte@quadcorestore.com</div>
+                    </div>
+                  </div>
+                </body></html>`);
+                win.document.close();
+                win.focus();
+                win.print();
+            } catch (e) {
+                App.showToast('No se pudo generar el recibo. Intentá de nuevo.', 'error');
+            }
+        });
     }
 };

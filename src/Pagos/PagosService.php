@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 /**
- * PagosService - Lógica de negocio de procesamiento de pagos
- * Simula integración con pasarela tipo Webpay
+ * PagosService - Lógica de pagos.
+ * Real con MercadoPago (Checkout Pro, redirección + webhook). Si no hay credenciales
+ * (MP_ACCESS_TOKEN vacío/placeholder), cae a un pago SIMULADO para no romper dev/local.
  */
 namespace App\Pagos;
 
@@ -27,141 +28,175 @@ class PagosService
     }
 
     /**
-     * Procesa un pago simulado para un pedido
-     * RN-E01: El stock se descuenta tras confirmar el pago
-     * RN-E02: El pedido cambia de 'pendiente' a 'pagado' solo con confirmación exitosa
+     * Inicia el pago de un pedido pendiente.
+     * - MercadoPago activo  -> crea preferencia y devuelve init_point (URL para redirigir).
+     * - MercadoPago inactivo -> aprueba simulado al instante (dev).
      */
-    public function procesarPago(int $pedidoId, string $metodoPago, string $tokenTarjeta, int $userId): array
+    public function iniciarPago(int $pedidoId, int $userId, string $payerEmail): array
     {
-        // Verificar que el pedido existe y está pendiente
         $pedido = $this->checkoutService->obtenerPedido($pedidoId);
         if (!$pedido) {
             throw new \RuntimeException('Pedido no encontrado.');
         }
-
         if ($pedido['estado'] !== 'pendiente') {
             throw new \RuntimeException('El pedido ya fue procesado. Estado actual: ' . $pedido['estado']);
         }
 
         $monto = (int)$pedido['total'];
 
-        // Simular procesamiento con pasarela de pago
-        // En entorno real, esto llamaría a Webpay/Stripe/MercadoPago
-        $transaccionId = 'TX-' . strtoupper(bin2hex(random_bytes(6)));
-        $respuestaPasarela = $this->simularPasarelaPago($tokenTarjeta, $monto);
+        if (!MercadoPago::habilitado()) {
+            return $this->procesarSimulado($pedidoId, $userId, $monto);
+        }
 
+        // MercadoPago: una sola línea con el total del pedido (incluye IVA/descuento ya
+        // calculados por el checkout). Evita descuadres entre ítems y total.
+        $items = [[
+            'title'       => 'Pedido QuadCore #' . $pedidoId,
+            'quantity'    => 1,
+            'unit_price'  => $monto,
+            'currency_id' => 'CLP',
+        ]];
+
+        $pref = MercadoPago::crearPreferencia($items, $pedidoId, $payerEmail);
+
+        // Registrar el pago como pendiente, guardando la preferencia como referencia.
+        $this->repository->registrarPago(
+            pedidoId: $pedidoId,
+            metodoPago: 'mercadopago',
+            monto: $monto,
+            referenciaExterna: $pref['preference_id'],
+            estado: 'pendiente',
+            respuesta: json_encode($pref)
+        );
+
+        return [
+            'modo'       => 'mercadopago',
+            'init_point' => $pref['init_point'],
+            'pedido_id'  => $pedidoId,
+        ];
+    }
+
+    /**
+     * Confirma un pago consultando a MercadoPago por el ID de pago (fuente de verdad).
+     * Idempotente: si el pedido ya no está pendiente, no hace nada.
+     * La usan tanto el webhook como el retorno del usuario.
+     */
+    public function confirmarPagoMercadoPago(string $paymentId): array
+    {
+        $pago = MercadoPago::obtenerPago($paymentId);
+
+        $pedidoId = (int)($pago['external_reference'] ?? 0);
+        $estado   = (string)($pago['status'] ?? '');   // approved | rejected | pending | ...
+        if ($pedidoId <= 0) {
+            throw new \RuntimeException('Pago sin referencia de pedido.');
+        }
+
+        $pedido = $this->checkoutService->obtenerPedido($pedidoId);
+        if (!$pedido) {
+            throw new \RuntimeException('Pedido no encontrado.');
+        }
+
+        // Ya procesado: no repetir (webhook + retorno pueden llegar ambos).
+        if ($pedido['estado'] !== 'pendiente') {
+            return ['pedido_id' => $pedidoId, 'estado' => $pedido['estado'], 'ya_procesado' => true];
+        }
+
+        $userId = (int)($pedido['id_usuario'] ?? 0);
+        $transaccionId = 'MP-' . $paymentId;
+
+        $this->repository->registrarPago(
+            pedidoId: $pedidoId,
+            metodoPago: 'mercadopago',
+            monto: (int)$pedido['total'],
+            referenciaExterna: $transaccionId,
+            estado: $estado === 'approved' ? 'aprobado' : 'rechazado',
+            respuesta: json_encode($pago)
+        );
+
+        if ($estado === 'approved') {
+            $this->aprobarPedido($pedidoId, $pedido, $userId, $transaccionId);
+            return ['pedido_id' => $pedidoId, 'estado' => 'pagado'];
+        }
+
+        if (in_array($estado, ['rejected', 'cancelled'], true)) {
+            $this->checkoutService->actualizarEstado($pedidoId, 'cancelado', $userId, 'Pago rechazado en MercadoPago.');
+            return ['pedido_id' => $pedidoId, 'estado' => 'rechazado'];
+        }
+
+        return ['pedido_id' => $pedidoId, 'estado' => 'pendiente'];   // in_process / pending
+    }
+
+    /**
+     * Aplica los efectos de un pago aprobado: descuenta stock, marca pagado, registra
+     * movimientos de inventario y vacía el carrito. Atómico (todo o nada).
+     */
+    private function aprobarPedido(int $pedidoId, array $pedido, int $userId, string $transaccionId): void
+    {
         $db = Database::getInstance();
-
         try {
             $db->beginTransaction();
 
-            // Registrar el intento de pago
-            $pagoId = $this->repository->registrarPago(
+            $this->checkoutService->descontarStock($pedidoId);
+            $this->checkoutService->actualizarEstado(
                 pedidoId: $pedidoId,
-                metodoPago: $metodoPago,
-                monto: $monto,
-                referenciaExterna: $transaccionId,
-                estado: $respuestaPasarela['estado'],
-                respuesta: json_encode($respuestaPasarela)
+                nuevoEstado: 'pagado',
+                userId: $userId ?: null,
+                comentario: 'Pago aprobado. Transacción: ' . $transaccionId
             );
 
-            if ($respuestaPasarela['estado'] === 'aprobado') {
-                // RN-E02 + RN-003: Solo descontar stock tras pago confirmado
-                $this->checkoutService->descontarStock($pedidoId);
-
-                // Actualizar estado del pedido
-                $this->checkoutService->actualizarEstado(
+            $inventarioService = new InventarioService(new InventarioRepository());
+            foreach ($pedido['detalle'] ?? [] as $detalle) {
+                $inventarioService->registrarEgreso(
+                    productoId: (int)$detalle['id_producto'],
+                    cantidad: (int)$detalle['cantidad'],
                     pedidoId: $pedidoId,
-                    nuevoEstado: 'pagado',
-                    userId: $userId,
-                    comentario: 'Pago aprobado. Transacción: ' . $transaccionId
+                    motivo: 'Venta - Pedido #' . $pedidoId
                 );
+            }
 
-                // Registrar movimiento de inventario
-                $inventarioService = new InventarioService(new InventarioRepository());
-                $detalles = $pedido['detalle'] ?? [];
-                foreach ($detalles as $detalle) {
-                    $inventarioService->registrarEgreso(
-                        productoId: (int)$detalle['id_producto'],
-                        cantidad: (int)$detalle['cantidad'],
-                        pedidoId: $pedidoId,
-                        motivo: 'Venta - Pedido #' . $pedidoId
-                    );
-                }
-
-                // Recién ahora se vacía el carrito (el checkout ya no lo hace): así un
-                // pago rechazado deja el carrito intacto para reintentar.
+            // Recién con el pago aprobado se vacía el carrito: un rechazo lo deja intacto.
+            if ($userId) {
                 $carritoRepo = new CarritoRepository();
                 $carrito = $carritoRepo->obtenerCarritoActivoPorUsuario($userId);
                 if ($carrito) {
                     $carritoRepo->desactivarCarrito((int)$carrito['id']);
                 }
-
-                $mensaje = 'Pago aprobado exitosamente.';
-            } else {
-                $this->checkoutService->actualizarEstado(
-                    pedidoId: $pedidoId,
-                    nuevoEstado: 'cancelado',
-                    userId: $userId,
-                    comentario: 'Pago rechazado: ' . $respuestaPasarela['mensaje']
-                );
-                $mensaje = 'Pago rechazado: ' . $respuestaPasarela['mensaje'];
             }
 
             $db->commit();
-
-            return [
-                'transaccion_id'  => $transaccionId,
-                'estado'          => $respuestaPasarela['estado'],
-                'mensaje'         => $mensaje,
-                'pedido_id'       => $pedidoId,
-                'monto'           => $monto,
-                'monto_formateado' => '$' . number_format($monto , 0, ',', '.'),
-            ];
-
         } catch (\Exception $e) {
             $db->rollback();
             throw $e;
         }
     }
 
-    /**
-     * Simula una pasarela de pago (Webpay)
-     * Aprueba pagos con token que no empiecen con "fail_"
-     */
-    private function simularPasarelaPago(string $tokenTarjeta, int $monto): array
+    /** Pago simulado (sin credenciales MP): aprueba al instante. Solo dev. */
+    private function procesarSimulado(int $pedidoId, int $userId, int $monto): array
     {
-        // Simular delay de procesamiento
-        usleep(100000); // 100ms
+        $transaccionId = 'SIM-' . strtoupper(bin2hex(random_bytes(6)));
+        $pedido = $this->checkoutService->obtenerPedido($pedidoId);
 
-        // Tokens que empiezan con "fail_" simulan rechazo
-        if (str_starts_with($tokenTarjeta, 'fail_')) {
-            return [
-                'estado'  => 'rechazado',
-                'codigo'  => 'REJECTED',
-                'mensaje' => 'Tarjeta rechazada por el emisor.',
-            ];
-        }
-
-        // 90% de probabilidad de aprobación en simulación
-        if (random_int(1, 10) <= 9) {
-            return [
-                'estado'  => 'aprobado',
-                'codigo'  => 'APPROVED',
-                'mensaje' => 'Transacción aprobada.',
-                'cuotas'  => 1,
-            ];
-        }
+        $this->repository->registrarPago(
+            pedidoId: $pedidoId,
+            metodoPago: 'simulado',
+            monto: $monto,
+            referenciaExterna: $transaccionId,
+            estado: 'aprobado',
+            respuesta: json_encode(['estado' => 'aprobado', 'simulado' => true])
+        );
+        $this->aprobarPedido($pedidoId, $pedido, $userId, $transaccionId);
 
         return [
-            'estado'  => 'rechazado',
-            'codigo'  => 'INSUFFICIENT_FUNDS',
-            'mensaje' => 'Fondos insuficientes.',
+            'modo'           => 'simulado',
+            'estado'         => 'aprobado',
+            'pedido_id'      => $pedidoId,
+            'transaccion_id' => $transaccionId,
+            'monto'          => $monto,
         ];
     }
 
     /**
-     * Consulta el estado del pago de un pedido
+     * Consulta el estado del pago de un pedido (lo usa el front para hacer polling).
      */
     public function consultarEstadoPago(int $pedidoId): ?array
     {
@@ -169,27 +204,13 @@ class PagosService
     }
 
     /**
-     * Procesa un webhook de confirmación de la pasarela
+     * Webhook de MercadoPago. MP avisa con type=payment & data.id; confirmamos contra su API.
      */
-    public function procesarWebhook(int $pedidoId, string $estado, string $transaccionId): void
+    public function procesarWebhook(string $tipo, string $dataId): void
     {
-        $pago = $this->repository->obtenerPagoPorPedido($pedidoId);
-        if (!$pago) {
-            throw new \RuntimeException('No se encontró pago para este pedido.');
+        if ($tipo !== 'payment' || $dataId === '') {
+            return; // ignoramos otros eventos (merchant_order, etc.)
         }
-
-        $nuevoEstado = match ($estado) {
-            'approved', 'aprobado' => 'aprobado',
-            'rejected', 'rechazado' => 'rechazado',
-            'refunded', 'reembolsado' => 'reembolsado',
-            default => 'pendiente',
-        };
-
-        $this->repository->actualizarEstadoPago((int)$pago['id'], $nuevoEstado, $transaccionId);
-
-        if ($nuevoEstado === 'aprobado') {
-            $this->checkoutService->descontarStock($pedidoId);
-            $this->checkoutService->actualizarEstado($pedidoId, 'pagado', null, 'Confirmado por webhook');
-        }
+        $this->confirmarPagoMercadoPago($dataId);
     }
 }

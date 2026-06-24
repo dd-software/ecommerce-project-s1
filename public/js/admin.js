@@ -14,9 +14,7 @@ const Admin = {
         const view = document.getElementById('view-generic');
         if (!view) return;
         if (!App.user || App.user.rol !== 'admin') {
-            view.innerHTML = `<div class="empty-state"><i class="bi bi-shield-lock"></i>
-                <h5>Acceso restringido</h5><p class="text-muted">Esta sección es solo para administradores.</p>
-                <a href="#/" class="btn btn-outline-uct btn-sm mt-2">Volver al inicio</a></div>`;
+            UI.mostrarVacio(view, { icono: 'bi-shield-lock', titulo: 'Acceso restringido', descripcion: 'Esta sección es solo para administradores.', textoBoton: 'Volver al inicio', enlaceBoton: '#/', claseBoton: 'btn-outline-uct' });
             return;
         }
         view.innerHTML = `
@@ -222,7 +220,14 @@ const Admin = {
                     html += `</ul></nav>`;
                 }
             } else {
-                html += '<p class="text-muted">No hay productos registrados.</p>';
+                    UI.mostrarVacio(container, {
+                        icono: 'bi-box-seam',
+                        titulo: 'Sin productos',
+                        descripcion: 'Aún no has agregado productos al catálogo.',
+                        textoBoton: 'Crear producto',
+                        enlaceBoton: '#NuevoProducto', // o usar el botón "Nuevo producto" existente
+                        claseBoton: 'btn-accent'
+                    });
             }
 
             container.innerHTML = html;
@@ -280,7 +285,13 @@ const Admin = {
                     </table>
                 </div>`;
             } else {
-                html += '<p class="text-muted">No hay pedidos registrados.</p>';
+                UI.mostrarVacio(container, {
+                    icono: 'bi-bag',
+                    titulo: 'Sin pedidos',
+                    descripcion: 'Aún no se ha registrado ningún pedido en la tienda.',
+                    textoBoton: 'Ver catálogo',
+                    enlaceBoton: '#/catalogo'
+                });
             }
 
             container.innerHTML = html;
@@ -330,7 +341,11 @@ const Admin = {
                     </table>
                 </div>`;
             } else {
-                html += '<p class="text-muted">No hay usuarios registrados.</p>';
+                UI.mostrarVacio(container, {
+                    icono: 'bi-people',
+                    titulo: 'Sin usuarios',
+                    descripcion: 'No hay usuarios registrados aún.'
+                });
             }
 
             container.innerHTML = html;

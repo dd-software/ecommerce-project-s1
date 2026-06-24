@@ -357,3 +357,19 @@ UPDATE productos SET precio_anterior = 299990 WHERE slug = 'audifonos-bose-quiet
 
 -- Boost de stock general (más inventario; respeta el agotado de demo)
 UPDATE productos SET stock = stock + 15 WHERE stock > 0;
+
+-- ============================================
+-- DEMO PAGO REAL (MercadoPago)
+-- Producto a $990 + cupón que deja el total en $10 (990 + IVA 188 = 1178; descuento 1168).
+-- Sirve para que cualquiera haga una compra REAL de $10 y se vea el cobro funcionando.
+-- ============================================
+INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, stock_minimo, marca, imagen_url, activo, meta_descripcion) VALUES
+(1, 'Producto Demo — Prueba de Pago Real', 'producto-demo-pago-real',
+ 'Producto de demostración para probar el pago real con MercadoPago. Vale $990; usando el cupón PAGOREAL10 el total queda en $10. Compra de verdad, monto simbólico.',
+ 990, 9999, 0, 'QuadCore', 'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=600', 1,
+ 'Producto demo para probar el pago real.');
+
+-- Cupón de 1 uso por usuario (el límite por persona se valida en el checkout; usos_maximos
+-- global = NULL). Deja el demo en $10. monto_minimo 990 => solo aplica si está el demo.
+INSERT INTO cupones (codigo, tipo_descuento, valor, monto_minimo, usos_maximos, usos_actuales, fecha_inicio, fecha_fin, activo) VALUES
+('PAGOREAL10', 'monto_fijo', 1168, 990, NULL, 0, '2026-01-01 00:00:00', '2027-12-31 23:59:59', 1);

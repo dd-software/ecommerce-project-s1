@@ -231,6 +231,22 @@ class CheckoutRepository
     }
 
     /**
+     * ¿El usuario ya usó este cupón en una compra PAGADA?
+     * Cuenta solo pedidos pagados: un pedido abandonado/rechazado no quema el uso.
+     */
+    public function usuarioYaUsoCupon(int $userId, int $cuponId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT 1 FROM pedido_cupon pc
+             INNER JOIN pedidos p ON p.id = pc.id_pedido
+             WHERE p.id_usuario = :uid AND pc.id_cupon = :cupon AND p.estado = 'pagado'
+             LIMIT 1"
+        );
+        $stmt->execute([':uid' => $userId, ':cupon' => $cuponId]);
+        return (bool)$stmt->fetch();
+    }
+
+    /**
      * Registra el uso de un cupón en un pedido
      */
     public function aplicarCupon(int $pedidoId, int $cuponId, int $descuento): void

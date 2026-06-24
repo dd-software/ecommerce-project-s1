@@ -18,6 +18,29 @@ const Auth = {
         const form = document.getElementById('login-form');
         if (!form) return;
 
+        // Mostrar/ocultar contraseña
+        const passInput = document.getElementById('login-password');
+        const passToggle = document.getElementById('login-pass-toggle');
+        passToggle?.addEventListener('click', () => {
+            const show = passInput.type === 'password';
+            passInput.type = show ? 'text' : 'password';
+            passToggle.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+
+        // Recordarme: precargar el email guardado
+        const savedEmail = localStorage.getItem('qc_remember_email');
+        if (savedEmail) {
+            document.getElementById('login-email').value = savedEmail;
+            const chk = document.getElementById('login-remember');
+            if (chk) chk.checked = true;
+        }
+
+        // "¿Olvidaste tu contraseña?": el flujo real (reset por correo) queda pendiente del SMTP.
+        document.getElementById('login-forgot')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            App.showToast?.('Recuperación de contraseña por correo: disponible muy pronto.', 'info');
+        });
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -43,6 +66,13 @@ const Auth = {
 
                 if (data.success) {
                     App.setAuth(data.data.token, data.data.usuario);
+
+                    // Recordarme: guardar o limpiar el email
+                    if (document.getElementById('login-remember')?.checked) {
+                        localStorage.setItem('qc_remember_email', email);
+                    } else {
+                        localStorage.removeItem('qc_remember_email');
+                    }
 
                     // Sincronizar carrito
                     const sessionId = App.getSessionId();
@@ -80,7 +110,7 @@ const Auth = {
 
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Iniciar Sesión';
+                submitBtn.innerHTML = 'Iniciar Sesión <i class="bi bi-arrow-right"></i>';
             }
         });
     },

@@ -2,22 +2,32 @@
  * contacto.js — Vista de Contacto (#/contacto)  ·  TAREA LEONARDO #2
  * Solo se edita este archivo + css/leo.css. El form no tiene backend: solo muestra un toast.
  */
+
+// Datos de contacto (definidos localmente para no depender de import)
+const CONTACT_INFO = {
+    address: 'Av. Providencia 1234, Santiago, Chile',
+    phone: '+56 2 2123 4567',
+    email: 'contacto@quadcore.cl',
+    schedule: 'Lun a Vie 9:00–18:00 · Sáb 10–14h'
+};
+
 const Contacto = {
     render() {
         const view = document.getElementById('view-generic');
         if (!view) return;
         view.innerHTML = `
             <div class="leo-contacto">
-                <header class="leo-contacto-hero">
-                    <span class="leo-badge"><i class="bi bi-headset"></i> Atención al cliente</span>
-                    <h2 class="qc-similares-title">Contáctanos</h2>
-                    <p class="leo-contacto-sub">¿Tienes dudas sobre un producto o necesitas servicio técnico?
-                        Escríbenos y te respondemos dentro de 24 horas hábiles.</p>
-                </header>
+                <div class="gw-page">
+                    <header class="gw-head">
+                        <p class="gw-kicker"><i class="bi bi-headset"></i> Atención al cliente</p>
+                        <h1>Contáctanos</h1>
+                        <p class="lead">¿Tienes dudas sobre un producto o necesitas servicio técnico? Escríbenos y te respondemos dentro de 24 horas hábiles.</p>
+                    </header>
+                </div>
 
                 <div class="row g-4 align-items-stretch">
-                    <div class="col-lg-7">
-                        <div class="leo-card">
+                    <div class="col-lg-6">
+                        <div class="leo-card h-100">
                             <h3 class="leo-card-title"><i class="bi bi-chat-dots"></i> Envíanos un mensaje</h3>
                             <form id="contacto-form" class="leo-contacto-form" novalidate>
                                 <div class="leo-field">
@@ -61,22 +71,22 @@ const Contacto = {
                         </div>
                     </div>
 
-                    <div class="col-lg-5">
+                    <div class="col-lg-6">
                         <div class="leo-card leo-contacto-info h-100">
                             <h3 class="leo-card-title"><i class="bi bi-geo-alt"></i> Visítanos</h3>
                             <iframe class="qc-mapframe" title="Mapa de QuadCore en Providencia, Santiago" loading="lazy"
                                 src="https://www.openstreetmap.org/export/embed.html?bbox=-70.6250,-33.4305,-70.6130,-33.4225&layer=mapnik&marker=-33.4265,-70.6190"></iframe>
                             <ul class="leo-info-list">
-                                <li><i class="bi bi-geo-alt"></i><div><strong>Dirección</strong><span>Av. Providencia 1234, Santiago, Chile</span></div></li>
-                                <li><i class="bi bi-telephone"></i><div><strong>Teléfono</strong><span>+56 2 2123 4567</span></div></li>
-                                <li><i class="bi bi-envelope"></i><div><strong>Email</strong><span>contacto@quadcore.cl</span></div></li>
-                                <li><i class="bi bi-clock"></i><div><strong>Horario</strong><span>Lun a Vie 9–19h · Sáb 10–14h</span></div></li>
+                                <li><i class="bi bi-geo-alt"></i><div><strong>Dirección</strong><span>${CONTACT_INFO.address}</span></div></li>
+                                <li><i class="bi bi-telephone"></i><div><strong>Teléfono</strong><span>${CONTACT_INFO.phone}</span></div></li>
+                                <li><i class="bi bi-envelope"></i><div><strong>Email</strong><span>${CONTACT_INFO.email}</span></div></li>
+                                <li><i class="bi bi-clock"></i><div><strong>Horario</strong><span>${CONTACT_INFO.schedule}</span></div></li>
                             </ul>
                             <div class="leo-social">
                                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
                                 <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
                                 <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
-                                <a href="https://wa.me/56221234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                                <a href="https://wa.me/${CONTACT_INFO.phone.replace(/[^0-9]/g, '')}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
                             </div>
                         </div>
                     </div>
@@ -117,3 +127,6 @@ const Contacto = {
         });
     }
 };
+
+// Hacer Contacto global
+window.Contacto = Contacto;

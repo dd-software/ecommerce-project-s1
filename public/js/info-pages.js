@@ -2,6 +2,7 @@
  * info-pages.js — Páginas institucionales (Venta Empresas, Tiendas) + menú de
  * categorías del header. Estilo PCFactory adaptado a QuadCore. Contenido estático.
  */
+
 const Info = {
     /** #/empresas — landing B2B */
     empresas() {
@@ -49,7 +50,7 @@ const Info = {
                     <p>Compra online y retira gratis en tienda, o acércate a ver los productos en persona.</p>
                 </div>
                 <div class="qc-info-grid">
-                    ${tienda('QuadCore Providencia', 'Av. Providencia 1234, Santiago', 'Lun a Vie 9–19h · Sáb 10–14h', 'https://www.openstreetmap.org/export/embed.html?bbox=-70.6250,-33.4305,-70.6130,-33.4225&layer=mapnik&marker=-33.4265,-70.6190')}
+                    ${tienda('QuadCore Providencia', CONTACT_INFO.address, CONTACT_INFO.schedule, 'https://www.openstreetmap.org/export/embed.html?bbox=-70.6250,-33.4305,-70.6130,-33.4225&layer=mapnik&marker=-33.4265,-70.6190')}
                     ${tienda('QuadCore Centro', 'Bandera 456, Santiago Centro', 'Lun a Vie 10–19h · Sáb 10–14h', 'https://www.openstreetmap.org/export/embed.html?bbox=-70.6590,-33.4440,-70.6470,-33.4360&layer=mapnik&marker=-33.4400,-70.6530')}
                 </div>
                 <div class="qc-info-cta">
@@ -75,3 +76,6 @@ const Info = {
         } catch (e) { /* el botón queda sin items */ }
     }
 };
+
+// Hacer Info global (como el resto de objetos)
+window.Info = Info;

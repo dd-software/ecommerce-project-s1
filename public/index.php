@@ -88,7 +88,8 @@ $router->get('/api/pedidos', [CheckoutController::class, 'misPedidos'], auth: tr
 $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], auth: true);
 
 // --- Módulo E: Pagos ---
-$router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
+$router->post('/api/pagos/iniciar', [PagosController::class, 'iniciar'], auth: true);
+$router->post('/api/pagos/confirmar', [PagosController::class, 'confirmar'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
 

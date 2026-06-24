@@ -84,7 +84,7 @@ const Catalogo = {
         const container = document.getElementById('products-container');
         if (!container) return;
 
-        container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        container.innerHTML = UI.loader('Cargando productos...');
 
         const params = new URLSearchParams();
         if (this.filters.categorias && this.filters.categorias.length) params.set('categorias', this.filters.categorias.join(','));
@@ -247,11 +247,20 @@ const Catalogo = {
     async loadOfertasMosaic() {
         const box = document.getElementById('home-ofertas');
         if (!box) return;
-        box.innerHTML = '<div class="text-center py-4 w-100"><div class="spinner-border text-primary"></div></div>';
+        box.innerHTML = UI.loader('Cargando ofertas...');
         try {
             const data = await (await fetch(`${App.apiBase}/catalogo/ofertas`)).json();
             const ofertas = data.data || [];
-            if (!ofertas.length) { box.innerHTML = '<p class="text-muted">No hay ofertas por ahora.</p>'; return; }
+            if (!ofertas.length) { 
+                UI.mostrarVacio(box, {
+                icono: 'bi-tag',
+                titulo: 'Sin ofertas por ahora',
+                descripcion: 'Pronto tendremos promociones disponibles. ¡Vuelve a consultar!',
+                textoBoton: 'Ver catálogo',
+                enlaceBoton: '#/catalogo',
+                variante: 'inline'
+            });
+            }
             // Grandes = productos importantes: mayor AHORRO absoluto (no solo %).
             // Chicas = el resto de las mejores ofertas (vienen ordenadas por % desc).
             const big = [...ofertas].sort((a, b) => (b.precio_anterior - b.precio) - (a.precio_anterior - a.precio)).slice(0, 2);
@@ -326,7 +335,7 @@ const Catalogo = {
     async loadCarousel(containerId, url) {
         const box = document.getElementById(containerId);
         if (!box) return;
-        box.innerHTML = '<div class="text-center py-4 w-100"><div class="spinner-border text-primary"></div></div>';
+        box.innerHTML = UI.loader('Cargando...');
         try {
             const data = await (await fetch(url)).json();
             const items = data.data || [];
@@ -337,21 +346,37 @@ const Catalogo = {
     },
 
     /** Un carrusel por cada categoría que tenga productos */
-    async loadCategorySections() {
-        const box = document.getElementById('home-secciones');
-        if (!box) return;
-        try {
-            const cats = (await (await fetch(`${App.apiBase}/catalogo/categorias`)).json()).data || [];
-            const conProductos = cats.filter(c => (c.total_productos ?? 0) > 0).slice(0, 4);
-            box.innerHTML = conProductos.map(c => `
-                <div class="qc-section-head">
-                    <h2 class="section-title mb-0">${this.escapeHtml(c.nombre)}</h2>
-                    <a href="#/catalogo?cat=${encodeURIComponent(c.slug)}" class="qc-section-link">Ver todo →</a>
-                </div>
-                <div class="qc-carousel" id="home-cat-${c.id}"></div>`).join('');
-            conProductos.forEach(c =>
-                this.loadCarousel(`home-cat-${c.id}`, `${App.apiBase}/catalogo?categoria=${c.id}&por_pagina=10`));
-        } catch (e) { box.innerHTML = ''; }
+async loadCategorySections() {
+    const box = document.getElementById('home-secciones');
+    if (!box) return;
+    try {
+        const cats = (await (await fetch(`${App.apiBase}/catalogo/categorias`)).json()).data || [];
+        const conProductos = cats.filter(c => (c.total_productos ?? 0) > 0).slice(0, 4);
+
+        // 👇 Chequeo ANTES de renderizar
+        if (conProductos.length === 0) {
+            UI.mostrarVacio(box, {
+                icono: 'bi-grid',
+                titulo: 'Pronto más productos',
+                descripcion: 'Estamos ampliando nuestro catálogo. Vuelve pronto.',
+                variante: 'inline'
+            });
+            return;
+        }
+
+        // Renderizar solo si hay productos
+        box.innerHTML = conProductos.map(c => `
+            <div class="qc-section-head">
+                <h2 class="section-title mb-0">${this.escapeHtml(c.nombre)}</h2>
+                <a href="#/catalogo?cat=${encodeURIComponent(c.slug)}" class="qc-section-link">Ver todo →</a>
+            </div>
+            <div class="qc-carousel" id="home-cat-${c.id}"></div>`).join('');
+        conProductos.forEach(c =>
+            this.loadCarousel(`home-cat-${c.id}`, `${App.apiBase}/catalogo?categoria=${c.id}&por_pagina=10`));
+    } catch (e) {
+        box.innerHTML = '';
+    }
+
     },
 
     /**
@@ -362,14 +387,14 @@ const Catalogo = {
         if (!container) return;
 
         if (products.length === 0) {
-            container.innerHTML = `
-                <div class="col-12">
-                    <div class="empty-state">
-                        <i class="bi bi-search"></i>
-                        <h5>No se encontraron productos</h5>
-                        <p class="text-muted">Intenta con otros filtros o términos de búsqueda.</p>
-                    </div>
-                </div>`;
+            UI.mostrarVacio(container, {
+                icono: 'bi-search',
+                titulo: 'No se encontraron productos',
+                descripcion: 'Prueba con otros términos o quita los filtros aplicados.',
+                textoBoton: 'Limpiar filtros',
+                enlaceBoton: '#/catalogo',
+                claseBoton: 'btn-outline-uct'
+            });
             return;
         }
 
@@ -398,18 +423,21 @@ const Catalogo = {
         return `
             <div class="col-6 col-lg-4 col-xl-3 mb-4">
                 <div class="product-card position-relative">
-                    <div class="qc-card-media">
+                    <a href="#/producto/${p.id}" class="qc-card-media" aria-label="Ver ${this.escapeHtml(p.nombre)}">
                         ${media}
                         ${ofertaBadge}
                         ${stockBadge}
-                    </div>
+                    </a>
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.marca || p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
                         <span class="card-price">${p.precio_formateado || App.formatPrice(p.precio)}</span>${precioAnterior}
                         <div class="card-actions">
                             ${addButton}
-                            <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver detalle</a>
+                            <div class="d-flex gap-2 mt-1">
+                                <a href="#/producto/${p.id}" class="btn btn-outline-uct btn-sm flex-grow-1">Ver detalle</a>
+                                <button type="button" class="btn btn-outline-uct btn-sm qc-compare-toggle${window.Compare?.isSelected(p.id) ? ' active' : ''}" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}" title="Comparar" aria-label="Comparar"><i class="bi bi-arrow-left-right"></i></button>
+                            </div>
                             ${extra}
                         </div>
                     </div>
@@ -666,7 +694,7 @@ const Catalogo = {
                         ${addButton}
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-uct w-100" id="btn-fav"><i class="bi bi-heart"></i> Agregar a favoritos</button>
-                            <button class="btn btn-outline-uct w-100" id="btn-compare"><i class="bi bi-arrow-left-right"></i> Comparar</button>
+                            <button type="button" class="btn btn-outline-uct w-100 qc-compare-toggle${window.Compare?.isSelected(product.id) ? ' active' : ''}" data-id="${product.id}" data-name="${this.escapeHtml(product.nombre)}"><i class="bi bi-arrow-left-right"></i> Comparar</button>
                         </div>
                     </div>
                 </div>
@@ -814,11 +842,15 @@ const Catalogo = {
         const view = document.getElementById('view-generic');
         if (!view) return;
         if (!App.token) {
-            view.innerHTML = `<div class="empty-state"><i class="bi bi-heart"></i>
-                <h5>Mis favoritos</h5><p class="text-muted">Inicia sesión para ver tu lista de favoritos.</p></div>`;
-            return;
+            UI.mostrarVacio(view, {
+                icono: 'bi-heart',
+                titulo: 'Mis favoritos',
+                descripcion: App.token ? 'Aún no tienes productos favoritos. Explora el catálogo.' : 'Inicia sesión para ver tu lista de favoritos.',
+                textoBoton: 'Ir al catálogo',
+                enlaceBoton: '#/catalogo'
+            });
         }
-        view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        view.innerHTML = UI.loader('Cargando favoritos...');
         try {
             const data = await (await App.fetchAuth(`${App.apiBase}/favoritos`)).json();
             const productos = data.data?.productos || [];
@@ -880,8 +912,7 @@ const Catalogo = {
             btnDetail.innerHTML = original;
         });
 
-        // favoritos lo maneja initFavButton(); comparar sigue siendo stub fuera de alcance.
-        document.getElementById('btn-compare')?.addEventListener('click', () => App.showToast('Comparar: próximamente', 'info'));
+        // favoritos lo maneja initFavButton(); comparar lo maneja Compare (handler global por .qc-compare-toggle).
     },
 
     /** Carga 4 productos de la misma categoría (excluye el actual) */
