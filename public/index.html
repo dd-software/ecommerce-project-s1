@@ -1,299 +1,371 @@
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="dark">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<base href="/ecommerce-project-s1/public/">
-<title>Ecommerce UCT - Tienda Online</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="./">
+  <title>Ecommerce UCT - Tienda Online</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-<div id="loading-spinner" class="d-none text-center mt-5"><div class="spinner-border text-primary" role="status"></div></div>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="./">🛒 Ecommerce UCT</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <form class="d-flex mx-auto" id="search-form" role="search">
-        <input class="form-control me-2" type="search" id="search-input" placeholder="Buscar productos..." aria-label="Buscar">
-        <button class="btn btn-outline-light" type="submit"><i class="bi bi-search"></i></button>
-      </form>
-      <ul class="navbar-nav ms-auto">
-        <!-- Sin autenticar -->
-        <li class="nav-item" id="auth-links">
-          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-person"></i> Iniciar Sesión</a>
-        </li>
-        <li class="nav-item dropdown d-none" id="user-links">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#" id="orders-link" data-bs-toggle="modal" data-bs-target="#ordersModal"><i class="bi bi-clock-history"></i> Mis Pedidos</a></li>
-            <li><a class="dropdown-item d-none" href="#" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-          </ul>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-            <span class="position-relative d-inline-block">
-              <i class="bi bi-cart3"></i> Carrito
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" id="cart-count" style="font-size: 0.65rem; padding: 0.25em 0.5em;">0</span>
-            </span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<main class="container mt-4">
-  <!-- Vista de Búsqueda / Filtros (Oculta por defecto) -->
-  <div id="catalog-search-view" class="d-none">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 id="search-results-title" class="fw-bold text-dark">Resultados de búsqueda</h3>
-      <button class="btn btn-outline-secondary btn-sm" id="btn-clear-search-filters">Volver al Inicio</button>
-    </div>
-    <div id="products-container" class="row"></div>
-    <div id="pagination-container" class="d-flex justify-content-center mt-4"></div>
+  <div id="loading-spinner" class="d-none text-center mt-5">
+    <div class="spinner-border text-primary" role="status"></div>
   </div>
 
-  <!-- Vista por Defecto: Secciones Separadas por Categorías -->
-  <div id="catalog-home-view">
-    <!-- Hero Banner / Promociones -->
-    <div class="p-5 mb-5 bg-dark text-white rounded-3 position-relative overflow-hidden shadow-sm hero-banner-home" style="background: linear-gradient(135deg, var(--uct-primary) 0%, #0c2340 100%);">
-      <div class="row align-items-center">
-        <div class="col-md-7 position-relative z-index-1">
-          <span class="badge bg-warning text-dark mb-2 fw-bold px-3 py-2 text-uppercase">Novedades de la Semana</span>
-          <h1 class="display-4 fw-bold">Los mejores gadgets de Tecnología</h1>
-          <p class="lead">Encuentra notebooks, celulares y accesorios con descuentos exclusivos e IVA incluido.</p>
-          <a href="#" class="btn btn-accent btn-lg px-4 me-2 view-category-btn-home" data-cat="1">Ver Tecnología</a>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="./">🛒 Ecommerce UCT</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <form class="d-flex mx-auto" id="search-form" role="search">
+          <input class="form-control me-2" type="search" id="search-input" placeholder="Buscar productos..."
+            aria-label="Buscar">
+          <button class="btn btn-outline-light" type="submit"><i class="bi bi-search"></i></button>
+        </form>
+        <ul class="navbar-nav ms-auto">
+          <!-- Sin autenticar -->
+          <li class="nav-item" id="auth-links">
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i
+                class="bi bi-person"></i> Iniciar Sesión</a>
+          </li>
+          <li class="nav-item dropdown d-none" id="user-links">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="#" id="orders-link" data-bs-toggle="modal"
+                  data-bs-target="#ordersModal"><i class="bi bi-clock-history"></i> Mis Pedidos</a></li>
+              <li><a class="dropdown-item d-none" href="#" id="admin-link"><i class="bi bi-speedometer2"></i> Panel
+                  Admin</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar
+                  Sesión</a></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+              <span class="position-relative d-inline-block">
+                <i class="bi bi-cart3"></i> Carrito
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
+                  id="cart-count" style="font-size: 0.65rem; padding: 0.25em 0.5em;">0</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mt-4">
+    <!-- Vista de Búsqueda / Filtros (Oculta por defecto) -->
+    <div id="catalog-search-view" class="d-none">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 id="search-results-title" class="fw-bold text-dark">Resultados de búsqueda</h3>
+        <button class="btn btn-outline-secondary btn-sm" id="btn-clear-search-filters">Volver al Inicio</button>
+      </div>
+      <div id="products-container" class="row"></div>
+      <div id="pagination-container" class="d-flex justify-content-center mt-4"></div>
+    </div>
+
+    <!-- Vista por Defecto: Secciones Separadas por Categorías -->
+    <div id="catalog-home-view">
+      <!-- Hero Banner / Promociones -->
+      <div class="p-5 mb-5 bg-dark text-white rounded-3 position-relative overflow-hidden shadow-sm hero-banner-home"
+        style="background: linear-gradient(135deg, var(--uct-primary) 0%, #0c2340 100%);">
+        <div class="row align-items-center">
+          <div class="col-md-7 position-relative z-index-1">
+            <span class="badge bg-warning text-dark mb-2 fw-bold px-3 py-2 text-uppercase">Novedades de la Semana</span>
+            <h1 class="display-4 fw-bold">Los mejores gadgets de Tecnología</h1>
+            <p class="lead">Encuentra notebooks, celulares y accesorios con descuentos exclusivos e IVA incluido.</p>
+            <a href="#" class="btn btn-accent btn-lg px-4 me-2 view-category-btn-home" data-cat="1">Ver Tecnología</a>
+          </div>
+          <div class="col-md-5 d-none d-md-block text-end">
+            <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=450"
+              class="img-fluid rounded shadow-lg banner-img" alt="Tecnología"
+              style="max-height: 200px; object-fit: cover;">
+          </div>
         </div>
-        <div class="col-md-5 d-none d-md-block text-end">
-          <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=450" class="img-fluid rounded shadow-lg banner-img" alt="Tecnología" style="max-height: 200px; object-fit: cover;">
+      </div>
+
+      <!-- Categorías Destacadas (Píldoras) -->
+      <div class="d-flex justify-content-center gap-2 mb-5 flex-wrap" id="home-category-pills">
+        <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="1">💻
+          Tecnología</a>
+        <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="8">🚴
+          Deportes</a>
+        <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="5">👕 Moda y
+          Ropa</a>
+        <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="9">🏠
+          Hogar</a>
+        <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="10">📚
+          Libros</a>
+      </div>
+
+      <!-- Sección Tecnología -->
+      <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+          <h3 class="fw-bold text-primary mb-0"><i class="bi bi-laptop me-2"></i> Tecnología y Dispositivos</h3>
+          <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="1">Ver todo <i
+              class="bi bi-arrow-right"></i></a>
+        </div>
+        <div id="tech-section-container" class="row"></div>
+      </section>
+
+      <!-- Sección Deportes / Actividad Física -->
+      <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+          <h3 class="fw-bold text-primary mb-0"><i class="bi bi-bicycle me-2"></i> Deportes y Actividad Física</h3>
+          <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="8">Ver todo <i
+              class="bi bi-arrow-right"></i></a>
+        </div>
+        <div id="sports-section-container" class="row"></div>
+      </section>
+
+      <!-- Sección Moda / Vestuario -->
+      <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+          <h3 class="fw-bold text-primary mb-0"><i class="bi bi-bag-heart me-2"></i> Moda y Vestuario</h3>
+          <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="5">Ver todo <i
+              class="bi bi-arrow-right"></i></a>
+        </div>
+        <div id="fashion-section-container" class="row"></div>
+      </section>
+
+      <!-- Sección Libros e Insumos -->
+      <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+          <h3 class="fw-bold text-primary mb-0"><i class="bi bi-book me-2"></i> Libros y Lectura</h3>
+          <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="10">Ver todo <i
+              class="bi bi-arrow-right"></i></a>
+        </div>
+        <div id="books-section-container" class="row"></div>
+      </section>
+    </div>
+
+    <!-- Detalle de producto -->
+    <div id="product-detail" class="d-none"></div>
+  </main>
+
+  <!-- Modal Login -->
+  <div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Iniciar Sesión</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="login-form" novalidate>
+            <div class="mb-3"><label class="form-label">Email</label>
+              <input type="email" class="form-control" id="login-email" required placeholder="tu@email.com">
+            </div>
+            <div class="mb-3"><label class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="login-password" required>
+            </div>
+            <div id="login-error" class="alert alert-danger d-none"></div>
+            <button type="submit" class="btn btn-primary w-100" id="login-submit">Iniciar Sesión</button>
+          </form>
+          <p class="mt-3 text-center">¿No tienes cuenta? <a href="#" data-bs-toggle="modal"
+              data-bs-target="#registerModal">Regístrate</a></p>
         </div>
       </div>
     </div>
-
-    <!-- Categorías Destacadas (Píldoras) -->
-    <div class="d-flex justify-content-center gap-2 mb-5 flex-wrap" id="home-category-pills">
-      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="1">💻 Tecnología</a>
-      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="8">🚴 Deportes</a>
-      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="5">👕 Moda y Ropa</a>
-      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="9">🏠 Hogar</a>
-      <a href="#" class="btn btn-outline-primary rounded-pill px-3 py-1 view-category-btn-home" data-cat="10">📚 Libros</a>
-    </div>
-
-    <!-- Sección Tecnología -->
-    <section class="mb-5">
-      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-laptop me-2"></i> Tecnología y Dispositivos</h3>
-        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="1">Ver todo <i class="bi bi-arrow-right"></i></a>
-      </div>
-      <div id="tech-section-container" class="row"></div>
-    </section>
-
-    <!-- Sección Deportes / Actividad Física -->
-    <section class="mb-5">
-      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-bicycle me-2"></i> Deportes y Actividad Física</h3>
-        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="8">Ver todo <i class="bi bi-arrow-right"></i></a>
-      </div>
-      <div id="sports-section-container" class="row"></div>
-    </section>
-
-    <!-- Sección Moda / Vestuario -->
-    <section class="mb-5">
-      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-bag-heart me-2"></i> Moda y Vestuario</h3>
-        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="5">Ver todo <i class="bi bi-arrow-right"></i></a>
-      </div>
-      <div id="fashion-section-container" class="row"></div>
-    </section>
-
-    <!-- Sección Libros e Insumos -->
-    <section class="mb-5">
-      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-        <h3 class="fw-bold text-primary mb-0"><i class="bi bi-book me-2"></i> Libros y Lectura</h3>
-        <a href="#" class="btn btn-link text-decoration-none fw-bold view-category-btn-home" data-cat="10">Ver todo <i class="bi bi-arrow-right"></i></a>
-      </div>
-      <div id="books-section-container" class="row"></div>
-    </section>
   </div>
-  
-  <!-- Detalle de producto -->
-  <div id="product-detail" class="d-none"></div>
-</main>
 
-<!-- Modal Login -->
-<div class="modal fade" id="loginModal" tabindex="-1">
-<div class="modal-dialog"><div class="modal-content">
-<div class="modal-header"><h5 class="modal-title">Iniciar Sesión</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body">
-<form id="login-form" novalidate>
-<div class="mb-3"><label class="form-label">Email</label>
-<input type="email" class="form-control" id="login-email" required placeholder="tu@email.com"></div>
-<div class="mb-3"><label class="form-label">Contraseña</label>
-<input type="password" class="form-control" id="login-password" required></div>
-<div id="login-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-primary w-100" id="login-submit">Iniciar Sesión</button>
-</form>
-<p class="mt-3 text-center">¿No tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Regístrate</a></p>
-</div></div></div></div>
-
-<!-- Modal Registro -->
-<div class="modal fade" id="registerModal" tabindex="-1">
-<div class="modal-dialog"><div class="modal-content">
-<div class="modal-header"><h5 class="modal-title">Crear Cuenta</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body">
-<form id="register-form" novalidate>
-<div class="row"><div class="col-md-6 mb-3"><label class="form-label">Nombre</label>
-<input type="text" class="form-control" id="reg-nombre" required></div>
-<div class="col-md-6 mb-3"><label class="form-label">Apellido</label>
-<input type="text" class="form-control" id="reg-apellido" required></div></div>
-<div class="mb-3"><label class="form-label">Email</label>
-<input type="email" class="form-control" id="reg-email" required></div>
-<div class="mb-3"><label class="form-label">Contraseña</label>
-<input type="password" class="form-control" id="reg-password" required minlength="6"></div>
-<div class="mb-3"><label class="form-label">Confirmar Contraseña</label>
-<input type="password" class="form-control" id="reg-password2" required></div>
-<div id="register-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-success w-100" id="register-submit">Crear Cuenta</button>
-</form>
-<p class="mt-3 text-center">¿Ya tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Inicia sesión</a></p>
-</div></div></div></div>
-
-<!-- Offcanvas Carrito -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
-<div class="offcanvas-header"><h5><i class="bi bi-cart3"></i> Tu Carrito</h5>
-<button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
-<div class="offcanvas-body">
-<div id="cart-empty" class="text-center py-5"><i class="bi bi-cart-x display-3 text-muted"></i><p class="mt-2">Tu carrito está vacío</p></div>
-<div id="cart-items"></div>
-<div id="cart-summary" class="d-none"><div id="cart-summary-content"></div></div>
-</div></div>
-
-<!-- Modal Checkout -->
-<div class="modal fade" id="checkoutModal" tabindex="-1">
-<div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-<div class="modal-header"><h5>Checkout</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body">
-<form id="checkout-form">
-<div id="checkout-items"></div>
-<div id="checkout-totals" class="border-top pt-3 mt-3"></div>
-<div class="row">
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Nombre</label>
-    <input type="text" class="form-control" id="shipping-name" placeholder="Ej: Juan" required>
-  </div>
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Apellido</label>
-    <input type="text" class="form-control" id="shipping-lastname" placeholder="Ej: Pérez" required>
-  </div>
-</div>
-<div class="row">
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Teléfono</label>
-    <input type="tel" class="form-control" id="shipping-phone" placeholder="Ej: +56912345678" required>
-  </div>
-  <div class="col-md-6 mb-3">
-    <label class="form-label">Dirección de envío</label>
-    <input type="text" class="form-control" id="shipping-address" placeholder="Ej: Av. Providencia 1234, Depto 41" required>
-  </div>
-</div>
-<div class="mb-3"><label class="form-label">Cupón de descuento</label>
-<div class="input-group"><input type="text" class="form-control" id="coupon-code" placeholder="Ingresa código">
-<button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button></div></div>
-<div class="mb-3"><label class="form-label">Notas del pedido</label>
-<textarea class="form-control" id="order-notes" rows="2" placeholder="Indicaciones para el despacho (opcional)"></textarea></div>
-
-<div class="mb-4">
-  <label class="form-label fw-bold">Método de Pago</label>
-  <div class="row g-2">
-    <div class="col-6">
-      <div class="payment-option border rounded p-3 text-center active" id="option-webpay" data-method="webpay">
-        <i class="bi bi-credit-card fs-2 d-block mb-1 text-primary"></i>
-        <span class="fw-semibold">Webpay (Simulado)</span>
-      </div>
-    </div>
-    <div class="col-6">
-      <div class="payment-option border rounded p-3 text-center" id="option-paypal" data-method="paypal">
-        <i class="bi bi-paypal fs-2 d-block mb-1 text-info"></i>
-        <span class="fw-semibold">PayPal</span>
+  <!-- Modal Registro -->
+  <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Crear Cuenta</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="register-form" novalidate>
+            <div class="row">
+              <div class="col-md-6 mb-3"><label class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="reg-nombre" required>
+              </div>
+              <div class="col-md-6 mb-3"><label class="form-label">Apellido</label>
+                <input type="text" class="form-control" id="reg-apellido" required>
+              </div>
+            </div>
+            <div class="mb-3"><label class="form-label">Email</label>
+              <input type="email" class="form-control" id="reg-email" required>
+            </div>
+            <div class="mb-3"><label class="form-label">Contraseña</label>
+              <input type="password" class="form-control" id="reg-password" required minlength="6">
+            </div>
+            <div class="mb-3"><label class="form-label">Confirmar Contraseña</label>
+              <input type="password" class="form-control" id="reg-password2" required>
+            </div>
+            <div id="register-error" class="alert alert-danger d-none"></div>
+            <button type="submit" class="btn btn-success w-100" id="register-submit">Crear Cuenta</button>
+          </form>
+          <p class="mt-3 text-center">¿Ya tienes cuenta? <a href="#" data-bs-toggle="modal"
+              data-bs-target="#loginModal">Inicia sesión</a></p>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div id="paypal-button-container" class="mb-3 d-none"></div>
-
-<div id="checkout-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Seguir con el pago</button>
-</form>
-</div></div></div></div>
-
-<!-- Modal Mis Pedidos -->
-<div class="modal fade" id="ordersModal" tabindex="-1">
-<div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-<div class="modal-header">
-  <h5 class="modal-title"><i class="bi bi-clock-history me-2 text-primary"></i>Mis Pedidos</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-  <!-- Vista 1: Listado de pedidos -->
-  <div id="orders-list-view">
-    <div id="orders-list-container">
-      <!-- Se rellena con JS -->
+  <!-- Offcanvas Carrito -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
+    <div class="offcanvas-header">
+      <h5><i class="bi bi-cart3"></i> Tu Carrito</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div id="cart-empty" class="text-center py-5"><i class="bi bi-cart-x display-3 text-muted"></i>
+        <p class="mt-2">Tu carrito está vacío</p>
+      </div>
+      <div id="cart-items"></div>
+      <div id="cart-summary" class="d-none">
+        <div id="cart-summary-content"></div>
+      </div>
     </div>
   </div>
-  
-  <!-- Vista 2: Detalle de un pedido (oculta por defecto) -->
-  <div id="order-detail-view" class="d-none">
-    <button class="btn btn-outline-secondary btn-sm mb-3" id="btn-back-to-orders">
-      <i class="bi bi-arrow-left me-1"></i> Volver a mis pedidos
-    </button>
-    <div id="order-detail-content">
-      <!-- Se rellena con JS -->
+
+  <!-- Modal Checkout -->
+  <div class="modal fade" id="checkoutModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5>Checkout</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="checkout-form">
+            <div id="checkout-items"></div>
+            <div id="checkout-totals" class="border-top pt-3 mt-3"></div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="shipping-name" placeholder="Ej: Juan" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Apellido</label>
+                <input type="text" class="form-control" id="shipping-lastname" placeholder="Ej: Pérez" required>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Teléfono</label>
+                <input type="tel" class="form-control" id="shipping-phone" placeholder="Ej: +56912345678" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Dirección de envío</label>
+                <input type="text" class="form-control" id="shipping-address"
+                  placeholder="Ej: Av. Providencia 1234, Depto 41" required>
+              </div>
+            </div>
+            <div class="mb-3"><label class="form-label">Cupón de descuento</label>
+              <div class="input-group"><input type="text" class="form-control" id="coupon-code"
+                  placeholder="Ingresa código">
+                <button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button>
+              </div>
+            </div>
+            <div class="mb-3"><label class="form-label">Notas del pedido</label>
+              <textarea class="form-control" id="order-notes" rows="2"
+                placeholder="Indicaciones para el despacho (opcional)"></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Método de Pago</label>
+              <div class="row g-2">
+                <div class="col-6">
+                  <div class="payment-option border rounded p-3 text-center active" id="option-webpay"
+                    data-method="webpay">
+                    <i class="bi bi-credit-card fs-2 d-block mb-1 text-primary"></i>
+                    <span class="fw-semibold">Webpay (Simulado)</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="payment-option border rounded p-3 text-center" id="option-paypal" data-method="paypal">
+                    <i class="bi bi-paypal fs-2 d-block mb-1 text-info"></i>
+                    <span class="fw-semibold">PayPal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="paypal-button-container" class="mb-3 d-none"></div>
+
+            <div id="checkout-error" class="alert alert-danger d-none"></div>
+            <button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Seguir con el
+              pago</button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-</div></div></div>
 
-<!-- Toast -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+  <!-- Modal Mis Pedidos -->
+  <div class="modal fade" id="ordersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-clock-history me-2 text-primary"></i>Mis Pedidos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Vista 1: Listado de pedidos -->
+          <div id="orders-list-view">
+            <div id="orders-list-container">
+              <!-- Se rellena con JS -->
+            </div>
+          </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/app.js?v=3"></script>
-<script src="js/auth.js?v=3"></script>
-<script src="js/catalogo.js?v=3"></script>
-<script src="js/carrito.js?v=3"></script>
-<script src="js/checkout.js?v=3"></script>
-<script src="js/pedidos.js?v=3"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-    Catalogo.init();
-    Carrito.init();
-    Checkout.init();
-    Pedidos.init();
-    
-    // Auto-open login modal if requested
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('showLogin') === 'true') {
+          <!-- Vista 2: Detalle de un pedido (oculta por defecto) -->
+          <div id="order-detail-view" class="d-none">
+            <button class="btn btn-outline-secondary btn-sm mb-3" id="btn-back-to-orders">
+              <i class="bi bi-arrow-left me-1"></i> Volver a mis pedidos
+            </button>
+            <div id="order-detail-content">
+              <!-- Se rellena con JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/auth.js?v=3"></script>
+  <script src="js/catalogo.js?v=3"></script>
+  <script src="js/carrito.js?v=3"></script>
+  <script src="js/checkout.js?v=3"></script>
+  <script src="js/pedidos.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      App.init();
+      Catalogo.init();
+      Carrito.init();
+      Checkout.init();
+      Pedidos.init();
+
+      // Auto-open login modal if requested
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('showLogin') === 'true') {
         const modalEl = document.getElementById('loginModal');
         if (modalEl) {
-            const loginModal = new bootstrap.Modal(modalEl);
-            loginModal.show();
+          const loginModal = new bootstrap.Modal(modalEl);
+          loginModal.show();
         }
-    }
-});
-</script>
+      }
+    });
+  </script>
 </body>
+
 </html>
