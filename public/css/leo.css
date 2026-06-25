@@ -1,0 +1,196 @@
+/* ============================================================
+   leo.css — Estilos de Leonardo (Contacto + páginas del footer)
+   Tokens de style.css: var(--qc-red), var(--qc-gray), var(--qc-border),
+   var(--qc-radius), var(--qc-shadow), var(--qc-font-display)...
+   ============================================================ */
+
+/* ---------- Contenedores ---------- */
+.leo-contacto { max-width: 1080px; margin: 0 auto; }
+
+/* ---------- Tarjetas ---------- */
+.leo-card {
+    background: var(--qc-white);
+    border: 1px solid var(--qc-border);
+    border-radius: var(--qc-radius-lg);
+    box-shadow: var(--qc-shadow);
+    padding: 28px;
+}
+.leo-card-title {
+    font-family: var(--qc-font-display);
+    font-size: 1.15rem; margin-bottom: 18px;
+    display: flex; align-items: center; gap: 8px;
+}
+.leo-card-title i { color: var(--qc-red); }
+
+/* ---------- Formulario ---------- */
+.leo-field { margin-bottom: 16px; }
+.leo-field label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; color: var(--qc-black); }
+.leo-input-icon { position: relative; }
+.leo-input-icon > i {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--qc-gray); pointer-events: none;
+}
+/* más específico que `.leo-contacto-form .form-control` (que setea padding shorthand
+   y borraría este left) → el texto no se superpone con el ícono */
+.leo-contacto-form .leo-input-icon .form-control { padding-left: 38px; }
+.leo-contacto-form .form-control {
+    border: 1px solid var(--qc-border);
+    border-radius: var(--qc-radius-sm);
+    padding: 10px 12px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.leo-contacto-form .form-control:focus {
+    border-color: var(--qc-red);
+    box-shadow: 0 0 0 3px rgba(247, 79, 60, 0.15);
+    outline: none;
+}
+
+/* Validación visual */
+.leo-error { display: none; color: var(--qc-error); font-size: .8rem; margin-top: 4px; }
+.leo-field.is-invalid .form-control { border-color: var(--qc-error); }
+.leo-field.is-invalid .leo-error { display: block; }
+.leo-field.is-valid .form-control { border-color: var(--qc-green); }
+
+/* Botón enviar (rojo QuadCore) */
+.leo-submit {
+    width: 100%; background: var(--qc-red); color: #fff; border: none;
+    border-radius: var(--qc-radius-sm); font-weight: 600; padding: 12px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .15s;
+}
+.leo-submit:hover { background: var(--qc-red-hover); color: #fff; }
+
+/* ---------- Info / Ubicación ---------- */
+.leo-map {
+    height: 150px; border-radius: var(--qc-radius); margin-bottom: 20px; color: #fff;
+    background: linear-gradient(135deg, var(--qc-red), var(--qc-red-dark));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+}
+.leo-map i { font-size: 2rem; }
+.leo-map span { font-weight: 600; }
+
+.leo-info-list { list-style: none; padding: 0; margin: 0; }
+.leo-info-list li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--qc-border); }
+.leo-info-list li:last-child { border-bottom: none; }
+.leo-info-list i { color: var(--qc-red); font-size: 1.1rem; margin-top: 2px; }
+.leo-info-list strong { display: block; font-size: .9rem; }
+.leo-info-list span { color: var(--qc-gray); font-size: .9rem; }
+
+.leo-social { display: flex; gap: 10px; margin-top: 18px; }
+.leo-social a {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--qc-gray-light); color: var(--qc-black);
+    transition: background .15s, color .15s;
+}
+.leo-social a:hover { background: var(--qc-red); color: #fff; }
+
+/* ============================================================
+   GARANTÍAS Y DEVOLUCIONES — diseño QuadCore (scoped en .gw-page)
+   Vars propias para no depender de / pisar las del sitio.
+   ============================================================ */
+.gw-page{
+  --qc-red:#ef5340; --qc-maroon:#9e2b20; --qc-ink:#1b1614; --qc-ink-2:#2a2320;
+  --qc-line:#e7e3dd; --qc-muted:#6f6862; --qc-green:#1f8a5b;
+  font-family:'Mulish',system-ui,sans-serif; color:var(--qc-ink);
+}
+.gw-page a{text-decoration:none;}
+
+/* Hero */
+.gw-page .gw-hero{
+  position:relative; overflow:hidden; color:#fff; border-radius:18px; margin-top:8px;
+  background:
+    radial-gradient(110% 130% at 94% 0%, rgba(239,83,64,.28), transparent 60%),
+    linear-gradient(135deg,#221b18,#14100e 78%);
+}
+.gw-page .gw-hero::before{content:""; position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,.1) 1.1px, transparent 1.2px); background-size:28px 28px; -webkit-mask-image:radial-gradient(100% 90% at 90% 25%,#000,transparent 66%); mask-image:radial-gradient(100% 90% at 90% 25%,#000,transparent 66%); opacity:.25;}
+.gw-page .gw-hero .inner{position:relative; z-index:2; max-width:1280px; margin:0 auto; padding:34px 38px 38px;}
+.gw-page .gw-badge{display:inline-flex; align-items:center; gap:8px; padding:6px 13px; border-radius:999px; background:rgba(239,83,64,.18); border:1px solid rgba(239,83,64,.4); color:#ffb3a6; font-weight:800; font-size:12px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:18px;}
+.gw-page .gw-title{font-family:'Archivo',sans-serif; font-weight:800; font-size:36px; line-height:1.04; letter-spacing:-.02em; margin:0 0 12px; max-width:680px; color:#fff;}
+.gw-page .gw-lead{font-size:16px; line-height:1.6; color:rgba(255,255,255,.74); margin:0; max-width:600px;}
+
+/* Cuerpo */
+.gw-page .gw-wrap{max-width:1280px; margin:0 auto; padding:48px 0 10px;}
+.gw-page .sec-head{display:flex; align-items:center; gap:14px; margin:0 0 26px;}
+.gw-page .sec-ic{width:44px; height:44px; flex:none; border-radius:12px; background:#fff; border:1px solid var(--qc-line); display:grid; place-items:center; color:var(--qc-red); box-shadow:0 6px 16px -10px rgba(27,22,20,.3);}
+.gw-page .sec-title{font-family:'Archivo',sans-serif; font-weight:800; font-size:27px; letter-spacing:-.01em; margin:0;}
+.gw-page .sec-title small{display:block; font-family:'Mulish',sans-serif; font-weight:500; font-size:14px; color:var(--qc-muted); margin-top:4px; letter-spacing:0;}
+.gw-page .gw-grid{display:grid; grid-template-columns:1.15fr 1fr; gap:48px; align-items:start;}
+
+/* Condiciones */
+.gw-page .cond-list{display:flex; flex-direction:column; gap:14px;}
+.gw-page .cond{display:flex; gap:15px; background:#fff; border:1px solid var(--qc-line); border-radius:15px; padding:18px 20px; transition:.18s;}
+.gw-page .cond:hover{border-color:#f0d3cd; box-shadow:0 14px 30px -22px rgba(27,22,20,.5); transform:translateY(-2px);}
+.gw-page .cond .c-ic{width:40px; height:40px; flex:none; border-radius:11px; display:grid; place-items:center;}
+.gw-page .cond.ok .c-ic{background:rgba(31,138,91,.12); color:var(--qc-green);}
+.gw-page .cond.info .c-ic{background:rgba(239,83,64,.12); color:var(--qc-red);}
+.gw-page .cond .c-body{font-size:14.5px; line-height:1.55; color:var(--qc-ink-2);}
+.gw-page .cond .c-body b{color:var(--qc-ink); font-weight:800;}
+.gw-page .cond .c-tag{display:block; font:800 11px/1 'Mulish',sans-serif; letter-spacing:.08em; text-transform:uppercase; margin-bottom:5px;}
+.gw-page .cond.ok .c-tag{color:var(--qc-green);} .gw-page .cond.info .c-tag{color:var(--qc-red);}
+
+/* Timeline pasos */
+.gw-page .steps{position:relative; display:flex; flex-direction:column; gap:6px;}
+.gw-page .step{position:relative; display:flex; gap:18px; padding-bottom:26px;}
+.gw-page .step:last-child{padding-bottom:0;}
+.gw-page .step .s-rail{position:relative; flex:none; width:40px; display:flex; justify-content:center;}
+.gw-page .step .s-num{width:40px; height:40px; border-radius:50%; background:var(--qc-red); color:#fff; font-family:'Archivo',sans-serif; font-weight:800; font-size:17px; display:grid; place-items:center; z-index:2; box-shadow:0 8px 18px -8px rgba(239,83,64,.7);}
+.gw-page .step:not(:last-child) .s-rail::after{content:""; position:absolute; top:40px; bottom:-26px; width:2px; background:linear-gradient(var(--qc-red),#f3c5bd); left:50%; transform:translateX(-50%);}
+.gw-page .step .s-body{padding-top:7px; font-size:14.5px; line-height:1.55; color:var(--qc-ink-2);}
+.gw-page .step .s-body b{color:var(--qc-ink); font-weight:800;}
+.gw-page .step .s-title{display:block; font-weight:800; color:var(--qc-ink); font-size:15.5px; margin-bottom:3px;}
+
+/* Soporte */
+.gw-page .gw-support{
+  margin-top:46px; border-radius:20px; overflow:hidden; color:#fff; position:relative;
+  background:radial-gradient(120% 160% at 100% 0%, rgba(239,83,64,.5), transparent 60%), linear-gradient(120deg,var(--qc-maroon),#7c2017);
+  display:grid; grid-template-columns:1fr auto; align-items:center; gap:24px; padding:30px 36px;
+}
+.gw-page .gw-support .s-left{display:flex; align-items:center; gap:20px;}
+.gw-page .gw-support .s-ic{width:60px; height:60px; flex:none; border-radius:16px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); display:grid; place-items:center;}
+.gw-page .gw-support .s-k{font:800 12px/1 'Mulish',sans-serif; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.7); margin:0 0 6px;}
+.gw-page .gw-support .s-t{font-family:'Archivo',sans-serif; font-weight:800; font-size:21px; line-height:1.2; margin:0; color:#fff;}
+.gw-page .gw-support .s-t small{display:block; font-family:'Mulish',sans-serif; font-weight:500; font-size:13.5px; color:rgba(255,255,255,.72); margin-top:5px;}
+.gw-page .gw-support .s-actions{display:flex; gap:12px; flex-wrap:wrap;}
+.gw-page .btn-w{display:inline-flex; align-items:center; gap:9px; background:#fff; color:var(--qc-ink); font-weight:800; font-size:14.5px; padding:13px 22px; border-radius:11px; transition:.18s;}
+.gw-page .btn-w:hover{transform:translateY(-2px); color:var(--qc-ink);}
+.gw-page .btn-ghost{display:inline-flex; align-items:center; gap:9px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.28); color:#fff; font-weight:800; font-size:14.5px; padding:13px 22px; border-radius:11px; transition:.18s;}
+.gw-page .btn-ghost:hover{background:rgba(255,255,255,.2); color:#fff;}
+
+@media (max-width:920px){
+  .gw-page .gw-grid{grid-template-columns:1fr; gap:40px;}
+  .gw-page .gw-support{grid-template-columns:1fr;}
+  .gw-page .gw-title{font-size:34px;}
+  .gw-page .gw-hero .inner{padding:36px 22px 40px;}
+}
+
+/* ============================================================
+   KIT LIVIANO — páginas de info (despacho, medios-pago, nosotros)
+   Misma familia que garantía pero sin hero oscuro (no saturar).
+   ============================================================ */
+.gw-page .gw-head{position:relative; overflow:hidden; background:#fff; border:1px solid var(--qc-line); border-radius:18px; padding:30px 34px; margin-top:8px;}
+.gw-page .gw-head::after{content:""; position:absolute; right:-50px; top:-70px; width:240px; height:240px; border-radius:50%; background:radial-gradient(circle, rgba(239,83,64,.1), transparent 70%); pointer-events:none;}
+.gw-page .gw-kicker{display:inline-flex; align-items:center; gap:7px; font:800 12px/1 'Mulish',sans-serif; letter-spacing:.12em; text-transform:uppercase; color:var(--qc-red); margin:0 0 12px;}
+.gw-page .gw-head h1{font-family:'Archivo',sans-serif; font-weight:800; font-size:32px; line-height:1.05; letter-spacing:-.02em; margin:0 0 10px; color:var(--qc-ink);}
+.gw-page .gw-head .lead{font-size:16px; line-height:1.6; color:var(--qc-muted); margin:0; max-width:680px;}
+
+.gw-page .gw-body{padding:28px 0 6px;}
+.gw-page .gw-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px;}
+.gw-page .gw-card{background:#fff; border:1px solid var(--qc-line); border-radius:15px; padding:22px; transition:.18s;}
+.gw-page .gw-card:hover{border-color:#f0d3cd; box-shadow:0 14px 30px -22px rgba(27,22,20,.5); transform:translateY(-2px);}
+.gw-page .gw-card .ic{width:42px; height:42px; border-radius:11px; background:rgba(239,83,64,.1); color:var(--qc-red); display:grid; place-items:center; font-size:20px; margin-bottom:14px;}
+.gw-page .gw-card h3{font-family:'Archivo',sans-serif; font-weight:700; font-size:16.5px; margin:0 0 6px; color:var(--qc-ink);}
+.gw-page .gw-card p{font-size:14px; line-height:1.55; color:var(--qc-ink-2); margin:0;}
+
+.gw-page .gw-note{display:flex; gap:13px; align-items:flex-start; margin-top:20px; padding:18px 20px; border-radius:14px; background:rgba(239,83,64,.07); border:1px solid rgba(239,83,64,.18); font-size:14.5px; line-height:1.55; color:var(--qc-ink-2);}
+.gw-page .gw-note .ic{flex:none; color:var(--qc-red); font-size:19px; margin-top:1px;}
+.gw-page .gw-note b{color:var(--qc-ink);}
+
+.gw-page .gw-prose{font-size:15.5px; line-height:1.7; color:var(--qc-ink-2); max-width:760px; margin:0 0 4px;}
+.gw-page .gw-prose b{color:var(--qc-ink);} .gw-page .gw-prose em{color:var(--qc-red); font-style:normal; font-weight:700;}
+.gw-page .gw-figs{display:flex; flex-wrap:wrap; gap:14px; margin:22px 0 6px;}
+.gw-page .gw-fig{flex:1 1 150px; background:#fff; border:1px solid var(--qc-line); border-radius:14px; padding:18px 20px; text-align:center;}
+.gw-page .gw-fig .n{font-family:'Archivo',sans-serif; font-weight:900; font-size:26px; color:var(--qc-red); line-height:1;}
+.gw-page .gw-fig .l{font-size:13px; color:var(--qc-muted); margin-top:6px;}
+
+@media (max-width:920px){ .gw-page .gw-head{padding:24px 22px;} .gw-page .gw-head h1{font-size:27px;} }

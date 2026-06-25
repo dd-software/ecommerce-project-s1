@@ -33,6 +33,24 @@ class CatalogoRepository
             $params[':categoria_id'] = $filtros['categoria_id'];
         }
 
+        if (!empty($filtros['categoria_ids']) && is_array($filtros['categoria_ids'])) {
+            $ph = [];
+            foreach (array_values($filtros['categoria_ids']) as $i => $cid) {
+                $ph[] = ":cat_$i";
+                $params[":cat_$i"] = (int)$cid;
+            }
+            $where[] = "p.id_categoria IN (" . implode(',', $ph) . ")";
+        }
+
+        if (!empty($filtros['marcas']) && is_array($filtros['marcas'])) {
+            $ph = [];
+            foreach (array_values($filtros['marcas']) as $i => $m) {
+                $ph[] = ":marca_$i";
+                $params[":marca_$i"] = $m;
+            }
+            $where[] = "p.marca IN (" . implode(',', $ph) . ")";
+        }
+
         if (isset($filtros['busqueda'])) {
             $where[] = "(p.nombre LIKE :busqueda OR p.descripcion LIKE :busqueda2)";
             $params[':busqueda'] = '%' . $filtros['busqueda'] . '%';
@@ -75,8 +93,8 @@ class CatalogoRepository
         $offset = ($pagina - 1) * $porPagina;
 
         // Consulta paginada
-        $sql = "SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio, p.stock,
-                       p.imagen_url, p.id_categoria, c.nombre as categoria_nombre,
+        $sql = "SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio, p.precio_anterior, p.stock,
+                       p.imagen_url, p.id_categoria, c.nombre as categoria_nombre, p.marca,
                        p.created_at
                 FROM productos p
                 LEFT JOIN categorias c ON p.id_categoria = c.id
@@ -90,10 +108,11 @@ class CatalogoRepository
 
         // Formatear precios para el frontend
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format($p['precio'] , 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = $p['stock'] <= 0; // RN-A02
+            $this->aplicarOferta($p);
         }
 
         return [
@@ -117,10 +136,11 @@ class CatalogoRepository
         $producto = $stmt->fetch();
 
         if ($producto) {
-            $producto['precio_formateado'] = '$' . number_format($producto['precio'] / 100, 0, ',', '.');
+            $producto['precio_formateado'] = '$' . number_format($producto['precio'] , 0, ',', '.');
             $producto['precio'] = (int)$producto['precio'];
             $producto['stock'] = (int)$producto['stock'];
             $producto['sin_stock'] = (int)$producto['stock'] <= 0;
+            $this->aplicarOferta($producto);
         }
 
         return $producto ?: null;
@@ -159,13 +179,40 @@ class CatalogoRepository
         return $stmt->fetchAll();
     }
 
+    /** Resuelve el id de una categoría activa a partir de su slug (o null) */
+    public function buscarCategoriaIdPorSlug(string $slug): ?int
+    {
+        $stmt = $this->db->prepare("SELECT id FROM categorias WHERE slug = :slug AND activo = 1 LIMIT 1");
+        $stmt->execute([':slug' => $slug]);
+        $id = $stmt->fetchColumn();
+        return $id !== false ? (int)$id : null;
+    }
+
+    /**
+     * Obtiene marcas activas con conteo de productos
+     */
+    public function obtenerMarcas(): array
+    {
+        $stmt = $this->db->query(
+            "SELECT p.marca, COUNT(*) as total
+             FROM productos p
+             WHERE p.activo = 1 AND p.deleted_at IS NULL AND p.marca IS NOT NULL AND p.marca <> ''
+             GROUP BY p.marca
+             ORDER BY p.marca ASC"
+        );
+        return array_map(
+            fn($r) => ['marca' => $r['marca'], 'total' => (int)$r['total']],
+            $stmt->fetchAll()
+        );
+    }
+
     /**
      * Obtiene productos destacados (los más recientes)
      */
     public function obtenerDestacados(int $limite = 8): array
     {
         $stmt = $this->db->prepare(
-            "SELECT id, nombre, slug, descripcion, precio, stock, imagen_url, id_categoria, created_at
+            "SELECT id, nombre, slug, descripcion, precio, precio_anterior, stock, imagen_url, id_categoria, marca, created_at
              FROM productos
              WHERE activo = 1 AND deleted_at IS NULL
              ORDER BY created_at DESC
@@ -173,15 +220,49 @@ class CatalogoRepository
         );
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
         $stmt->execute();
-        $productos = $stmt->fetchAll();
+        return $this->formatearLista($stmt->fetchAll());
+    }
 
+    /** Productos en oferta (precio_anterior > precio), ordenados por mayor descuento */
+    public function obtenerOfertas(int $limite = 12): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, nombre, slug, descripcion, precio, precio_anterior, stock, imagen_url, id_categoria, marca, created_at
+             FROM productos
+             WHERE activo = 1 AND deleted_at IS NULL
+               AND precio_anterior IS NOT NULL AND precio_anterior > precio
+             ORDER BY (precio_anterior - precio) / precio_anterior DESC
+             LIMIT :limite"
+        );
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->execute();
+        return $this->formatearLista($stmt->fetchAll());
+    }
+
+    /** Formatea precios/stock/oferta de una lista de productos */
+    private function formatearLista(array $productos): array
+    {
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format($p['precio'], 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
-            $p['sin_stock'] = (int)$p['stock'] <= 0;
+            $p['sin_stock'] = $p['stock'] <= 0;
+            $this->aplicarOferta($p);
         }
-
         return $productos;
+    }
+
+    /** Agrega precio_anterior (int|null), su formato y el % de descuento */
+    private function aplicarOferta(array &$p): void
+    {
+        $pa = isset($p['precio_anterior']) && $p['precio_anterior'] !== null ? (int)$p['precio_anterior'] : null;
+        $p['precio_anterior'] = $pa;
+        if ($pa && $pa > (int)$p['precio']) {
+            $p['precio_anterior_formateado'] = '$' . number_format($pa, 0, ',', '.');
+            $p['descuento_pct'] = (int)round((1 - (int)$p['precio'] / $pa) * 100);
+        } else {
+            $p['precio_anterior_formateado'] = null;
+            $p['descuento_pct'] = null;
+        }
     }
 }

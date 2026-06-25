@@ -3,74 +3,330 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ecommerce UCT - Tienda Online</title>
+<title>QuadCore - El Corazón de la Electrónica</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&family=Archivo:wght@700;800;900&family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/leo.css">
+<meta name="description" content="QuadCore – Repuestos, accesorios y herramientas para electrónica en Chile. Stock real, garantía oficial y despacho a todo el país.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
 <div id="loading-spinner" class="d-none text-center mt-5"><div class="spinner-border text-primary" role="status"></div></div>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="/">🛒 Ecommerce UCT</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <form class="d-flex mx-auto" id="search-form" role="search">
-        <input class="form-control me-2" type="search" id="search-input" placeholder="Buscar productos..." aria-label="Buscar">
-        <button class="btn btn-outline-light" type="submit"><i class="bi bi-search"></i></button>
-      </form>
-      <ul class="navbar-nav ms-auto">
-        <!-- Sin autenticar -->
-        <li class="nav-item" id="auth-links">
-          <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-person"></i> Iniciar Sesión</a>
-        </li>
-        <li class="nav-item dropdown d-none" id="user-links">
-          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item d-none" href="#" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
-            <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-          </ul>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link position-relative" href="#" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-            <i class="bi bi-cart3"></i> Carrito
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success" id="cart-count">0</span>
-          </a>
-        </li>
-      </ul>
+<header class="qc-header">
+  <div class="qc-utilbar">
+    <div class="qc-utilbar-inner">
+      <a href="#/empresas"><i class="bi bi-buildings"></i> Venta Empresas</a>
+      <a href="#/contacto"><i class="bi bi-headset"></i> Asesórate online</a>
+      <a href="#/pedidos"><i class="bi bi-truck"></i> Estado de mi pedido</a>
+      <a href="#/tiendas"><i class="bi bi-shop"></i> Tiendas</a>
+      <a href="#/garantia"><i class="bi bi-question-circle"></i> Centro de ayuda</a>
     </div>
   </div>
-</nav>
+  <div class="qc-header-top">
+    <div class="qc-logo" id="logo-home" data-view="home" role="button">
+      <div class="qc-logo-mark">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12h4l2.5-6 3.5 12 3-9 1.5 3H22"></path>
+        </svg>
+      </div>
+      <div class="qc-logo-text"><strong>Quad<span class="core">Core</span></strong><small>ELECTRÓNICA</small></div>
+    </div>
+    <form class="qc-search" id="search-form" role="search">
+      <input type="search" id="search-input" placeholder="Busca repuestos, accesorios, herramientas..." aria-label="Buscar">
+      <button type="submit" aria-label="Buscar"><i class="bi bi-search"></i></button>
+    </form>
+    <div class="qc-header-actions">
+      <div class="dropdown" id="account">
+        <a href="#" class="qc-account dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-person"></i>
+          <span><small id="account-greet-sm">Hola, ingresa</small><strong id="account-greet">Mi Cuenta</strong></span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end qc-dropdown qc-account-menu">
+          <!-- Invitado: identificarse / registrarse -->
+          <div id="account-guest" class="qc-account-cta">
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#loginModal"><i class="bi bi-box-arrow-in-right"></i> Identifícate</button>
+            <p>¿Cliente nuevo? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Regístrate</a></p>
+          </div>
+          <!-- Logueado: saludo -->
+          <div id="account-user" class="qc-dropdown-head d-none"><small>Hola,</small><strong id="user-name-menu">Mi cuenta</strong></div>
+          <!-- Dos columnas -->
+          <div class="qc-account-cols">
+            <div>
+              <div class="qc-dropdown-section">Tu cuenta</div>
+              <a class="dropdown-item" href="#" data-view="perfil"><i class="bi bi-person"></i> Mi perfil</a>
+              <a class="dropdown-item" href="#" data-view="pedidos"><i class="bi bi-bag"></i> Mis Pedidos</a>
+              <a class="dropdown-item" href="#" data-view="favoritos"><i class="bi bi-heart"></i> Mis favoritos</a>
+              <a class="dropdown-item d-none" href="#/admin" id="admin-link"><i class="bi bi-speedometer2"></i> Panel admin</a>
+            </div>
+            <div>
+              <div class="qc-dropdown-section">Ayuda y más</div>
+              <a class="dropdown-item" href="#/despacho"><i class="bi bi-truck"></i> Despacho</a>
+              <a class="dropdown-item" href="#/garantia"><i class="bi bi-shield-check"></i> Garantía</a>
+              <a class="dropdown-item" href="#/medios-pago"><i class="bi bi-credit-card"></i> Métodos de pago</a>
+              <a class="dropdown-item" href="#/contacto"><i class="bi bi-headset"></i> Contacto</a>
+            </div>
+          </div>
+          <!-- Logueado: cerrar sesión -->
+          <div id="account-logout" class="d-none">
+            <hr class="dropdown-divider">
+            <a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+          </div>
+        </div>
+      </div>
+      <a href="#" class="qc-cart-link" id="cart-open">
+        <i class="bi bi-cart3"></i>
+        <span class="qc-cart-text"><small>Carrito</small><strong>$0</strong></span>
+        <span class="qc-cart-badge" id="cart-count">0</span>
+      </a>
+    </div>
+  </div>
+  <nav class="qc-header-nav">
+    <div class="qc-header-nav-inner">
+      <div class="dropdown qc-cat-dropdown">
+        <a href="#" class="qc-nav-all dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false"><i class="bi bi-list"></i> Categorías</a>
+        <ul class="dropdown-menu qc-dropdown" id="cat-menu"></ul>
+      </div>
+      <a href="#" data-view="catalogo" data-cat="computadores">Computadores</a>
+      <a href="#" data-view="catalogo" data-cat="notebooks">Notebooks</a>
+      <a href="#" data-view="catalogo" data-cat="celulares">Celulares</a>
+      <a href="#" data-view="catalogo" data-cat="consolas">Consolas</a>
+      <a href="#" data-view="catalogo" data-cat="tv-audio">TV y Audio</a>
+      <a href="#" data-view="catalogo" data-cat="componentes-pc">Componentes</a>
+      <span class="qc-nav-right"><i class="bi bi-shield-check"></i> Garantía oficial · Despacho a todo Chile</span>
+    </div>
+  </nav>
+</header>
+
+<div class="qc-breadcrumbs" id="breadcrumbs"></div>
 
 <main class="container mt-4">
-  <div id="products-container" class="row"></div>
-  <div id="pagination-container" class="d-flex justify-content-center mt-4"></div>
-</main>
+  <!-- Vista: HOME (retail: hero + banners + tiles + carruseles) -->
+  <section id="view-home" class="qc-view">
+    <div class="qc-hero">
+      <canvas id="hero-smoke" class="qc-hero-canvas" aria-hidden="true"></canvas>
+      <div class="qc-hero-content">
+        <span class="qc-hero-badge">Nueva tienda · Online</span>
+        <h1>El Corazón de<br>la Electrónica</h1>
+        <p>Repuestos, accesorios y herramientas para quienes entienden lo que hay tras la tecnología. Stock real, garantía oficial y despacho a todo Chile.</p>
+        <div class="qc-hero-actions">
+          <a href="#/catalogo" class="btn btn-light">Ver catálogo</a>
+          <a href="#/contacto" class="btn btn-outline-light">Servicios técnicos</a>
+        </div>
+      </div>
+    </div>
 
-<!-- Detalle de producto -->
-<div id="product-detail" class="d-none"></div>
+    <!-- Carrusel · Hero de categorías -->
+    <div class="qc-hero-carousel" id="qcCarousel" aria-roledescription="carrusel">
+
+      <!-- Slide 1 · Consolas -->
+      <div class="qc-slide is-active" style="--g1:#241350; --g2:#6a37d6; --accent:#9a6bff;">
+        <span class="qc-orb o1"></span><span class="qc-orb o2"></span><span class="qc-sheen"></span>
+        <div class="qc-slide__inner">
+          <div class="qc-content">
+            <p class="qc-kicker">Nueva generación</p>
+            <h2 class="qc-title">PlayStation, Xbox y Switch</h2>
+            <p class="qc-sub">Las consolas más buscadas, con stock real.</p>
+            <a href="#/catalogo?cat=consolas" class="qc-cta">Ver consolas <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
+        </div>
+        <div class="qc-medallion">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6.5 8h11a4 4 0 0 1 3.9 3.1l1.1 5a2.6 2.6 0 0 1-4.7 2L16 16H8l-1.8 2.1a2.6 2.6 0 0 1-4.7-2l1.1-5A4 4 0 0 1 6.5 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.3 11.4v2.2M6.2 12.5h2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="15.8" cy="11.8" r="1" fill="currentColor"/><circle cx="17.8" cy="13.4" r="1" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <!-- Slide 2 · Computadores -->
+      <div class="qc-slide" style="--g1:#160b09; --g2:#b5341f; --accent:#ff6a4d;">
+        <span class="qc-orb o1"></span><span class="qc-orb o2"></span><span class="qc-sheen"></span>
+        <div class="qc-slide__inner">
+          <div class="qc-content">
+            <p class="qc-kicker">Arma tu setup</p>
+            <h2 class="qc-title">PCs Gamer armados y listos</h2>
+            <p class="qc-sub">Ryzen y RTX, ensamblados y testeados por QuadCore.</p>
+            <a href="#/catalogo?cat=computadores" class="qc-cta">Ver computadores <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
+        </div>
+        <div class="qc-medallion">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M9 20h6M10 17v3M14 17v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6.5 8h7M6.5 11h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".7"/></svg>
+        </div>
+      </div>
+
+      <!-- Slide 3 · Celulares -->
+      <div class="qc-slide" style="--g1:#053238; --g2:#1f9d6b; --accent:#3fd99a;">
+        <span class="qc-orb o1"></span><span class="qc-orb o2"></span><span class="qc-sheen"></span>
+        <div class="qc-slide__inner">
+          <div class="qc-content">
+            <p class="qc-kicker">Siempre conectado</p>
+            <h2 class="qc-title">Los últimos smartphones</h2>
+            <p class="qc-sub">iPhone, Samsung, Xiaomi y más, al mejor precio.</p>
+            <a href="#/catalogo?cat=celulares" class="qc-cta">Ver celulares <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
+        </div>
+        <div class="qc-medallion">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="7" y="2.5" width="10" height="19" rx="2.6" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>
+        </div>
+      </div>
+
+      <!-- Slide 4 · TV y audio -->
+      <div class="qc-slide" style="--g1:#341a66; --g2:#c026a8; --accent:#e85cd0;">
+        <span class="qc-orb o1"></span><span class="qc-orb o2"></span><span class="qc-sheen"></span>
+        <div class="qc-slide__inner">
+          <div class="qc-content">
+            <p class="qc-kicker">Vive el cine en casa</p>
+            <h2 class="qc-title">Smart TVs 4K y audio</h2>
+            <p class="qc-sub">Imagen y sonido de otro nivel para tu living.</p>
+            <a href="#/catalogo?cat=tv-audio" class="qc-cta">Ver TV y audio <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          </div>
+        </div>
+        <div class="qc-medallion">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M9 20h6M12 16v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+
+      <!-- Flechas -->
+      <button class="qc-arrow prev" id="qcPrev" aria-label="Anterior"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="qc-arrow next" id="qcNext" aria-label="Siguiente"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+
+      <!-- Indicadores -->
+      <div class="qc-dots" id="qcDots"></div>
+    </div>
+
+    <!-- Ofertas y Lanzamientos (mosaico asimétrico) -->
+    <div class="qc-section-head">
+      <h2 class="section-title mb-0">Ofertas y Lanzamientos</h2>
+      <a href="#/catalogo" class="qc-section-link">Ver todo →</a>
+    </div>
+    <div class="qc-ofertas-mosaic" id="home-ofertas"></div>
+
+    <!-- Tiles de categorías -->
+    <h2 class="section-title mb-3">Explora por categoría</h2>
+    <div class="qc-cat-tiles" id="home-categorias"></div>
+
+    <!-- Carruseles por categoría (se llenan dinámicamente) -->
+    <div id="home-secciones"></div>
+  </section>
+
+  <!-- Vista: CATÁLOGO (filtros + grid) -->
+  <section id="view-catalogo" class="qc-view">
+    <div class="row qc-catalog-row">
+      <aside class="col-lg-3 mb-4">
+        <div class="qc-filters">
+          <div class="qc-filters-head">
+            <h6 class="qc-filters-title mb-0">Filtros</h6>
+            <span class="qc-results-count" id="results-count">—</span>
+          </div>
+          <div class="qc-filter-group">
+            <span class="qc-filter-label">Categorías</span>
+            <div id="category-list" class="qc-check-list mt-2"></div>
+          </div>
+          <div class="qc-filter-group">
+            <span class="qc-filter-label">Marcas</span>
+            <div id="marca-list" class="qc-check-list mt-2"></div>
+          </div>
+          <div class="qc-filter-group">
+            <span class="qc-filter-label">Rango de precio</span>
+            <div class="qc-price-hist" id="price-histogram"></div>
+            <div class="qc-price-sliders">
+              <input type="range" id="price-slider-min" class="qc-range" min="0" step="1000" value="0">
+              <input type="range" id="price-slider-max" class="qc-range" min="0" step="1000" value="0">
+            </div>
+            <div class="d-flex gap-2">
+              <div class="qc-price-field">
+                <label>Precio mín</label>
+                <div class="qc-price-input"><span>$</span><input type="number" id="filter-price-min" min="0" step="1000"></div>
+              </div>
+              <div class="qc-price-field">
+                <label>Precio máx</label>
+                <div class="qc-price-input"><span>$</span><input type="number" id="filter-price-max" min="0" step="1000"></div>
+              </div>
+            </div>
+            <button id="btn-filter" class="btn btn-primary btn-sm w-100 mt-3">Filtrar</button>
+            <button id="btn-clear-filters" class="btn btn-outline-primary btn-sm w-100 mt-2">Limpiar filtros</button>
+          </div>
+          <div class="qc-filter-group">
+            <label class="qc-check-row" style="cursor:pointer">
+              <input type="checkbox" id="filter-stock">
+              <span class="qc-check-name">Solo productos en stock</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+      <div class="col-lg-9 qc-catalog-main">
+        <div class="qc-catalog-toolbar">
+          <span class="qc-filter-label mb-0">Catálogo</span>
+          <div class="d-flex align-items-center gap-2">
+            <label class="qc-filter-label mb-0">Ordenar por</label>
+            <select id="sort-select" class="form-select form-select-sm" style="width:auto">
+              <option value="relevancia">Recomendados</option>
+              <option value="precio_asc">Precio: menor a mayor</option>
+              <option value="precio_desc">Precio: mayor a menor</option>
+              <option value="nombre_asc">Nombre: A-Z</option>
+              <option value="nuevos">Más nuevos</option>
+            </select>
+          </div>
+        </div>
+        <div id="products-container" class="row"></div>
+        <div id="pagination-container" class="d-flex flex-column align-items-center mt-4"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Vista: detalle de producto -->
+  <section id="view-detalle" class="qc-view">
+    <div id="product-detail"></div>
+  </section>
+
+  <!-- Vista: genérica (stubs en construcción) -->
+  <section id="view-generic" class="qc-view"></section>
+</main>
 
 <!-- Modal Login -->
 <div class="modal fade" id="loginModal" tabindex="-1">
-<div class="modal-dialog"><div class="modal-content">
-<div class="modal-header"><h5 class="modal-title">Iniciar Sesión</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body">
-<form id="login-form" novalidate>
-<div class="mb-3"><label class="form-label">Email</label>
-<input type="email" class="form-control" id="login-email" required placeholder="tu@email.com"></div>
-<div class="mb-3"><label class="form-label">Contraseña</label>
-<input type="password" class="form-control" id="login-password" required></div>
-<div id="login-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-primary w-100" id="login-submit">Iniciar Sesión</button>
-</form>
-<p class="mt-3 text-center">¿No tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Regístrate</a></p>
-</div></div></div></div>
+<div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal-content qc-login">
+  <div class="qc-login-brand">
+    <svg class="qc-login-ecg" viewBox="0 0 600 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 H150 l12 -22 12 30 8 -8 H300 l9 -11 9 11 H420 l8 -7 8 7 H600" fill="none" stroke="currentColor" stroke-width="2.5" vector-effect="non-scaling-stroke"/></svg>
+    <div class="qc-login-logo"><span class="qc-login-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h4l2.5-6 3.5 12 3-9 1.5 3H22"/></svg></span><span>Quad<b>Core</b><small>ELECTRÓNICA</small></span></div>
+    <h3 class="qc-login-welcome">Bienvenido<br>de vuelta</h3>
+    <p class="qc-login-lead">Ingresa para ver tus pedidos, precios y stock real en tiempo real.</p>
+    <ul class="qc-login-benefits">
+      <li><i class="bi bi-check2"></i> Stock real verificado</li>
+      <li><i class="bi bi-check2"></i> Garantía oficial</li>
+      <li><i class="bi bi-check2"></i> Despacho a todo Chile</li>
+    </ul>
+    <div class="qc-login-trust"><i class="bi bi-shield-lock-fill"></i><div><strong>Compra 100% segura</strong><small>Datos cifrados · Pago protegido</small></div></div>
+  </div>
+  <div class="qc-login-form">
+    <button type="button" class="btn-close qc-login-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    <h5 class="modal-title">Iniciar Sesión</h5>
+    <p class="qc-login-sub">¿Aún no tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">Regístrate gratis</a></p>
+    <form id="login-form" novalidate>
+      <label class="form-label" for="login-email">Correo electrónico</label>
+      <div class="qc-input-icon">
+        <i class="bi bi-envelope"></i>
+        <input type="email" class="form-control" id="login-email" required placeholder="tu@email.com">
+      </div>
+      <label class="form-label mt-3" for="login-password">Contraseña</label>
+      <div class="qc-input-icon">
+        <i class="bi bi-lock"></i>
+        <input type="password" class="form-control" id="login-password" required placeholder="••••••••">
+        <button type="button" class="qc-pass-toggle" id="login-pass-toggle" aria-label="Mostrar u ocultar contraseña"><i class="bi bi-eye"></i></button>
+      </div>
+      <div class="qc-login-row">
+        <label class="qc-check"><input type="checkbox" id="login-remember"> Recordarme</label>
+        <a href="#" id="login-forgot">¿Olvidaste tu contraseña?</a>
+      </div>
+      <div id="login-error" class="alert alert-danger d-none py-2"></div>
+      <button type="submit" class="btn btn-primary w-100" id="login-submit">Iniciar Sesión <i class="bi bi-arrow-right"></i></button>
+    </form>
+  </div>
+</div>
+</div>
+</div>
 
 <!-- Modal Registro -->
 <div class="modal fade" id="registerModal" tabindex="-1">
@@ -95,53 +351,132 @@
 <p class="mt-3 text-center">¿Ya tienes cuenta? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Inicia sesión</a></p>
 </div></div></div></div>
 
-<!-- Offcanvas Carrito -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
-<div class="offcanvas-header"><h5><i class="bi bi-cart3"></i> Tu Carrito</h5>
-<button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
-<div class="offcanvas-body">
-<div id="cart-empty" class="text-center py-5"><i class="bi bi-cart-x display-3 text-muted"></i><p class="mt-2">Tu carrito está vacío</p></div>
-<div id="cart-items"></div>
-<div id="cart-summary" class="d-none"><div id="cart-summary-content"></div>
-<a href="#" class="btn btn-primary w-100 mt-3" id="btn-checkout-nav" data-bs-toggle="modal" data-bs-target="#checkoutModal">Ir a Pagar</a></div>
-</div></div>
+<!-- Carrito · Drawer -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer" role="dialog" aria-label="Tu carrito" aria-hidden="true">
+  <header class="cd-head">
+    <button class="cd-close" id="cartClose" aria-label="Cerrar carrito"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    <div class="row">
+      <span class="h-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 6h15l-1.5 9h-12L4 3H2" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.5" fill="#fff"/><circle cx="17" cy="20" r="1.5" fill="#fff"/></svg></span>
+      <div>
+        <div class="h-title">Tu Carrito <span class="h-count" id="cart-count-drawer">0</span></div>
+        <div class="h-sub" id="cart-subtitle">0 productos</div>
+      </div>
+    </div>
+    <div class="cd-ship d-none" id="cart-ship"></div>
+  </header>
+  <div class="cd-body">
+    <div id="cart-empty"></div>
+    <div id="cart-items"></div>
+  </div>
+  <footer class="cd-foot d-none" id="cart-summary">
+    <div id="cart-summary-content"></div>
+    <button type="button" class="btn-checkout" id="btn-checkout-nav">Ir a pagar <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <a href="#/catalogo" class="cd-continue" data-cart-nav>← Seguir comprando</a>
+    <div class="cd-trust"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Pago seguro · Garantía oficial QuadCore</div>
+  </footer>
+</aside>
 
-<!-- Modal Checkout -->
-<div class="modal fade" id="checkoutModal" tabindex="-1">
-<div class="modal-dialog modal-lg"><div class="modal-content">
-<div class="modal-header"><h5>Checkout</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-<div class="modal-body">
-<form id="checkout-form">
-<div id="checkout-items"></div>
-<div id="checkout-totals" class="border-top pt-3 mt-3"></div>
-<div class="mb-3"><label class="form-label">Dirección de envío</label>
-<textarea class="form-control" id="shipping-address" rows="2" required></textarea></div>
-<div class="mb-3"><label class="form-label">Teléfono</label>
-<input type="tel" class="form-control" id="shipping-phone"></div>
-<div class="mb-3"><label class="form-label">Cupón de descuento</label>
-<div class="input-group"><input type="text" class="form-control" id="coupon-code" placeholder="Ingresa código">
-<button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button></div></div>
-<div class="mb-3"><label class="form-label">Notas del pedido</label>
-<textarea class="form-control" id="order-notes" rows="2"></textarea></div>
-<div id="checkout-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Confirmar Pedido</button>
-</form>
-</div></div></div></div>
+<!-- Checkout y confirmación son páginas (#/checkout, #/confirmacion) — ver checkout.js -->
 
 <!-- Toast -->
+<!-- Modal Términos y Condiciones -->
+<div class="modal fade" id="terminosModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Términos y Condiciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body qc-terms-body">
+        <h6>1. Precios y disponibilidad</h6>
+        <p>Todos los precios publicados en nuestro sitio web están expresados en pesos chilenos (CLP) e incluyen el Impuesto al Valor Agregado (IVA), salvo que se indique expresamente lo contrario. La disponibilidad de productos, precios, promociones y especificaciones puede variar sin previo aviso debido a actualizaciones de inventario o ajustes comerciales. La compra se entenderá perfeccionada únicamente una vez que el pago haya sido validado y aceptado por QuadCore.</p>
+        <h6>2. Despacho y entrega</h6>
+        <p>Realizamos envíos a todo el territorio nacional a través de empresas de transporte autorizadas. Los plazos de entrega son referenciales y pueden variar según la comuna de destino, contingencias logísticas o periodos de alta demanda. Los costos de envío serán informados antes de finalizar la compra. En caso de promociones con despacho gratuito, estas estarán sujetas a los montos mínimos y condiciones vigentes al momento de la transacción.</p>
+        <h6>3. Garantía legal y devoluciones</h6>
+        <p>Todos los productos comercializados por QuadCore cuentan con garantía legal conforme a la legislación chilena vigente, así como con la garantía otorgada por el fabricante cuando corresponda. Si el producto presenta fallas de fabricación, el cliente podrá ejercer los derechos establecidos por la normativa aplicable dentro de los plazos legales. Para gestionar cambios o devoluciones, el producto deberá presentarse con todos sus accesorios, manuales y embalaje original en condiciones adecuadas.</p>
+        <h6>4. Medios de pago y seguridad</h6>
+        <p>Aceptamos pagos mediante plataformas certificadas y seguras, incluyendo Webpay y otros medios habilitados en el sitio. Todas las transacciones se realizan utilizando protocolos de cifrado y estándares de seguridad reconocidos por la industria. QuadCore no almacena información confidencial relacionada con tarjetas de crédito o débito de sus clientes.</p>
+        <h6>5. Protección de datos personales</h6>
+        <p>Los datos personales proporcionados por nuestros clientes serán utilizados exclusivamente para gestionar compras, coordinar despachos, emitir documentación tributaria, brindar soporte postventa y cumplir obligaciones legales derivadas de la relación comercial. QuadCore adopta medidas razonables para resguardar dicha información y no la comercializa ni la comparte con terceros ajenos a la prestación del servicio, salvo cuando sea requerido por ley o necesario para la correcta ejecución de la compra.</p>
+        <h6>6. Aceptación de los términos</h6>
+        <p>Al utilizar este sitio web y completar una compra, el usuario declara haber leído, comprendido y aceptado los presentes Términos y Condiciones. QuadCore podrá actualizar este documento periódicamente para reflejar cambios operativos, legales o comerciales, publicando siempre la versión vigente en el sitio.</p>
+        <p class="text-muted small mb-0">Última actualización: junio de 2026.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btn-terms-accept" data-bs-dismiss="modal">He leído y acepto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
 
+<!-- Footer -->
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <div class="qc-logo">
+        <div class="qc-logo-mark">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12h4l2.5-6 3.5 12 3-9 1.5 3H22"></path>
+          </svg>
+        </div>
+        <div class="qc-logo-text"><strong>Quad<span class="core">Core</span></strong></div>
+      </div>
+      <p>El corazón de la electrónica. Repuestos, accesorios, herramientas y servicio técnico especializado.</p>
+      <div class="footer-social">
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+        <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+        <a href="https://wa.me/56221234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h6>Categorías</h6>
+      <a href="#" data-view="catalogo" data-cat="repuestos">Repuestos</a>
+      <a href="#" data-view="catalogo" data-cat="accesorios">Accesorios</a>
+      <a href="#" data-view="catalogo" data-cat="herramientas">Herramientas</a>
+      <a href="#" data-view="catalogo" data-cat="servicios-tecnicos">Servicios Técnicos</a>
+    </div>
+    <div class="footer-col">
+      <h6>Ayuda</h6>
+      <a href="#" data-view="pedidos">Estado de mi pedido</a>
+      <a href="#/despacho">Despacho y cobertura</a>
+      <a href="#/garantia">Garantía y devoluciones</a>
+      <a href="#/medios-pago">Medios de pago</a>
+      <a href="#/nosotros">Quiénes somos</a>
+    </div>
+    <div class="footer-col footer-contact">
+      <h6>Contacto</h6>
+      <p><i class="bi bi-geo-alt"></i> Av. Providencia 1234, Santiago, Chile</p>
+      <p><i class="bi bi-telephone"></i> +56 2 2123 4567</p>
+      <p><i class="bi bi-envelope"></i> contacto@quadcore.cl</p>
+      <p><i class="bi bi-clock"></i> Lun a Vie 9–19h · Sáb 10–14h</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 QuadCore SpA · El Corazón de la Electrónica</span>
+    <span>RUT 77.123.456-7 · Santiago, CL</span>
+  </div>
+</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/campos-vacios.js"></script>
 <script src="js/app.js"></script>
+<script src="js/hero-smoke.js"></script>
+<script src="js/carrusel.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/catalogo.js"></script>
 <script src="js/carrito.js"></script>
+<script src="js/comparar.js"></script>
 <script src="js/checkout.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    App.init();
-    Catalogo.cargarProductos(1);
-});
-</script>
+<script src="js/cuenta.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/info-pages.js"></script>
+<script src="js/contacto.js"></script>
+<script src="js/paginas.js"></script>
+<script src="js/router.js"></script>
+<script src="js/boot.js"></script>
 </body>
 </html>

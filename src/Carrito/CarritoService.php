@@ -51,9 +51,9 @@ class CarritoService
         $carrito['total_con_iva'] = $carrito['subtotal'] + $carrito['iva'];
 
         // Formatear montos
-        $carrito['subtotal_formateado'] = '$' . number_format($carrito['subtotal'] / 100, 0, ',', '.');
-        $carrito['iva_formateado'] = '$' . number_format($carrito['iva'] / 100, 0, ',', '.');
-        $carrito['total_formateado'] = '$' . number_format($carrito['total_con_iva'] / 100, 0, ',', '.');
+        $carrito['subtotal_formateado'] = '$' . number_format($carrito['subtotal'] , 0, ',', '.');
+        $carrito['iva_formateado'] = '$' . number_format($carrito['iva'] , 0, ',', '.');
+        $carrito['total_formateado'] = '$' . number_format($carrito['total_con_iva'] , 0, ',', '.');
 
         return $carrito;
     }
@@ -212,8 +212,8 @@ class CarritoService
             $item['cantidad'] = (int)$item['cantidad'];
             $item['precio_unitario'] = (int)($item['precio_unitario'] ?? 0);
             $item['subtotal'] = $item['precio_unitario'] * $item['cantidad'];
-            $item['precio_formateado'] = '$' . number_format($item['precio_unitario'] / 100, 0, ',', '.');
-            $item['subtotal_formateado'] = '$' . number_format($item['subtotal'] / 100, 0, ',', '.');
+            $item['precio_formateado'] = '$' . number_format($item['precio_unitario'] , 0, ',', '.');
+            $item['subtotal_formateado'] = '$' . number_format($item['subtotal'] , 0, ',', '.');
         }
         return $items;
     }

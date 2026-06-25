@@ -22,6 +22,8 @@ use App\Pagos\PagosController;
 use App\Inventario\InventarioController;
 use App\Admin\AdminController;
 use App\Integracion\IntegracionController;
+use App\Resenas\ResenasController;
+use App\Favoritos\FavoritosController;
 
 // Iniciar sesión
 Session::iniciar();
@@ -58,8 +60,19 @@ $router->patch('/api/auth/perfil', [AuthController::class, 'actualizarPerfil'], 
 // --- Módulo A: Catálogo ---
 $router->get('/api/catalogo', [CatalogoController::class, 'listar']);
 $router->get('/api/catalogo/categorias', [CatalogoController::class, 'categorias']);
+$router->get('/api/catalogo/marcas', [CatalogoController::class, 'marcas']);
 $router->get('/api/catalogo/destacados', [CatalogoController::class, 'destacados']);
+$router->get('/api/catalogo/ofertas', [CatalogoController::class, 'ofertas']);
 $router->get('/api/catalogo/{id}', [CatalogoController::class, 'detalle']);
+
+// --- Reseñas de productos ---
+$router->get('/api/catalogo/{id}/resenas', [ResenasController::class, 'listar']);
+$router->post('/api/catalogo/{id}/resenas', [ResenasController::class, 'crear'], auth: true);
+
+// --- Favoritos (lista de deseos) ---
+$router->get('/api/favoritos', [FavoritosController::class, 'listar'], auth: true);
+$router->post('/api/favoritos', [FavoritosController::class, 'agregar'], auth: true);
+$router->delete('/api/favoritos/{id}', [FavoritosController::class, 'eliminar'], auth: true);
 
 // --- Módulo B: Carrito ---
 $router->get('/api/carrito', [CarritoController::class, 'ver']); // auth opcional
@@ -75,7 +88,8 @@ $router->get('/api/pedidos', [CheckoutController::class, 'misPedidos'], auth: tr
 $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], auth: true);
 
 // --- Módulo E: Pagos ---
-$router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
+$router->post('/api/pagos/iniciar', [PagosController::class, 'iniciar'], auth: true);
+$router->post('/api/pagos/confirmar', [PagosController::class, 'confirmar'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
 

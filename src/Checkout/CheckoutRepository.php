@@ -139,7 +139,7 @@ class CheckoutRepository
 
         // Formatear montos
         foreach (['subtotal', 'iva', 'total'] as $campo) {
-            $pedido[$campo . '_formateado'] = '$' . number_format($pedido[$campo] / 100, 0, ',', '.');
+            $pedido[$campo . '_formateado'] = '$' . number_format($pedido[$campo] , 0, ',', '.');
             $pedido[$campo] = (int)$pedido[$campo];
         }
 
@@ -164,7 +164,7 @@ class CheckoutRepository
         $pedidos = $stmt->fetchAll();
 
         foreach ($pedidos as &$p) {
-            $p['total_formateado'] = '$' . number_format($p['total'] / 100, 0, ',', '.');
+            $p['total_formateado'] = '$' . number_format($p['total'] , 0, ',', '.');
             $p['total'] = (int)$p['total'];
             $p['total_items'] = (int)$p['total_items'];
         }
@@ -228,6 +228,22 @@ class CheckoutRepository
         );
         $stmt->execute([':codigo' => $codigo, ':monto' => $montoCompra]);
         return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * ¿El usuario ya usó este cupón en una compra PAGADA?
+     * Cuenta solo pedidos pagados: un pedido abandonado/rechazado no quema el uso.
+     */
+    public function usuarioYaUsoCupon(int $userId, int $cuponId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT 1 FROM pedido_cupon pc
+             INNER JOIN pedidos p ON p.id = pc.id_pedido
+             WHERE p.id_usuario = :uid AND pc.id_cupon = :cupon AND p.estado = 'pagado'
+             LIMIT 1"
+        );
+        $stmt->execute([':uid' => $userId, ':cupon' => $cuponId]);
+        return (bool)$stmt->fetch();
     }
 
     /**

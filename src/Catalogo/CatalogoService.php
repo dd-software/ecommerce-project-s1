@@ -27,13 +27,21 @@ class CatalogoService
         ?bool $enStock = null,
         string $ordenar = 'relevancia',
         int $pagina = 1,
-        int $porPagina = 20
+        int $porPagina = 20,
+        ?array $categoriaIds = null,
+        ?array $marcas = null
     ): array {
         // Solo productos activos (RN-A01)
         $filtros = ['activo' => true];
 
         if ($categoriaId !== null) {
             $filtros['categoria_id'] = $categoriaId;
+        }
+        if (!empty($categoriaIds)) {
+            $filtros['categoria_ids'] = $categoriaIds;
+        }
+        if (!empty($marcas)) {
+            $filtros['marcas'] = $marcas;
         }
         if ($busqueda !== null && trim($busqueda) !== '') {
             $filtros['busqueda'] = trim($busqueda);
@@ -68,8 +76,36 @@ class CatalogoService
     }
 
     /**
+     * Resuelve el parámetro de categoría a un id: acepta un id numérico o un slug
+     * (ej. "repuestos"). Devuelve null si no aplica o el slug no existe.
+     */
+    public function resolverCategoria(?string $valor): ?int
+    {
+        if ($valor === null || $valor === '') {
+            return null;
+        }
+        if (ctype_digit($valor)) {
+            return (int)$valor;
+        }
+        return $this->repository->buscarCategoriaIdPorSlug($valor);
+    }
+
+    /**
+     * Lista marcas activas con conteo
+     */
+    public function listarMarcas(): array
+    {
+        return $this->repository->obtenerMarcas();
+    }
+
+    /**
      * Obtiene productos destacados
      */
+    public function obtenerOfertas(int $limite = 12): array
+    {
+        return $this->repository->obtenerOfertas($limite);
+    }
+
     public function obtenerDestacados(int $limite = 8): array
     {
         return $this->repository->obtenerDestacados($limite);

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * PagosController - Procesamiento de pagos y simulación Webpay
+ * PagosController - Inicio de pago (MercadoPago / simulado), confirmación y webhook.
  */
 namespace App\Pagos;
 
@@ -19,10 +19,10 @@ class PagosController
     }
 
     /**
-     * POST /api/pagos/procesar
-     * Procesa un pago (simulación Webpay)
+     * POST /api/pagos/iniciar
+     * Inicia el pago de un pedido. Devuelve init_point (MercadoPago) o estado aprobado (simulado).
      */
-    public function procesar(Request $request, Response $response, array $params): void
+    public function iniciar(Request $request, Response $response, array $params): void
     {
         $user = $request->getAttribute('authenticated_user');
         if (!$user) {
@@ -32,13 +32,12 @@ class PagosController
 
         try {
             $data = $request->getBody();
-            $request->validateRequired(['pedido_id', 'metodo_pago']);
+            $request->validateRequired(['pedido_id']);
 
-            $resultado = $this->service->procesarPago(
+            $resultado = $this->service->iniciarPago(
                 pedidoId: (int)$data['pedido_id'],
-                metodoPago: $data['metodo_pago'],
-                tokenTarjeta: $data['token_tarjeta'] ?? 'sim_tok_' . bin2hex(random_bytes(8)),
-                userId: (int)$user['id']
+                userId: (int)$user['id'],
+                payerEmail: $data['email'] ?? ($user['email'] ?: 'comprador@quadcore.cl')
             );
 
             $response->json($resultado);
@@ -48,13 +47,41 @@ class PagosController
         } catch (\RuntimeException $e) {
             $response->error('PAYMENT_ERROR', $e->getMessage(), 402);
         } catch (\Exception $e) {
-            $response->error('SERVER_ERROR', 'Error al procesar el pago.', 500);
+            $response->error('SERVER_ERROR', 'Error al iniciar el pago.', 500);
+        }
+    }
+
+    /**
+     * POST /api/pagos/confirmar  { payment_id }
+     * Lo llama el front al volver de MercadoPago: confirma contra la API de MP.
+     * (El webhook hace lo mismo del lado servidor; esto cubre el retorno inmediato del usuario.)
+     */
+    public function confirmar(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $paymentId = (string)$request->getBody('payment_id', '');
+            if ($paymentId === '') {
+                $response->error('VALIDATION_ERROR', 'payment_id requerido.', 422);
+                return;
+            }
+
+            $resultado = $this->service->confirmarPagoMercadoPago($paymentId);
+            $response->json($resultado);
+
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al confirmar el pago.', 500);
         }
     }
 
     /**
      * GET /api/pagos/estado/{pedidoId}
-     * Consulta el estado del pago de un pedido
+     * Estado del pago de un pedido (polling del front).
      */
     public function estado(Request $request, Response $response, array $params): void
     {
@@ -65,43 +92,37 @@ class PagosController
         }
 
         try {
-            $pedidoId = (int)$params['pedidoId'];
-            $estado = $this->service->consultarEstadoPago($pedidoId);
-
+            $estado = $this->service->consultarEstadoPago((int)$params['pedidoId']);
             if (!$estado) {
                 $response->error('PAYMENT_NOT_FOUND', 'No se encontró pago para este pedido.', 404);
                 return;
             }
-
             $response->json($estado);
-
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al consultar estado del pago.', 500);
         }
     }
 
     /**
-     * POST /api/pagos/webhook
-     * Webhook simulado de confirmación de pasarela de pago
+     * POST /api/pagos/webhook  (público — lo llama MercadoPago)
+     * MP avisa con ?type=payment&data.id=... (o JSON {type, data:{id}}). Confirmamos contra su API.
      */
     public function webhook(Request $request, Response $response, array $params): void
     {
         try {
-            $data = $request->getBody();
+            // PHP convierte "data.id" del query string en "data_id".
+            $tipo = (string)($request->getQuery('type') ?? $request->getBody('type', ''));
+            $bodyData = $request->getBody('data');
+            $dataId = (string)(
+                $request->getQuery('data_id')
+                ?? $request->getQuery('id')
+                ?? (is_array($bodyData) ? ($bodyData['id'] ?? '') : '')
+            );
 
-            // En producción: validar firma del webhook
-            $pedidoId = (int)($data['pedido_id'] ?? 0);
-            $estado = $data['estado'] ?? 'rechazado';
-            $transaccionId = $data['transaccion_id'] ?? '';
+            $this->service->procesarWebhook($tipo, $dataId);
 
-            if ($pedidoId <= 0) {
-                $response->error('INVALID_WEBHOOK', 'pedido_id requerido.', 422);
-                return;
-            }
-
-            $this->service->procesarWebhook($pedidoId, $estado, $transaccionId);
-
-            $response->json(['mensaje' => 'Webhook procesado exitosamente.']);
+            // MP espera 200/201 para no reintentar.
+            $response->json(['recibido' => true]);
 
         } catch (\Exception $e) {
             $response->error('WEBHOOK_ERROR', 'Error al procesar webhook.', 500);

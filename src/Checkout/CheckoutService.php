@@ -83,6 +83,10 @@ class CheckoutService
             if ($cuponCodigo) {
                 $cupon = $this->repository->validarCupon($cuponCodigo, $subtotal);
                 if ($cupon) {
+                    // Límite por usuario: 1 uso por persona (solo cuenta compras pagadas).
+                    if ($this->repository->usuarioYaUsoCupon($userId, (int)$cupon['id'])) {
+                        throw new \RuntimeException('Este cupón ya fue usado en una compra anterior.');
+                    }
                     if ($cupon['tipo_descuento'] === 'porcentaje') {
                         $descuentoAplicado = (int)round($subtotal * $cupon['valor'] / 100);
                     } else {
@@ -128,8 +132,9 @@ class CheckoutService
                 $this->repository->aplicarCupon($pedidoId, $cuponId, $descuentoAplicado);
             }
 
-            // Desactivar carrito (se convirtió en pedido)
-            (new CarritoRepository())->desactivarParaCheckout($carritoId);
+            // NO desactivar el carrito acá: si el pago se rechaza, el pedido se cancela
+            // y el carrito debe seguir disponible para reintentar. El carrito se vacía
+            // solo tras un pago APROBADO (ver PagosService::procesarPago).
 
             $db->commit();
 

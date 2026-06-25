@@ -62,7 +62,7 @@ class PagosRepository
         $pago = $stmt->fetch();
 
         if ($pago) {
-            $pago['monto_formateado'] = '$' . number_format($pago['monto'] / 100, 0, ',', '.');
+            $pago['monto_formateado'] = '$' . number_format($pago['monto'] , 0, ',', '.');
             $pago['monto'] = (int)$pago['monto'];
         }
 
