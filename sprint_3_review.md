@@ -7,6 +7,8 @@ Este documento resume las funcionalidades, mejoras de diseño y características
 ## 1. Diseño y Estética Visual (Diseño Final)
 *   **Tema Cyber-Punk Premium**: Se implementó una interfaz visual moderna basada en una paleta de colores oscuro/gris profundo (`#0a0b0e` y `#141722`) con acentos en rojo neón/carmesí (`#ff2a4b`) que moderniza y destaca la estética general de la tienda.
 *   **Micro-animaciones y Tarjetas de Producto**: Se añadieron efectos de transición fluidos al posicionar el cursor sobre los artículos, bordes luminosos y sombras adaptativas para una experiencia interactiva premium.
+*   **Botones e Interacciones**: Se adaptaron todos los botones de acción principal (como "Agregar al carrito" y los selectores del checkout) para utilizar los nuevos colores y responder con suavidad al pasar el cursor (hover), guiando mejor la interacción.
+*   **Tipografía y Lectura Clara**: Se optimizaron los estilos de fuente con mayor contraste, mayor tamaño de base y espaciado de línea incrementado, eliminando la fatiga visual y permitiendo una lectura más cómoda.
 
 ---
 
