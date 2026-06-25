@@ -102,6 +102,7 @@ $router->post('/api/inventario/ajustar', [InventarioController::class, 'ajustar'
 // --- Módulo G: Administración ---
 $router->get('/api/admin/dashboard', [AdminController::class, 'dashboard'], auth: true, admin: true);
 $router->post('/api/admin/tipo-cambio', [AdminController::class, 'actualizarTipoCambio'], auth: true, admin: true);
+$router->post('/api/admin/productos/upload-imagen', [AdminController::class, 'subirImagen'], auth: true, admin: true);
 $router->get('/api/admin/productos', [AdminController::class, 'listarProductos'], auth: true, admin: true);
 $router->post('/api/admin/productos', [AdminController::class, 'crearProducto'], auth: true, admin: true);
 $router->get('/api/admin/productos/{id}', [AdminController::class, 'obtenerProducto'], auth: true, admin: true);

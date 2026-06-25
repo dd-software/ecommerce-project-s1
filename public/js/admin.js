@@ -195,7 +195,7 @@ const Admin = {
                             ${productos.map(p => `
                                 <tr>
                                     <td>${p.id}</td>
-                                    <td><img src="${p.imagen_url || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src='https://via.placeholder.com/40'"></td>
+                                    <td><img src="${p.imagen_url || App.placeholders.img40}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src=App.placeholders.img40"></td>
                                     <td>${this.escapeHtml(p.nombre)}</td>
                                     <td>${this.escapeHtml(p.categoria_nombre || '-')}</td>
                                     <td>${p.precio_formateado || App.formatPrice(p.precio)}</td>
@@ -411,7 +411,7 @@ const Admin = {
             html += '</div></div>';
 
             // Ventas por día
-            html += `<div class="card"><div class="card-header bg-primary text-white">
+            html += `<div class="card report-card-custom"><div class="card-header bg-primary text-white">
                 <i class="bi bi-graph-up me-2"></i>Ventas Últimos 30 Días</div><div class="card-body">
                 <canvas id="sales-chart" height="200"></canvas>
             </div></div>`;
@@ -446,13 +446,15 @@ const Admin = {
                         title="${v.fecha}: $${new Intl.NumberFormat('es-CL').format(values[i])}"></div>`;
         });
         html += '</div>';
-        html += '<div class="d-flex mt-2" style="gap:2px;font-size:0.6rem">';
+        html += '<div class="d-flex mt-2 mb-3" style="gap:2px;font-size:0.6rem;height:30px;overflow:visible;">';
         // Mostrar algunas fechas
         const step = Math.max(1, Math.floor(ventasData.length / 10));
         ventasData.forEach((v, i) => {
             if (i % step === 0 || i === ventasData.length - 1) {
                 const fecha = new Date(v.fecha);
-                html += `<div class="flex-fill text-muted" style="min-width:6px;transform:rotate(-45deg);transform-origin:top left">${fecha.getDate()}/${fecha.getMonth()+1}</div>`;
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                html += `<div class="flex-fill text-muted" style="min-width:6px;transform:rotate(-45deg);transform-origin:top left">${dia}/${mes}</div>`;
             } else {
                 html += '<div class="flex-fill" style="min-width:6px"></div>';
             }
@@ -532,9 +534,21 @@ const Admin = {
                                     <input type="number" class="form-control" id="prod-stock-min" value="${product ? (product.stock_minimo || 5) : 5}" min="0">
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">URL Imagen</label>
-                                <input type="url" class="form-control" id="prod-imagen" value="${product ? (product.imagen_url || '') : ''}">
+                            <div class="row align-items-center">
+                                <div class="col-md-5 mb-3">
+                                    <label class="form-label">URL Imagen</label>
+                                    <input type="url" class="form-control" id="prod-imagen" value="${product ? (product.imagen_url || '') : ''}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Subir de Computador</label>
+                                    <input type="file" class="form-control" id="prod-imagen-file" accept="image/*">
+                                </div>
+                                <div class="col-md-3 mb-3 text-center">
+                                    <label class="form-label d-block">Vista Previa</label>
+                                    <img id="prod-imagen-preview" src="${product && product.imagen_url ? product.imagen_url : App.placeholders.img100}"
+                                         class="rounded" style="width:80px; height:80px; object-fit:contain; background-color:#ffffff; padding:5px; border-radius:10px; display:inline-block;"
+                                         onerror="this.src=App.placeholders.img100">
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <div class="form-check">
@@ -561,6 +575,62 @@ const Admin = {
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
+
+        const imgInput = document.getElementById('prod-imagen');
+        if (imgInput) {
+            imgInput.addEventListener('input', (e) => {
+                const preview = document.getElementById('prod-imagen-preview');
+                if (preview) {
+                    preview.src = e.target.value.trim() || App.placeholders.img100;
+                }
+            });
+        }
+
+        const fileInput = document.getElementById('prod-imagen-file');
+        if (fileInput) {
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('imagen', file);
+
+                const saveBtn = document.getElementById('btn-save-product');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.dataset.originalText = saveBtn.textContent;
+                    saveBtn.textContent = 'Subiendo Imagen...';
+                }
+
+                try {
+                    const resp = await fetch(`${App.apiBase}/admin/productos/upload-imagen`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + App.token
+                        },
+                        body: formData
+                    });
+                    const data = await resp.json();
+                    if (data.success && data.data && data.data.url) {
+                        document.getElementById('prod-imagen').value = data.data.url;
+                        document.getElementById('prod-imagen-preview').src = data.data.url;
+                        App.showToast('Imagen subida con éxito.', 'success');
+                    } else {
+                        App.showToast(data.error?.message || 'Error al subir la imagen.', 'error');
+                        fileInput.value = '';
+                    }
+                } catch (err) {
+                    console.error('Error al subir imagen:', err);
+                    App.showToast('Error de red al subir la imagen.', 'error');
+                    fileInput.value = '';
+                } finally {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = saveBtn.dataset.originalText || (product ? 'Guardar Cambios' : 'Crear Producto');
+                    }
+                }
+            });
+        }
     },
 
         /**
@@ -589,8 +659,9 @@ const Admin = {
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <img src="${product.imagen_url || 'https://via.placeholder.com/300'}"
-                                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}">
+                                    <img src="${product.imagen_url || App.placeholders.img300}"
+                                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
+                                         onerror="this.src=App.placeholders.img300">
                                 </div>
                                 <div class="col-md-8">
                                     <p><strong>Categoría:</strong> ${this.escapeHtml(product.categoria_nombre || '-')}</p>

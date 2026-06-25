@@ -332,4 +332,78 @@ class AdminController
             $response->error('SERVER_ERROR', 'Error al eliminar usuario.', 500);
         }
     }
+
+    /**
+     * POST /api/admin/productos/upload-imagen
+     * Sube una imagen desde el computador
+     */
+    public function subirImagen(Request $request, Response $response, array $params): void
+    {
+        try {
+            if (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
+                $response->error('VALIDATION_ERROR', 'No se ha proporcionado un archivo válido o hubo un error al subirlo.', 400);
+                return;
+            }
+
+            $file = $_FILES['imagen'];
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/pjpeg', 'image/x-png'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+            if (!in_array($file['type'], $allowedTypes) && !in_array($ext, $allowedExts)) {
+                $response->error('VALIDATION_ERROR', 'Formato de imagen no permitido. Solo se aceptan JPEG, PNG, GIF y WEBP.', 400);
+                return;
+            }
+
+            // Validar tamaño máximo (4MB)
+            if ($file['size'] > 4 * 1024 * 1024) {
+                $response->error('VALIDATION_ERROR', 'El tamaño máximo de imagen es 4MB.', 400);
+                return;
+            }
+
+            // Crear directorio de destino si no existe
+            $destDir = dirname(__DIR__, 2) . '/public/uploads';
+            if (!file_exists($destDir)) {
+                if (!mkdir($destDir, 0755, true)) {
+                    throw new \Exception('No se pudo crear la carpeta public/uploads. Verifica permisos de escritura.');
+                }
+            }
+
+            // Generar un nombre único para la imagen
+            if (empty($ext)) {
+                $ext = 'png';
+            }
+            $fileName = uniqid('prod_', true) . '.' . $ext;
+            $destPath = $destDir . '/' . $fileName;
+
+            if (move_uploaded_file($file['tmp_name'], $destPath)) {
+                // Generar URL pública dinámica basándose en el host de la petición actual
+                // Esto previene bloqueos de Content Security Policy (CSP) si el usuario accede por 127.0.0.1 en lugar de localhost
+                $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+                $basePath = str_replace('\\', '/', dirname($scriptName));
+                if ($basePath === '/' || $basePath === '\\') {
+                    $basePath = '';
+                }
+                
+                if (str_ends_with($basePath, '/public')) {
+                    $publicUrl = $scheme . '://' . $host . $basePath . '/uploads/' . $fileName;
+                } else {
+                    $publicUrl = $scheme . '://' . $host . $basePath . '/public/uploads/' . $fileName;
+                }
+
+                $response->json([
+                    'success' => true,
+                    'url' => $publicUrl,
+                    'filename' => $fileName
+                ]);
+            } else {
+                throw new \Exception('No se pudo mover el archivo temporal al destino ' . $destPath);
+            }
+
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error interno al subir la imagen: ' . $e->getMessage(), 500);
+        }
+    }
 }

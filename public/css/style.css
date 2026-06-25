@@ -76,14 +76,17 @@ a[href*="todo"]:hover {
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 14px !important;
     overflow: hidden !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.product-card {
     height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    box-shadow: var(--shadow-md) !important;
     padding: 0 !important;
 }
 
-.product-card:hover, .card:hover {
+.product-card:hover {
     transform: translateY(-6px) !important;
     border-color: var(--uct-primary) !important;
     box-shadow: var(--shadow-lg) !important;
@@ -91,9 +94,7 @@ a[href*="todo"]:hover {
 
 /* Contenedor de Imagen */
 .product-card .card-img-top, 
-.product-card [class*="img"], 
-.card .card-img-top,
-.card div:has(> img) {
+.product-card [class*="img"] {
     height: 240px !important; /* Un poco más de aire a la imagen */
     object-fit: cover !important;
     background-color: #f1f5f9 !important; /* Fondo claro limpio para los PNGs transparentes */
@@ -102,10 +103,7 @@ a[href*="todo"]:hover {
 
 /* Caja elegante de reemplazo cuando no hay imagen */
 .product-card div[style*="background"], 
-.product-card .no-image,
-.card div:contains("Imagen"),
-.card [style*="background"],
-.card div:contains("Sin Imagen") {
+.product-card .no-image {
     background: linear-gradient(135deg, #1e2235 0%, #141722 100%) !important;
     color: var(--uct-text-dim) !important;
     display: flex !important;
@@ -118,7 +116,7 @@ a[href*="todo"]:hover {
 }
 
 /* Cuerpo interno de la tarjeta */
-.product-card .card-body, .card .card-body {
+.product-card .card-body {
     padding: 1.5rem !important; /* Más espacio interno */
     display: flex !important;
     flex-direction: column !important;
@@ -128,9 +126,7 @@ a[href*="todo"]:hover {
 
 /* Texto de la Categoría (Etiqueta superior) */
 .product-card .card-category, 
-.product-card [class*="category"],
-.card .text-muted,
-.card-body .text-muted {
+.product-card [class*="category"] {
     font-size: 0.8rem !important; /* Agrandado */
     color: var(--uct-primary-light) !important;
     text-transform: uppercase !important;
@@ -141,9 +137,7 @@ a[href*="todo"]:hover {
 
 /* Título del Producto */
 .product-card .card-title, 
-.product-card h5,  
-.card .card-title,
-.card h5 {
+.product-card h5 {
     font-size: 1.25rem !important; /* ¡Agrandado notablemente! */
     font-weight: 700 !important;
     line-height: 1.4 !important;
@@ -154,10 +148,7 @@ a[href*="todo"]:hover {
 /* Texto de Descripción (Arreglado el problema de lectura de la captura) */
 .product-card .card-description,
 .product-card p,
-.product-card [class*="description"],
-.card .card-text,
-.card p,
-.card-body p {
+.product-card [class*="description"] {
     font-size: 0.95rem !important; /* Agrandado para óptima lectura */
     font-weight: 400 !important;
     line-height: 1.6 !important;
@@ -167,14 +158,14 @@ a[href*="todo"]:hover {
     margin-bottom: 1.5rem !important;
     display: -webkit-box !important;
     -webkit-line-clamp: 3 !important;
+    line-clamp: 3 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
 }
 
 /* Precio del Producto */
 .product-card .card-price,
-.product-card [class*="price"],
-.card [class*="price"] {
+.product-card [class*="price"] {
     font-size: 1.6rem !important; /* Precio destacado */
     font-weight: 800 !important;
     color: #ffffff !important;
@@ -184,8 +175,7 @@ a[href*="todo"]:hover {
 }
 
 /* Botones de acción principal */
-.product-card .btn, .product-card button,
-.card .btn, .card button {
+.product-card .btn, .product-card button {
     width: 100% !important;
     background: var(--uct-primary) !important;
     color: #ffffff !important;
@@ -199,24 +189,25 @@ a[href*="todo"]:hover {
     box-shadow: 0 4px 12px rgba(255, 42, 75, 0.25) !important;
 }
 
-.product-card .btn:hover, .card .btn:hover {
+.product-card .btn:hover {
     background: var(--uct-primary-hover) !important;
     box-shadow: 0 6px 18px rgba(255, 42, 75, 0.45) !important;
     transform: translateY(-1px) !important;
 }
 
 /* Botón Ver Detalle / Enlaces secundarios */
-.product-card .btn-link, .card .btn-link,
-.product-card a:not(.btn), .card a:not(.btn) {
+.product-card .btn-link,
+.product-card a:not(.btn) {
     color: var(--uct-text-dim) !important;
     font-size: 0.95rem !important;
     font-weight: 600 !important;
     text-decoration: none !important;
     margin-top: 0.4rem !important;
 }
-.product-card .btn-link:hover, .card .btn-link:hover {
+.product-card .btn-link:hover {
     color: var(--uct-primary-light) !important;
 }
+
 
 /* === Category Pills Superior === */
 #home-category-pills .category-pill,
@@ -356,3 +347,186 @@ h1, .panel-title, h2:contains("Panel") {
     color: var(--uct-primary-light) !important;
     font-weight: 700 !important;
 }
+
+/* ==========================================================================
+   Refactoring & Corrections for Cyberpunk Aesthetic
+   ========================================================================== */
+
+/* 1. Mapeo de Bootstrap Primario (Azul) a Rojo Neón y Neutral Cyberpunk */
+.bg-primary {
+    background-color: var(--uct-primary) !important;
+}
+.btn-primary {
+    background-color: var(--uct-primary) !important;
+    border-color: var(--uct-primary) !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--uct-primary-hover) !important;
+    border-color: var(--uct-primary-hover) !important;
+}
+.btn-outline-primary {
+    color: var(--uct-primary-light) !important;
+    border-color: var(--uct-primary) !important;
+}
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+    background-color: var(--uct-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--uct-primary) !important;
+}
+.page-item.active .page-link {
+    background-color: var(--uct-primary) !important;
+    border-color: var(--uct-primary) !important;
+}
+.badge.bg-primary {
+    background-color: var(--uct-primary) !important;
+}
+.progress-bar {
+    background-color: var(--uct-primary) !important;
+}
+.text-primary {
+    color: var(--uct-primary-light) !important;
+}
+.bg-info, .badge.bg-info {
+    background-color: var(--uct-bg-surface) !important;
+    color: var(--uct-text-muted) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 2. Contraste de Textos en Modo Oscuro (Corrección de invisibilidad) */
+.text-dark {
+    color: var(--uct-text-main) !important;
+}
+.text-muted, .text-secondary {
+    color: var(--uct-text-muted) !important;
+}
+.orders-list-container .card-body p, 
+.orders-list-container .card-body span,
+.offcanvas-body p,
+.offcanvas-body span,
+#order-detail-content p,
+#order-detail-content span {
+    color: var(--uct-text-muted);
+}
+
+/* 3. Ajuste Cuadrado para Imágenes de Detalle de Producto */
+.product-detail-img-frame {
+    width: 400px !important;
+    height: 400px !important;
+    max-width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    background-color: #ffffff !important;
+    padding: 2rem !important;
+    border-radius: 24px !important;
+    border: none !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+
+.product-detail-img-frame img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 0 !important;
+    border: none !important;
+}
+
+
+/* 4. Estilos de Tablas Oscuras */
+.table, .table-admin {
+    background-color: var(--uct-bg-card) !important;
+    color: var(--uct-text-main) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.table th, .table td {
+    background-color: var(--uct-bg-card) !important;
+    color: var(--uct-text-main) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.table-hover tbody tr:hover {
+    background-color: var(--uct-bg-surface) !important;
+    color: #ffffff !important;
+}
+
+/* 5. Carrito Lateral (Offcanvas) en Modo Oscuro */
+.offcanvas, .offcanvas-header, .offcanvas-body {
+    background-color: var(--uct-bg-card) !important;
+    color: var(--uct-text-main) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.offcanvas .btn-close {
+    filter: invert(1) grayscale(1) brightness(2) !important;
+    opacity: 0.9 !important;
+}
+.cart-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: transparent !important;
+}
+
+/* 6. Form Controls Generales en Modo Oscuro */
+input.form-control, 
+textarea.form-control, 
+select.form-select, 
+select.form-control,
+.modal-body input, 
+.modal-body select, 
+.modal-body textarea {
+    background-color: var(--uct-bg-main) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    border-radius: 8px !important;
+}
+input.form-control:focus, 
+textarea.form-control:focus, 
+select.form-select:focus, 
+select.form-control:focus {
+    border-color: var(--uct-primary) !important;
+    box-shadow: 0 0 10px rgba(255, 42, 75, 0.3) !important;
+}
+
+/* 7. Hover Animado exclusivo para Tarjetas de Catálogo e Historial de Pedidos */
+.product-card:hover, .orders-list-container .card:hover {
+    transform: translateY(-6px) !important;
+    border-color: var(--uct-primary) !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+/* 8. Estilo de Report Card (Contorno rojo y dentro gris) */
+.report-card-custom {
+    border: 1px solid var(--uct-primary) !important;
+    background-color: var(--uct-bg-surface) !important;
+    box-shadow: 0 0 15px rgba(255, 42, 75, 0.15) !important;
+}
+.report-card-custom .card-header {
+    background-color: var(--uct-bg-card) !important;
+    border-bottom: 1px solid var(--uct-primary) !important;
+    color: var(--uct-text-main) !important;
+}
+
+/* 9. Imagen de Detalle de Producto en Panel Admin (Estilo SoloTodo) */
+#productDetailModal img {
+    aspect-ratio: 1 / 1 !important;
+    object-fit: contain !important;
+    background-color: #ffffff !important;
+    padding: 1.5rem !important;
+    width: 100% !important;
+    border-radius: 16px !important;
+    border: none !important;
+    display: block !important;
+}
+
+/* 10. Ocultar flechas del input de cantidad en el carrito */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+.qty-input[type=number] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}

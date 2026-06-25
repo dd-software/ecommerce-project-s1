@@ -66,9 +66,9 @@ const Carrito = {
         container.innerHTML = this.cart.items.map(item => `
             <div class="cart-item py-3 border-bottom d-flex align-items-center" data-item-id="${item.id}">
                 <div class="cart-item-image-container me-3">
-                    <img src="${item.imagen_url || 'https://via.placeholder.com/80?text=N/A'}"
+                    <img src="${item.imagen_url || App.placeholders.img80}"
                          class="cart-item-img rounded" alt="${this.escapeHtml(item.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/80?text=N/A'"
+                         onerror="this.src=App.placeholders.img80"
                          style="width: 65px; height: 65px; object-fit: cover;">
                 </div>
                 <div class="flex-grow-1">

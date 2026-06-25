@@ -186,8 +186,9 @@ const Catalogo = {
             <div class="col-md-6 col-lg-3 mb-4">
                 <div class="product-card position-relative">
                     ${stockBadge}
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
-                         class="card-img-top product-image" alt="${this.escapeHtml(p.nombre)}">
+                    <img src="${p.imagen_url || App.placeholders.img400}"
+                         class="card-img-top product-image" alt="${this.escapeHtml(p.nombre)}"
+                         onerror="this.src=App.placeholders.img400">
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
@@ -381,10 +382,12 @@ const Catalogo = {
 
         container.innerHTML = `
             <div class="row">
-                <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
-                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'">
+                <div class="col-md-6 d-flex justify-content-center align-items-center mb-4">
+                    <div class="product-detail-img-frame">
+                        <img src="${product.imagen_url || App.placeholders.img600}"
+                             alt="${this.escapeHtml(product.nombre)}"
+                             onerror="this.src=App.placeholders.img600">
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
