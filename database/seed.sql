@@ -1,93 +1,122 @@
--- ============================================
--- Datos Semilla - Plataforma Ecommerce UCT
--- ============================================
-
 USE uct_ecommerce;
 
--- ============================================
--- Usuarios (passwords: Password123!)
--- hash generado con password_hash('Password123!', PASSWORD_BCRYPT, ['cost' => 12])
--- ============================================
-INSERT INTO usuarios (nombre, apellido, email, password_hash, rol, activo) VALUES
--- Contraseñas: admin@uct.cl => 'admin123' ; el resto => 'password123'
-('Admin', 'Sistema', 'admin@uct.cl', '$2y$12$mnCE8v0ryLtPhYjMerpeiuGMayZrtQclzZJNS79gli6MZBcaYsALu', 'admin', 1),
-('Juan', 'Pérez', 'juan@email.com', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'cliente', 1),
-('María', 'González', 'maria@email.com', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'cliente', 1),
-('Pedro', 'Vendedor', 'pedro@uct.cl', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'vendedor', 1),
-('Ana', 'Supervisor', 'ana@uct.cl', '$2y$12$asiPEUDSMGaYf86W8fBNZORPkB.ic1HEN2HDasOImS8u1ALZJTAYq', 'supervisor', 1);
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE inventory;
+TRUNCATE TABLE cart_items;
+TRUNCATE TABLE order_items;
+TRUNCATE TABLE orders;
+TRUNCATE TABLE product_variants;
+TRUNCATE TABLE products;
+TRUNCATE TABLE categories;
+TRUNCATE TABLE users;
+TRUNCATE TABLE roles;
+SET FOREIGN_KEY_CHECKS = 1;
 
--- ============================================
--- Direcciones
--- ============================================
-INSERT INTO direcciones (id_usuario, calle, numero, comuna, ciudad, region, codigo_postal, telefono, principal) VALUES
-(2, 'Av. Siempreviva', '742', 'Springfield', 'Temuco', 'La Araucanía', '4780000', '+56912345678', 1),
-(3, 'Calle Los Robles', '1234', 'Centro', 'Temuco', 'La Araucanía', '4780001', '+56987654321', 1);
+INSERT INTO roles (name, description) VALUES
+('admin',    'Administrador del sistema'),
+('customer', 'Cliente estándar');
 
--- ============================================
--- Categorías
--- ============================================
-INSERT INTO categorias (nombre, slug, descripcion, id_padre, activo) VALUES
-('Tecnología', 'tecnologia', 'Productos tecnológicos y gadgets', NULL, 1),
-('Computadores', 'computadores', 'Notebooks, PC y accesorios de computación', 1, 1),
-('Celulares', 'celulares', 'Smartphones y accesorios móviles', 1, 1),
-('Audio', 'audio', 'Audífonos, parlantes y equipos de sonido', 1, 1),
-('Ropa', 'ropa', 'Vestuario y accesorios de moda', NULL, 1),
-('Hombre', 'hombre', 'Ropa masculina', 5, 1),
-('Mujer', 'mujer', 'Ropa femenina', 5, 1),
-('Deportes', 'deportes', 'Artículos deportivos y outdoor', NULL, 1),
-('Hogar', 'hogar', 'Artículos para el hogar y decoración', NULL, 1),
-('Libros', 'libros', 'Libros y material de lectura', NULL, 1);
+INSERT INTO users (role_id, first_name, last_name, email, password_hash, is_active) VALUES
+(1, 'Admin', 'Sistema', 'admin@uct.cl',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', TRUE),
+(2, 'Juan',  'Perez',   'cliente@uct.cl',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', TRUE);
 
--- ============================================
--- Productos (precios en centavos)
--- ============================================
-INSERT INTO productos (id_categoria, nombre, slug, descripcion, precio, stock, stock_minimo, imagen_url, activo, meta_descripcion) VALUES
--- Tecnología - Computadores
-(2, 'Notebook HP ProBook 450 G9', 'notebook-hp-probook-450-g9', 'Notebook HP ProBook 450 G9, Intel Core i5-1235U, 8GB RAM, 256GB SSD, Pantalla 15.6 pulg FHD', 599990, 25, 5, 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400', 1, 'Notebook HP para productividad empresarial.'),
-(2, 'MacBook Air M3', 'macbook-air-m3', 'MacBook Air con chip M3, 8GB RAM, 256GB SSD, Pantalla Liquid Retina 13.6 pulg', 999990, 15, 3, 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400', 1, 'MacBook Air ultradelgado con chip M3.'),
-(2, 'Monitor Dell 27 pulg 4K', 'monitor-dell-27-4k', 'Monitor Dell UltraSharp U2723QE, 27 pulgadas, resolución 4K UHD, USB-C Hub', 389990, 10, 3, 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400', 1, 'Monitor profesional Dell 4K.'),
-(2, 'Teclado Mecánico Logitech MX', 'teclado-mecanico-logitech-mx', 'Teclado mecánico inalámbrico Logitech MX Mechanical, switches táctiles, retroiluminado', 89990, 40, 10, 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400', 1, 'Teclado mecánico premium Logitech.'),
+INSERT INTO categories (name, slug, description) VALUES
+('Electrónica',          'electronica',        'Smartphones, televisores y gadgets'),
+('Ropa',                 'ropa',               'Indumentaria y moda'),
+('Calzado',              'calzado',            'Zapatos, zapatillas y botas'),
+('Hogar y Cocina',       'hogar-cocina',       'Muebles, decoración y electrodomésticos'),
+('Deportes y Fitness',   'deportes-fitness',   'Equipamiento deportivo y fitness'),
+('Computación y Gaming', 'computacion-gaming', 'Hardware, periféricos y videojuegos');
 
--- Celulares
-(3, 'iPhone 15 Pro Max', 'iphone-15-pro-max', 'Apple iPhone 15 Pro Max, 256GB, Titanio Natural, Pantalla 6.7 pulg Super Retina XDR', 1299990, 8, 2, 'https://images.unsplash.com/photo-1592750475338-74b7b2108593?w=400', 1, 'El iPhone más avanzado de Apple.'),
-(3, 'Samsung Galaxy S24 Ultra', 'samsung-galaxy-s24-ultra', 'Samsung Galaxy S24 Ultra, 512GB, Titanium Gray, S Pen incluido, Galaxy AI', 1199990, 12, 2, 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=400', 1, 'Samsung Galaxy S24 Ultra con Galaxy AI.'),
-(3, 'Cargador Inalámbrico 15W', 'cargador-inalambrico-15w', 'Cargador inalámbrico rápido 15W compatible Qi, diseño delgado', 19990, 100, 20, 'https://images.unsplash.com/photo-1621929747188-0b4dc1b27ee1?w=400', 1, 'Cargador inalámbrico rápido.'),
+INSERT INTO products (category_id, name, slug, description) VALUES
+(1, 'Smartphone X',             'smartphone-x',             'Último smartphone con pantalla AMOLED 6.7" y triple cámara 108MP'),
+(2, 'Camiseta Básica',          'camiseta-basica',          'Camiseta de algodón 100% Pima, suave y duradera'),
+(1, 'Laptop Pro 15"',           'laptop-pro-15',            'Laptop profesional con Intel Core i7 de 13ª gen, 512GB SSD y pantalla Full HD'),
+(1, 'Auriculares Bluetooth Pro','auriculares-bluetooth-pro','Auriculares inalámbricos con cancelación de ruido activa y 30h de batería'),
+(1, 'Smart TV 50" 4K',          'smart-tv-50-4k',           'Televisión 4K HDR con Android TV integrado y sonido Dolby Atmos'),
+(2, 'Polera Deportiva',         'polera-deportiva',         'Polera transpirable para deporte con tejido DryFit que aleja la humedad'),
+(2, 'Chaqueta Impermeable',     'chaqueta-impermeable',     'Chaqueta cortaviento impermeable, ideal para trekking y uso en ciudad'),
+(3, 'Zapatillas Running Ultra', 'zapatillas-running-ultra', 'Zapatillas de running con amortiguación reactiva y suela antideslizante'),
+(3, 'Botines de Cuero Clásico', 'botines-cuero-clasico',    'Botines de cuero genuino con suela de goma, elegantes y duraderos'),
+(4, 'Cafetera Express',         'cafetera-express',         'Cafetera espresso con bomba de 15 bares y espumador de leche integrado'),
+(4, 'Silla Ergonómica Oficina', 'silla-ergonomica-oficina', 'Silla de oficina con soporte lumbar ajustable, reposabrazos 4D y tapiz en malla'),
+(5, 'Bicicleta MTB Rodado 29"', 'bicicleta-mtb-rodado-29', 'Bicicleta de montaña con cuadro de aluminio, suspensión delantera y 21 velocidades'),
+(5, 'Guantes de Boxeo',         'guantes-de-boxeo',         'Guantes de cuero sintético con relleno de espuma de alta densidad'),
+(6, 'Teclado Mecánico RGB',     'teclado-mecanico-rgb',     'Teclado mecánico con retroiluminación RGB por tecla y switches intercambiables'),
+(6, 'Mouse Gamer Pro',          'mouse-gamer-pro',          'Mouse gaming con sensor óptico de 16000 DPI, 6 botones programables y RGB'),
+(6, 'Monitor Curvo 27" QHD',    'monitor-curvo-27-qhd',     'Monitor gaming 27" curvo 1500R, resolución QHD 2560×1440, 165Hz y 1ms');
 
--- Audio
-(4, 'Audífonos Sony WH-1000XM5', 'audifonos-sony-wh-1000xm5', 'Audífonos inalámbricos Sony con cancelación de ruido activa líder en la industria', 299990, 18, 5, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', 1, 'Audífonos premium con ANC Sony.'),
-(4, 'Parlante JBL Flip 6', 'parlante-jbl-flip-6', 'Parlante Bluetooth portátil JBL Flip 6, resistente al agua IP67, 12h batería', 79990, 35, 8, 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400', 1, 'Parlante portátil JBL resistente al agua.'),
+INSERT INTO product_variants (product_id, sku, attributes, price) VALUES
+(1,  'SMART-X-128',     '{"almacenamiento": "128GB", "color": "Negro"}',                 599.99),
+(1,  'SMART-X-256',     '{"almacenamiento": "256GB", "color": "Blanco"}',                699.99),
 
--- Ropa Hombre
-(6, 'Polera Algodón Premium', 'polera-algodon-premium', 'Polera 100% algodón peinado, disponible en varios colores, corte regular', 15990, 150, 30, 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', 1, 'Polera de algodón premium.'),
-(6, 'Jeans Slim Fit', 'jeans-slim-fit', 'Jeans slim fit denim elástico, lavado oscuro, 5 bolsillos', 35990, 80, 15, 'https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=400', 1, 'Jeans slim fit de denim premium.'),
+(2,  'CAM-BAS-M-BL',    '{"talla": "M", "color": "Azul"}',                               19.99),
+(2,  'CAM-BAS-L-BL',    '{"talla": "L", "color": "Azul"}',                               19.99),
+(3,  'LAP-PRO-8-256',   '{"ram": "8GB", "almacenamiento": "256GB SSD"}',                899.99),
+(3,  'LAP-PRO-16-512',  '{"ram": "16GB", "almacenamiento": "512GB SSD"}',              1199.99),
+(4,  'AUR-BLU-BK',      '{"color": "Negro"}',                                             89.99),
+(4,  'AUR-BLU-WH',      '{"color": "Blanco"}',                                            89.99),
+(5,  'TV-50-4K-BK',     '{"color": "Negro", "pulgadas": "50"}',                          649.99),
+(6,  'POL-DEP-S-RJ',    '{"talla": "S", "color": "Rojo"}',                               24.99),
+(6,  'POL-DEP-M-RJ',    '{"talla": "M", "color": "Rojo"}',                               24.99),
+(6,  'POL-DEP-L-NG',    '{"talla": "L", "color": "Negro"}',                              24.99),
+(7,  'CHA-IMP-M-AZ',    '{"talla": "M", "color": "Azul Marino"}',                        79.99),
+(7,  'CHA-IMP-L-VD',    '{"talla": "L", "color": "Verde Militar"}',                      79.99),
+(8,  'ZAP-RUN-39',      '{"talla": "39", "color": "Naranja/Negro"}',                    119.99),
+(8,  'ZAP-RUN-40',      '{"talla": "40", "color": "Naranja/Negro"}',                    119.99),
+(8,  'ZAP-RUN-41',      '{"talla": "41", "color": "Azul/Blanco"}',                      119.99),
+(8,  'ZAP-RUN-42',      '{"talla": "42", "color": "Azul/Blanco"}',                      119.99),
+(8,  'ZAP-RUN-43',      '{"talla": "43", "color": "Negro"}',                            119.99),
+(9,  'BOT-CU-40-NG',    '{"talla": "40", "color": "Negro"}',                            149.99),
+(9,  'BOT-CU-42-NG',    '{"talla": "42", "color": "Negro"}',                            149.99),
+(9,  'BOT-CU-44-CF',    '{"talla": "44", "color": "Café"}',                             149.99),
+(10, 'CAF-EXP-4T',      '{"capacidad": "4 tazas"}',                                     129.99),
+(10, 'CAF-EXP-8T',      '{"capacidad": "8 tazas"}',                                     199.99),
+(11, 'SIL-ERG-NG',      '{"color": "Negro"}',                                            299.99),
+(11, 'SIL-ERG-GR',      '{"color": "Gris"}',                                             299.99),
+(12, 'BIC-MTB-S-RJ',    '{"talla": "S (1.55-1.70m)", "color": "Rojo"}',                599.99),
+(12, 'BIC-MTB-M-AZ',    '{"talla": "M (1.70-1.85m)", "color": "Azul"}',                649.99),
+(13, 'GUA-BOX-10',      '{"peso": "10 oz"}',                                              49.99),
+(13, 'GUA-BOX-12',      '{"peso": "12 oz"}',                                              59.99),
+(14, 'TEC-MEC-AZ',      '{"switches": "Azul (Táctil/Clicky)"}',                         149.99),
+(14, 'TEC-MEC-RJ',      '{"switches": "Rojo (Lineal/Silencioso)"}',                     149.99),
+(15, 'MOU-GAM-W',       '{"conectividad": "Inalámbrico", "color": "Negro"}',              89.99),
+(15, 'MOU-GAM-C',       '{"conectividad": "Cable USB", "color": "Blanco"}',               79.99),
+(16, 'MON-CUR-27',      '{"resolución": "QHD 2560x1440", "refresco": "165Hz"}',         449.99);
 
--- Ropa Mujer
-(7, 'Vestido Verano Floral', 'vestido-verano-floral', 'Vestido de verano estampado floral, tejido liviano, corte A', 24990, 60, 12, 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400', 1, 'Vestido veraniego estampado floral.'),
-(7, 'Chaqueta Denim', 'chaqueta-denim', 'Chaqueta de denim oversize, lavado claro, botones metálicos', 42990, 45, 10, 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400', 1, 'Chaqueta de denim oversize.'),
-
--- Deportes
-(8, 'Zapatillas Running Pro', 'zapatillas-running-pro', 'Zapatillas ideales para maratones con amortiguación premium, suela Vibram', 89990, 20, 5, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', 1, 'Zapatillas running con amortiguación premium.'),
-(8, 'Colchoneta Yoga 6mm', 'colchoneta-yoga-6mm', 'Colchoneta de yoga 6mm, material TPE ecológico, antideslizante, incluye correa', 24990, 70, 15, 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=400', 1, 'Colchoneta yoga ecológica 6mm.'),
-
--- Hogar
-(9, 'Lámpara LED Escritorio', 'lampara-led-escritorio', 'Lámpara LED con brazo ajustable, 3 modos de luz, puerto USB carga', 29990, 55, 10, 'https://images.unsplash.com/photo-1507473885765-e6ed057ab6fe?w=400', 1, 'Lámpara LED escritorio ajustable.'),
-(9, 'Set Toallas Algodón', 'set-toallas-algodon', 'Set de 6 toallas 100% algodón egipcio, 2 baño, 2 mano, 2 rostro', 39990, 40, 10, 'https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=400', 1, 'Set toallas algodón egipcio.'),
-
--- Libros
-(10, 'Clean Code - Robert Martin', 'clean-code-robert-martin', 'Clean Code: A Handbook of Agile Software Craftsmanship - Edición tapa blanda', 34990, 25, 5, 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400', 1, 'Libro Clean Code de Robert C. Martin.'),
-(10, 'El Principito', 'el-principito', 'El Principito de Antoine de Saint-Exupéry - Edición ilustrada de colección', 12990, 50, 10, 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400', 1, 'El Principito edición ilustrada.'),
--- Producto con stock bajo para probar alertas
-(3, 'Cable USB-C Premium 2m', 'cable-usb-c-premium-2m', 'Cable USB-C a USB-C trenzado, carga rápida 100W, transferencia 10Gbps', 9990, 3, 5, 'https://images.unsplash.com/photo-1611472173362-3f53dbd65d80?w=400', 1, 'Cable USB-C premium de 2 metros.');
-
--- ============================================
--- Imágenes de producto (principal)
--- NOTA: el campo imagen_url en productos ya funciona como principal
--- ============================================
-
--- ============================================
--- Cupones
--- ============================================
-INSERT INTO cupones (codigo, tipo_descuento, valor, monto_minimo, usos_maximos, usos_actuales, fecha_inicio, fecha_fin, activo) VALUES
-('BIENVENIDO10', 'porcentaje', 10, 20000, 500, 0, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
-('DESCUENTO5000', 'monto_fijo', 5000, 30000, 200, 0, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
-('VERANO2026', 'porcentaje', 15, 40000, 100, 0, '2026-01-01 00:00:00', '2026-03-31 23:59:59', 1);
+INSERT INTO inventory (variant_id, stock, min_stock_alert) VALUES
+(1,  50,  10),
+(2,  20,   5),   
+(3,  100, 15),   
+(4,    2,  5),   
+(5,  15,   5),   
+(6,   8,   3),   
+(7,  60,  10), 
+(8,  45,  10),  
+(9,  25,   5),  
+(10, 80,  20),   
+(11, 120, 20),  
+(12, 65,  15),   
+(13, 30,  10),   
+(14, 25,  10),   
+(15, 40,   8),  
+(16, 55,   8),  
+(17, 70,   8),  
+(18, 50,   8),  
+(19, 35,   8),  
+(20, 20,   5),  
+(21, 18,   5),   
+(22, 10,   5),   
+(23, 30,   8),   
+(24, 15,   5),   
+(25, 12,   4),   
+(26,  8,   3),   
+(27,  5,   2),   
+(28,  7,   2),   
+(29, 40,  10),  
+(30, 35,  10),   
+(31, 25,   6),   
+(32, 20,   6),   
+(33, 30,   8),  
+(34, 45,   8),   
+(35, 10,   3);
