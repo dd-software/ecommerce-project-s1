@@ -71,6 +71,9 @@ $router->get('/api/catalogo', [CatalogoController::class, 'listar']);
 $router->get('/api/catalogo/categorias', [CatalogoController::class, 'categorias']);
 $router->get('/api/catalogo/destacados', [CatalogoController::class, 'destacados']);
 $router->get('/api/catalogo/{id}', [CatalogoController::class, 'detalle']);
+$router->get('/api/catalogo/{id}/resenas', [CatalogoController::class, 'listarResenas']);
+$router->post('/api/catalogo/resenas', [CatalogoController::class, 'crearResena'], auth: true);
+$router->post('/api/catalogo/resenas/reportar', [CatalogoController::class, 'reportarResena'], auth: true);
 
 // --- Módulo B: Carrito ---
 $router->get('/api/carrito', [CarritoController::class, 'ver']); // auth opcional
@@ -116,6 +119,8 @@ $router->patch('/api/admin/usuarios/{id}/estado', [AdminController::class, 'togg
 $router->delete('/api/admin/usuarios/{id}', [AdminController::class, 'eliminarUsuario'], auth: true, admin: true);
 $router->get('/api/admin/reportes/ventas', [AdminController::class, 'reporteVentas'], auth: true, admin: true);
 $router->get('/api/admin/reportes/productos-mas-vendidos', [AdminController::class, 'productosMasVendidos'], auth: true, admin: true);
+$router->get('/api/admin/resenas', [AdminController::class, 'listarResenas'], auth: true, admin: true);
+$router->delete('/api/admin/resenas/{id}', [AdminController::class, 'eliminarResena'], auth: true, admin: true);
 
 // --- Módulo H: Integración ---
 $router->get('/api/health', [IntegracionController::class, 'health']);

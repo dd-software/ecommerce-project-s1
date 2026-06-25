@@ -410,3 +410,25 @@ CREATE TABLE impuestos (
 -- Insertar impuesto IVA por defecto
 -- ============================================
 INSERT INTO impuestos (nombre, porcentaje, activo) VALUES ('IVA', 19.00, 1);
+
+-- ============================================
+-- Tabla: resenas
+-- ============================================
+CREATE TABLE resenas (
+    id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id_producto   BIGINT UNSIGNED NOT NULL,
+    id_usuario    BIGINT UNSIGNED NOT NULL,
+    calificacion  TINYINT UNSIGNED NOT NULL CHECK (calificacion >= 1 AND calificacion <= 5),
+    comentario    TEXT NOT NULL,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at    DATETIME NULL DEFAULT NULL, -- Para borrado lógico (Soft Delete)
+    PRIMARY KEY (id),
+    KEY idx_resenas_producto (id_producto),
+    KEY idx_resenas_usuario (id_usuario),
+    KEY idx_resenas_deleted (deleted_at),
+    CONSTRAINT fk_resenas_producto FOREIGN KEY (id_producto) REFERENCES productos (id) 
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_resenas_usuario FOREIGN KEY (id_usuario) REFERENCES usuarios (id) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

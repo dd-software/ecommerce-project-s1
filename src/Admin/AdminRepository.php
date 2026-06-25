@@ -423,4 +423,11 @@ class AdminRepository
         $stmt->execute();
         return $stmt->fetchAll();
     }
+    
+    public function eliminarResena(int $id): void
+    {
+        $db = $this->db;
+        $stmt = $db->prepare("DELETE FROM resenas WHERE id = ?");
+        $stmt->execute([$id]);
+    }
 }

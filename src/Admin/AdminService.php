@@ -243,4 +243,10 @@ class AdminService
 
         return $slug;
     }
+    
+    public function eliminarResena(int $id): void
+    {
+        // Llamamos al repositorio que hace la consulta a la BD
+        $this->repository->eliminarResena($id);
+    }
 }

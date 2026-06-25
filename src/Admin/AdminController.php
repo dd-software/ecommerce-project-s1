@@ -406,4 +406,33 @@ class AdminController
             $response->error('SERVER_ERROR', 'Error interno al subir la imagen: ' . $e->getMessage(), 500);
         }
     }
+    
+    /**
+     * GET /api/admin/resenas
+     * Lista todas las reseñas
+     */
+    public function listarResenas(Request $request, Response $response, array $params): void
+    {
+        try {
+            $resultado = $this->service->listarResenasAdmin(); 
+            $response->json($resultado);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al listar reseñas.', 500);
+        }
+    }
+
+    /**
+     * DELETE /api/admin/resenas/{id}
+     * Elimina una reseña
+     */
+    public function eliminarResena(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $this->service->eliminarResena($id);
+            $response->json(['mensaje' => 'Reseña eliminada correctamente.']);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al eliminar reseña.', 500);
+        }
+    }
 }

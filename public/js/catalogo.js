@@ -369,46 +369,8 @@ const Catalogo = {
         }
     },
 
-    /**
-     * Renderiza detalle de producto
-     */
-    renderDetail(product) {
-        const container = document.getElementById('product-detail');
-        if (!container) return;
-
-        const addButton = product.sin_stock
-            ? '<button class="btn btn-secondary btn-lg" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-lg" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
-
-        container.innerHTML = `
-            <div class="row">
-                <div class="col-md-6 d-flex justify-content-center align-items-center mb-4">
-                    <div class="product-detail-img-frame">
-                        <img src="${product.imagen_url || App.placeholders.img600}"
-                             alt="${this.escapeHtml(product.nombre)}"
-                             onerror="this.src=App.placeholders.img600">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
-                    <h2>${this.escapeHtml(product.nombre)}</h2>
-                    <h3 class="text-primary mb-3">${product.precio_formateado}</h3>
-                    <p class="lead">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
-                    <div class="mb-3">
-                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} fs-6">
-                            ${product.sin_stock ? 'Sin Stock' : 'Stock: ' + product.stock + ' unidades'}
-                        </span>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <input type="number" id="qty-detail" class="form-control" style="width:80px" value="1" min="1" max="${product.stock}">
-                        ${addButton}
-                    </div>
-                    <hr class="my-4">
-                    <p class="text-muted small">SKU: PROD-${product.id} | ${product.sin_stock ? '⚠️ Producto agotado' : '✅ Disponible'}</p>
-                </div>
-            </div>`;
-
         // Botón agregar del detalle
+    initDetailEvents(product) {
         const btnDetail = document.getElementById('btn-add-detail');
         if (btnDetail) {
             btnDetail.addEventListener('click', async () => {
@@ -551,6 +513,209 @@ const Catalogo = {
 
                 this.loadHomeSections();
             });
+        }
+    },
+
+    /**
+     * Renderiza detalle de producto consolidado
+     */
+    renderDetail(product) {
+        const container = document.getElementById('product-detail');
+        if (!container) return;
+
+        const addButton = product.sin_stock
+            ? '<button class="btn btn-secondary btn-lg" disabled>Sin Stock</button>'
+            : `<button class="btn btn-accent btn-lg" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
+
+        // Aquí unimos el diseño completo con la sección de reseñas
+        container.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400'}" 
+                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
+                         onerror="this.src='https://via.placeholder.com/600x400'">
+                </div>
+                <div class="col-md-6 text-white">
+                    <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
+                    <h2 class="text-white">${this.escapeHtml(product.nombre)}</h2>
+                    <h3 class="text-primary mb-3">${product.precio_formateado}</h3>
+                    <p class="lead text-light">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
+                    
+                    <div class="mb-3">
+                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} fs-6">
+                            ${product.sin_stock ? 'Sin Stock' : 'Stock: ' + product.stock + ' unidades'}
+                        </span>
+                    </div>
+
+                    <div class="d-flex gap-2 align-items-center mb-4">
+                        <input type="number" id="qty-detail" class="form-control" style="width:80px" value="1" min="1" max="${product.stock}">
+                        ${addButton}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5 pt-4 border-top text-white" id="reviews-section">
+                <div class="col-12">
+                    <h3 class="fw-bold mb-3 text-white"><i class="bi bi-chat-square-text text-primary me-2"></i>Reseñas</h3>
+                    
+                    <form id="form-review" data-product-id="${product.id}" class="mb-4">
+                        <div class="mb-2">
+                            <label class="text-light">Calificación:</label>
+                            <select id="review-cal" class="form-select w-auto">
+                                <option value="5">5 Estrellas</option>
+                                <option value="4">4 Estrellas</option>
+                                <option value="3">3 Estrellas</option>
+                                <option value="2">2 Estrellas</option>
+                                <option value="1">1 Estrella</option>
+                            </select>
+                        </div>
+                        <textarea id="review-comment" class="form-control mb-2" placeholder="Tu comentario..." required></textarea>
+                        <button type="submit" class="btn btn-primary">Publicar</button>
+                    </form>
+
+                    <div id="reviews-container"></div>
+                </div>
+            </div>`;
+
+        // Inicializar lógica
+        this.loadReviews(product.id, 1);
+        this.initReviewEvents();
+        this.initDetailEvents(product);
+    },
+
+    async loadReviews(productId, page = 1) {
+        // Usamos un pequeño delay para asegurar que el DOM terminó de renderizar
+        setTimeout(async () => {
+            const container = document.getElementById('reviews-container');
+            
+            if (!container) return;
+
+            try {
+                const resp = await fetch(`${App.apiBase}/catalogo/${productId}/resenas?pagina=${page}&t=${Date.now()}`);
+                const data = await resp.json();
+
+                const lista = data.resenas || data.data || [];
+
+                
+                if (lista.length > 0) {
+                    container.innerHTML = lista.map(r => {
+                        const stars = Array(5).fill(0).map((_, i) => 
+                            i < r.calificacion ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-warning"></i>'
+                        ).join('');
+                        const isAdmin = this.isAdmin(); 
+                        const deleteBtn = isAdmin ? `<button onclick="Catalogo.deleteResena(${r.id})" class="btn btn-sm btn-danger ms-2">Eliminar</button>` : '';
+                        
+                        return `
+                            <div class="card mb-2 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>${this.escapeHtml(r.nombre)}</strong>
+                                            <div class="d-flex align-items-center">
+                                                <div class="text-warning">${stars}</div>
+                                                ${deleteBtn} </div>
+                                        </div>
+                                        <p class="mb-0 mt-1">${this.escapeHtml(r.comentario)}</p>
+                                    </div>
+                                </div>`;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p class="text-muted">Aún no hay reseñas.</p>';
+                }
+            } catch (e) {
+                console.error("Error cargando reseñas:", e);
+                container.innerHTML = '<p class="text-danger">Error al cargar reseñas.</p>';
+            }
+        }, 100);
+    },
+
+   initReviewEvents() {
+        const form = document.getElementById('form-review');
+        if (!form) return;
+
+        const token = localStorage.getItem('uct_auth_token');
+        
+        if (!token) {
+            form.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+            if (!document.getElementById('login-warning-msg')) {
+                const msg = document.createElement('p');
+                msg.id = 'login-warning-msg';
+                msg.className = 'text-muted small mt-2';
+                msg.innerHTML = '<i class="bi bi-info-circle"></i> Debes <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">iniciar sesión</a> para comentar.';
+                form.appendChild(msg);
+            }
+            return;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cal = document.getElementById('review-cal').value;
+            const com = document.getElementById('review-comment').value;
+            
+            try {
+                const resp = await fetch(`${App.apiBase}/catalogo/resenas`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ id_producto: form.dataset.productId, calificacion: cal, comentario: com })
+                });
+                
+                if (resp.ok) {
+                    alert('¡Gracias por tu reseña!');
+                    form.reset();
+                    this.loadReviews(form.dataset.productId);
+                } else {
+                    alert('Ya hay una reseña ingresada');
+                }
+            } catch (err) { 
+                console.error(err);
+                alert('Error de conexión.'); 
+            }
+        });
+    },
+
+    isAdmin() {
+    const token = localStorage.getItem('uct_auth_token');
+    if (!token) return false;
+    
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const payload = JSON.parse(jsonPayload);
+        
+        return payload.rol === 'admin' || payload.role === 'admin' || payload.is_admin === true;
+    } catch (e) {
+        return false;
+    }
+},
+
+    async deleteResena(id) {
+        if (!confirm('¿Estás seguro de eliminar esta reseña?')) return;
+
+        const token = localStorage.getItem('uct_auth_token');
+        try {
+            const resp = await fetch(`${App.apiBase}/admin/resenas/${id}`, {
+                method: 'DELETE',
+                headers: { 
+                    'Authorization': `Bearer ${token}` 
+                }
+            });
+            
+            if (resp.ok) {
+                alert('Reseña eliminada');
+                const productId = document.getElementById('form-review').dataset.productId;
+                this.loadReviews(productId);
+            } else {
+                alert('Error al eliminar');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión');
         }
     }
 };

@@ -96,4 +96,30 @@ class CatalogoService
         $producto = $this->repository->buscarPorId($productoId);
         return $producto ? (int)$producto['stock'] : 0;
     }
+    
+    /**
+     * Lista reseñas de un producto
+     */
+    public function listarResenasProducto(int $productoId, int $pagina = 1, int $porPagina = 10): array
+    {
+        return $this->repository->listarResenasProducto($productoId, $pagina, $porPagina);
+    }
+
+    /**
+     * Valida y crea una nueva reseña
+     */
+    public function crearResena(array $data): array
+    {
+        $calificacion = (int)$data['calificacion'];
+        
+        if ($calificacion < 1 || $calificacion > 5) {
+            throw new \InvalidArgumentException("La calificación debe estar entre 1 y 5 estrellas.");
+        }
+
+        if (empty(trim($data['comentario']))) {
+            throw new \InvalidArgumentException("El comentario de la reseña no puede estar vacío.");
+        }
+
+        return $this->repository->crearResena($data);
+    }
 }
