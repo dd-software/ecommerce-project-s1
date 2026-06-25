@@ -102,94 +102,99 @@ class PayPalService
      */
     public function captureOrder(string $paypalOrderId, int $userId): array
     {
-        $db = Database::getInstance();
+        $db  = Database::getInstance();
         $pdo = $db->getConnection();
-        
+
         try {
-            // 1. Validar que la orden de PayPal pertenece a un pedido
+            // Abrir transacción ANTES del SELECT FOR UPDATE para que el lock sea efectivo
+            $db->beginTransaction();
+
+            // 1. Validar que la orden de PayPal pertenece a un pedido y bloquearlo
             $stmt = $pdo->prepare("SELECT id, estado, total FROM pedidos WHERE paypal_order_id = ? FOR UPDATE");
             $stmt->execute([$paypalOrderId]);
             $pedido = $stmt->fetch();
 
             if (!$pedido) {
-                throw new \RuntimeException('Pedido no encontrado con ese Order ID.');
+                throw new \RuntimeException('Pedido no encontrado con ese Order ID de PayPal.');
             }
 
             if ($pedido['estado'] !== 'pendiente') {
-                throw new \RuntimeException('El pedido ya ha sido procesado.');
+                // Podría ser un doble-clic o un reintento: responder con éxito idempotente
+                $db->rollback();
+                return [
+                    'success'    => true,
+                    'pedido_id'  => $pedido['id'],
+                    'capture_id' => '',
+                    'mensaje'    => 'El pedido ya fue procesado anteriormente.',
+                ];
             }
 
-            // 2. Capturar fondos con la API
+            // 2. Capturar fondos con la API de PayPal (fuera de la transacción no es posible,
+            //    pero el lock sobre el pedido evita capturas concurrentes duplicadas)
             $captureData = $this->payPalClient->captureOrder($paypalOrderId);
 
             $captureStatus = $captureData['status'] ?? '';
-            $captureId = $captureData['purchase_units'][0]['payments']['captures'][0]['id'] ?? '';
+            $captureId     = $captureData['purchase_units'][0]['payments']['captures'][0]['id'] ?? '';
 
             if ($captureStatus !== 'COMPLETED') {
-                throw new \RuntimeException('El pago no fue completado en PayPal.');
-            }
-
-            // Obtener el detalle completo del pedido para el registro de egreso de stock
-            $pedidoCompleto = $this->checkoutService->obtenerPedido((int)$pedido['id']);
-
-            $db->beginTransaction();
-
-            // 3. Registrar pago en BD y actualizar pedido
-            $stmt = $pdo->prepare("UPDATE pedidos SET paypal_capture_id = ?, estado = 'pagado', metodo_pago = 'paypal' WHERE id = ?");
-            $stmt->execute([$captureId, $pedido['id']]);
-
-            $this->repository->registrarPago(
-                pedidoId: (int)$pedido['id'],
-                metodoPago: 'paypal',
-                monto: (int)$pedido['total'],
-                referenciaExterna: $captureId,
-                estado: 'aprobado',
-                respuesta: json_encode($captureData)
-            );
-
-            // 4. Descontar stock (RN)
-            $this->checkoutService->descontarStock((int)$pedido['id']);
-
-            // Registrar movimiento de inventario
-            $inventarioService = new \App\Inventario\InventarioService(new \App\Inventario\InventarioRepository());
-            $detalles = $pedidoCompleto['detalle'] ?? [];
-            foreach ($detalles as $detalle) {
-                $inventarioService->registrarEgreso(
-                    productoId: (int)$detalle['id_producto'],
-                    cantidad: (int)$detalle['cantidad'],
-                    pedidoId: (int)$pedido['id'],
-                    motivo: 'Venta - Pedido #' . $pedido['id']
+                throw new \RuntimeException(
+                    'El pago no fue completado en PayPal. Estado: ' . $captureStatus
                 );
             }
 
-            // 5. Historial
+            // Obtener detalle completo para movimiento de inventario
+            $pedidoCompleto = $this->checkoutService->obtenerPedido((int)$pedido['id']);
+
+            // 3. Registrar captura en BD y actualizar pedido
+            $stmt = $pdo->prepare(
+                "UPDATE pedidos SET paypal_capture_id = ?, estado = 'pagado', metodo_pago = 'paypal' WHERE id = ?"
+            );
+            $stmt->execute([$captureId, $pedido['id']]);
+
+            $this->repository->registrarPago(
+                pedidoId:         (int)$pedido['id'],
+                metodoPago:       'paypal',
+                monto:            (int)$pedido['total'],
+                referenciaExterna: $captureId,
+                estado:           'aprobado',
+                respuesta:        json_encode($captureData)
+            );
+
+            // 4. Descontar stock (RN-003: solo tras pago confirmado)
+            $this->checkoutService->descontarStock((int)$pedido['id']);
+
+            // 5. Registrar movimiento de inventario
+            $inventarioService = new \App\Inventario\InventarioService(new \App\Inventario\InventarioRepository());
+            foreach ($pedidoCompleto['detalle'] ?? [] as $detalle) {
+                $inventarioService->registrarEgreso(
+                    productoId: (int)$detalle['id_producto'],
+                    cantidad:   (int)$detalle['cantidad'],
+                    pedidoId:   (int)$pedido['id'],
+                    motivo:     'Venta PayPal - Pedido #' . $pedido['id']
+                );
+            }
+
+            // 6. Historial de estado
             $this->checkoutService->actualizarEstado(
-                pedidoId: (int)$pedido['id'],
-                nuevoEstado: 'pagado',
-                userId: $userId,
-                comentario: 'Pago capturado vía PayPal API.'
+                pedidoId:     (int)$pedido['id'],
+                nuevoEstado:  'pagado',
+                userId:       $userId,
+                comentario:   'Pago capturado vía PayPal. Capture ID: ' . $captureId
             );
 
             $db->commit();
 
             return [
-                'success' => true,
-                'pedido_id' => $pedido['id'],
-                'capture_id' => $captureId
+                'success'    => true,
+                'pedido_id'  => $pedido['id'],
+                'capture_id' => $captureId,
             ];
 
         } catch (\Exception $e) {
             if ($db->inTransaction()) {
                 $db->rollback();
             }
-            // Reactivar el carrito del usuario si el capture falló por error técnico,
-            // para que pueda reintentar el pago sin perder sus productos.
-            try {
-                $carritoRepo = new \App\Carrito\CarritoRepository();
-                $carritoRepo->reactivarCarritoUsuario($userId);
-            } catch (\Exception $ignored) {
-                // No interrumpir el error original si la reactivación falla
-            }
+            error_log('[PayPalService::captureOrder] ' . $e->getMessage());
             throw $e;
         }
     }

@@ -76,6 +76,7 @@ $router->patch('/api/carrito/{id}', [CarritoController::class, 'actualizar']);
 $router->delete('/api/carrito/{id}', [CarritoController::class, 'eliminar']);
 $router->delete('/api/carrito', [CarritoController::class, 'vaciar']);
 $router->post('/api/carrito/sincronizar', [CarritoController::class, 'sincronizar'], auth: true);
+$router->post('/api/carrito/reactivar', [CarritoController::class, 'reactivar'], auth: true);
 
 // --- Módulo D: Checkout ---
 $router->post('/api/checkout', [CheckoutController::class, 'crearPedido'], auth: true);
@@ -89,6 +90,9 @@ $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
 $router->get('/api/pagos/paypal/config', [PagosController::class, 'getPayPalConfig']);
 $router->post('/api/pagos/paypal/create', [PagosController::class, 'createPayPalOrder'], auth: true);
 $router->post('/api/pagos/paypal/capture', [PagosController::class, 'capturePayPalOrder'], auth: true);
+// Alias con guión para compatibilidad con spec del equipo
+$router->post('/api/pagos/paypal/create-order', [PagosController::class, 'createPayPalOrder'], auth: true);
+$router->post('/api/pagos/paypal/capture-order', [PagosController::class, 'capturePayPalOrder'], auth: true);
 
 // --- Módulo F: Inventario ---
 $router->get('/api/inventario', [InventarioController::class, 'verificar']);

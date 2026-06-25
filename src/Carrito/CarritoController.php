@@ -205,4 +205,26 @@ class CarritoController
             $response->error('SERVER_ERROR', 'Error al sincronizar carrito.', 500);
         }
     }
+
+    /**
+     * POST /api/carrito/reactivar
+     * Reactiva el último carrito desactivado del usuario (rollback de pago cancelado)
+     */
+    public function reactivar(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $repo = new CarritoRepository();
+            $repo->reactivarCarritoUsuario((int)$user['id']);
+            $carrito = $this->service->obtenerCarrito(userId: (int)$user['id']);
+            $response->json(['reactivado' => true, 'carrito' => $carrito]);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al reactivar carrito.', 500);
+        }
+    }
 }
