@@ -1,0 +1,17 @@
+{
+    "name": "dd-software/ecommerce-project-s1",
+    "description": "Ecommerce UCT",
+    "autoload": {
+        "psr-4": {
+            "DdSoftware\\EcommerceProjectS1\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "raichi10",
+            "email": "payaiwnl@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
