@@ -39,6 +39,25 @@ const Checkout = {
                 // Resetear el formulario al abrir el modal
                 this.resetCheckoutForm();
 
+                // Pre-cargar datos del perfil del usuario
+                try {
+                    const profileResp = await App.fetchAuth(`${App.apiBase}/auth/perfil`);
+                    const profile = await profileResp.json();
+                    if (profile) {
+                        const nameInput = document.getElementById('shipping-name');
+                        const lastnameInput = document.getElementById('shipping-lastname');
+                        const phoneInput = document.getElementById('shipping-phone');
+                        const addressInput = document.getElementById('shipping-address');
+                        
+                        if (nameInput) nameInput.value = profile.nombre || '';
+                        if (lastnameInput) lastnameInput.value = profile.apellido || '';
+                        if (phoneInput) phoneInput.value = profile.telefono || '';
+                        if (addressInput) addressInput.value = profile.direccion || '';
+                    }
+                } catch (err) {
+                    console.error("Error al pre-cargar perfil:", err);
+                }
+
                 // Cargar el carrito
                 await this.loadCart();
                 // Pre-cargar el SDK de PayPal en segundo plano (sin renderizar botones aún)
@@ -46,12 +65,14 @@ const Checkout = {
             });
         }
 
-        // Detectar cambios en la dirección para habilitar/deshabilitar el botón
-        const addressInput = document.getElementById('shipping-address');
-        if (addressInput) {
-            addressInput.addEventListener('input', () => this.validateCheckoutForm());
-            addressInput.addEventListener('change', () => this.validateCheckoutForm());
-        }
+        // Detectar cambios en campos obligatorios para habilitar/deshabilitar el botón
+        ['shipping-name', 'shipping-lastname', 'shipping-phone', 'shipping-address'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', () => this.validateCheckoutForm());
+                input.addEventListener('change', () => this.validateCheckoutForm());
+            }
+        });
 
         this.initEventListeners();
     },
@@ -60,15 +81,25 @@ const Checkout = {
      * Valida si el formulario cumple los requisitos básicos para habilitar el botón principal
      */
     validateCheckoutForm() {
+        const name = document.getElementById('shipping-name')?.value.trim();
+        const lastname = document.getElementById('shipping-lastname')?.value.trim();
+        const phone = document.getElementById('shipping-phone')?.value.trim();
         const address = document.getElementById('shipping-address')?.value.trim();
         const btn = document.getElementById('btn-place-order');
         if (!btn) return;
 
-        // El botón se habilita si hay dirección y un método de pago seleccionado
-        if (address && this.selectedMethod) {
+        // El botón se habilita si todos los campos obligatorios están llenos y hay método de pago
+        if (name && lastname && phone && address && this.selectedMethod) {
             btn.disabled = false;
         } else {
             btn.disabled = true;
+        }
+
+        // Actualizar texto del botón dinámicamente según el método de pago
+        if (this.selectedMethod === 'webpay') {
+            btn.textContent = 'Pagar con Webpay';
+        } else if (this.selectedMethod === 'paypal') {
+            btn.textContent = 'Continuar con PayPal';
         }
     },
 
@@ -77,14 +108,18 @@ const Checkout = {
      */
     resetCheckoutForm() {
         // Habilitar campos
+        const nameEl = document.getElementById('shipping-name');
+        const lastnameEl = document.getElementById('shipping-lastname');
         const addressEl = document.getElementById('shipping-address');
         const phoneEl = document.getElementById('shipping-phone');
         const notesEl = document.getElementById('order-notes');
         const couponEl = document.getElementById('coupon-code');
         const couponBtn = document.getElementById('btn-apply-coupon');
 
-        if (addressEl) addressEl.disabled = false;
-        if (phoneEl) phoneEl.disabled = false;
+        if (nameEl) { nameEl.disabled = false; nameEl.value = ''; }
+        if (lastnameEl) { lastnameEl.disabled = false; lastnameEl.value = ''; }
+        if (addressEl) { addressEl.disabled = false; addressEl.value = ''; }
+        if (phoneEl) { phoneEl.disabled = false; phoneEl.value = ''; }
         if (notesEl) notesEl.disabled = false;
         if (couponEl) couponEl.disabled = false;
         if (couponBtn) couponBtn.disabled = false;
@@ -110,7 +145,7 @@ const Checkout = {
         const btn = document.getElementById('btn-place-order');
         if (btn) {
             btn.classList.remove('d-none');
-            btn.textContent = 'Seguir con el pago';
+            btn.textContent = this.selectedMethod === 'paypal' ? 'Continuar con PayPal' : 'Pagar con Webpay';
         }
 
         // Ocultar y vaciar contenedor de PayPal
@@ -170,11 +205,16 @@ const Checkout = {
         }
 
         try {
+            // Guardar cambios del perfil
+            await this.saveProfileData();
+
             // 1. Crear el pedido en el backend
             const orderId = await this.createPendingOrder();
             this.tempOrderId = orderId;
 
             // 2. Bloquear campos para evitar modificaciones
+            document.getElementById('shipping-name').disabled = true;
+            document.getElementById('shipping-lastname').disabled = true;
             document.getElementById('shipping-address').disabled = true;
             document.getElementById('shipping-phone').disabled = true;
             document.getElementById('order-notes').disabled = true;
@@ -201,7 +241,7 @@ const Checkout = {
         } catch (err) {
             if (btn) {
                 btn.disabled = false;
-                btn.textContent = 'Seguir con el pago';
+                btn.textContent = 'Continuar con PayPal';
             }
             if (errorDiv) {
                 errorDiv.textContent = err.message;
@@ -493,11 +533,14 @@ const Checkout = {
             return;
         }
 
+        const nombre = document.getElementById('shipping-name')?.value.trim();
+        const apellido = document.getElementById('shipping-lastname')?.value.trim();
+        const telefono = document.getElementById('shipping-phone')?.value.trim();
         const direccion = document.getElementById('shipping-address')?.value.trim();
 
-        if (!direccion) {
+        if (!nombre || !apellido || !telefono || !direccion) {
             if (errorDiv) {
-                errorDiv.textContent = 'La dirección de envío es obligatoria.';
+                errorDiv.textContent = 'Nombre, Apellido, Teléfono y Dirección de envío son obligatorios.';
                 errorDiv.classList.remove('d-none');
             }
             return;
@@ -510,6 +553,9 @@ const Checkout = {
         }
 
         try {
+            // Guardar cambios del perfil
+            await this.saveProfileData();
+
             // Paso 1: Crear pedido en estado pendiente
             const orderId = await this.createPendingOrder();
             
@@ -549,7 +595,31 @@ const Checkout = {
 
         if (btn && this.selectedMethod === 'webpay') {
             btn.disabled = false;
-            btn.textContent = 'Seguir con el pago';
+            btn.textContent = 'Pagar con Webpay';
+        }
+    },
+
+    /**
+     * Guarda los datos modificados de nombre, apellido y teléfono en el perfil
+     */
+    async saveProfileData() {
+        const nombre = document.getElementById('shipping-name')?.value.trim();
+        const apellido = document.getElementById('shipping-lastname')?.value.trim();
+        const telefono = document.getElementById('shipping-phone')?.value.trim();
+
+        if (nombre || apellido || telefono) {
+            try {
+                await App.fetchAuth(`${App.apiBase}/auth/perfil`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        apellido: apellido,
+                        telefono: telefono
+                    })
+                });
+            } catch (err) {
+                console.error("Error al actualizar perfil durante checkout:", err);
+            }
         }
     }
 };

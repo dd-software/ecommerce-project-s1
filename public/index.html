@@ -125,10 +125,10 @@
       <div id="books-section-container" class="row"></div>
     </section>
   </div>
+  
+  <!-- Detalle de producto -->
+  <div id="product-detail" class="d-none"></div>
 </main>
-
-<!-- Detalle de producto -->
-<div id="product-detail" class="d-none"></div>
 
 <!-- Modal Login -->
 <div class="modal fade" id="loginModal" tabindex="-1">
@@ -188,15 +188,31 @@
 <form id="checkout-form">
 <div id="checkout-items"></div>
 <div id="checkout-totals" class="border-top pt-3 mt-3"></div>
-<div class="mb-3"><label class="form-label">Dirección de envío</label>
-<textarea class="form-control" id="shipping-address" rows="2" required></textarea></div>
-<div class="mb-3"><label class="form-label">Teléfono</label>
-<input type="tel" class="form-control" id="shipping-phone"></div>
+<div class="row">
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Nombre</label>
+    <input type="text" class="form-control" id="shipping-name" placeholder="Ej: Juan" required>
+  </div>
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Apellido</label>
+    <input type="text" class="form-control" id="shipping-lastname" placeholder="Ej: Pérez" required>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Teléfono</label>
+    <input type="tel" class="form-control" id="shipping-phone" placeholder="Ej: +56912345678" required>
+  </div>
+  <div class="col-md-6 mb-3">
+    <label class="form-label">Dirección de envío</label>
+    <input type="text" class="form-control" id="shipping-address" placeholder="Ej: Av. Providencia 1234, Depto 41" required>
+  </div>
+</div>
 <div class="mb-3"><label class="form-label">Cupón de descuento</label>
 <div class="input-group"><input type="text" class="form-control" id="coupon-code" placeholder="Ingresa código">
 <button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button></div></div>
 <div class="mb-3"><label class="form-label">Notas del pedido</label>
-<textarea class="form-control" id="order-notes" rows="2"></textarea></div>
+<textarea class="form-control" id="order-notes" rows="2" placeholder="Indicaciones para el despacho (opcional)"></textarea></div>
 
 <div class="mb-4">
   <label class="form-label fw-bold">Método de Pago</label>

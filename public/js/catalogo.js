@@ -525,42 +525,57 @@ const Catalogo = {
 
         const addButton = product.sin_stock
             ? '<button class="btn btn-secondary btn-lg" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-lg" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
+            : `<button class="btn btn-accent btn-lg px-4" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
 
         // Aquí unimos el diseño completo con la sección de reseñas
         container.innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400'}" 
-                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/600x400'">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="./" class="btn btn-outline-secondary btn-sm mb-3">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
+                    </a>
                 </div>
-                <div class="col-md-6 text-white">
-                    <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
-                    <h2 class="text-white">${this.escapeHtml(product.nombre)}</h2>
-                    <h3 class="text-primary mb-3">${product.precio_formateado}</h3>
-                    <p class="lead text-light">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
-                    
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="product-detail-img-frame">
+                        <img src="${product.imagen_url || 'https://via.placeholder.com/600x400'}" 
+                             alt="${this.escapeHtml(product.nombre)}"
+                             onerror="this.src='https://via.placeholder.com/600x400'">
+                    </div>
+                </div>
+                <div class="col-md-6 text-white d-flex flex-column justify-content-center">
                     <div class="mb-3">
-                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} fs-6">
+                        <span class="badge bg-secondary product-detail-badge">${this.escapeHtml(product.categoria_nombre || '')}</span>
+                    </div>
+                    <h2 class="product-detail-title text-white">${this.escapeHtml(product.nombre)}</h2>
+                    <h3 class="product-detail-price mb-3">${product.precio_formateado}</h3>
+                    <p class="lead text-light mb-4">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
+                    
+                    <div class="mb-4">
+                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} product-detail-badge fs-6">
+                            <i class="bi ${product.sin_stock ? 'bi-x-circle-fill' : 'bi-check-circle-fill'} me-1"></i>
                             ${product.sin_stock ? 'Sin Stock' : 'Stock: ' + product.stock + ' unidades'}
                         </span>
                     </div>
 
-                    <div class="d-flex gap-2 align-items-center mb-4">
-                        <input type="number" id="qty-detail" class="form-control" style="width:80px" value="1" min="1" max="${product.stock}">
+                    <div class="d-flex gap-3 align-items-center mb-4 flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <label for="qty-detail" class="me-2 text-muted small fw-bold text-uppercase">Cant:</label>
+                            <input type="number" id="qty-detail" class="form-control qty-input-detail" value="1" min="1" max="${product.stock}">
+                        </div>
                         ${addButton}
                     </div>
                 </div>
             </div>
 
             <div class="row mt-5 pt-4 border-top text-white" id="reviews-section">
-                <div class="col-12">
-                    <h3 class="fw-bold mb-3 text-white"><i class="bi bi-chat-square-text text-primary me-2"></i>Reseñas</h3>
+                <div class="col-lg-8 mx-auto">
+                    <h3 class="fw-bold mb-4 text-white"><i class="bi bi-chat-square-text text-primary me-2"></i>Reseñas</h3>
                     
-                    <form id="form-review" data-product-id="${product.id}" class="mb-4">
-                        <div class="mb-2">
-                            <label class="text-light">Calificación:</label>
+                    <form id="form-review" data-product-id="${product.id}" class="mb-4 p-3 bg-dark-card rounded border border-secondary border-opacity-10">
+                        <div class="mb-3">
+                            <label class="text-light mb-1 fw-semibold small">Calificación:</label>
                             <select id="review-cal" class="form-select w-auto">
                                 <option value="5">5 Estrellas</option>
                                 <option value="4">4 Estrellas</option>
@@ -569,8 +584,11 @@ const Catalogo = {
                                 <option value="1">1 Estrella</option>
                             </select>
                         </div>
-                        <textarea id="review-comment" class="form-control mb-2" placeholder="Tu comentario..." required></textarea>
-                        <button type="submit" class="btn btn-primary">Publicar</button>
+                        <div class="mb-3">
+                            <label class="text-light mb-1 fw-semibold small">Comentario:</label>
+                            <textarea id="review-comment" class="form-control" placeholder="Escribe tu reseña aquí..." rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-4">Publicar Reseña</button>
                     </form>
 
                     <div id="reviews-container"></div>
@@ -596,25 +614,25 @@ const Catalogo = {
 
                 const lista = data.resenas || data.data || [];
 
-                
                 if (lista.length > 0) {
                     container.innerHTML = lista.map(r => {
                         const stars = Array(5).fill(0).map((_, i) => 
                             i < r.calificacion ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-warning"></i>'
                         ).join('');
                         const isAdmin = this.isAdmin(); 
-                        const deleteBtn = isAdmin ? `<button onclick="Catalogo.deleteResena(${r.id})" class="btn btn-sm btn-danger ms-2">Eliminar</button>` : '';
+                        const deleteBtn = isAdmin ? `<button onclick="Catalogo.deleteResena(${r.id})" class="btn btn-sm btn-outline-danger ms-2 border-0" title="Eliminar"><i class="bi bi-trash"></i></button>` : '';
                         
                         return `
-                            <div class="card mb-2 shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="card mb-3 shadow-sm border border-secondary border-opacity-10">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
                                             <strong>${this.escapeHtml(r.nombre)}</strong>
                                             <div class="d-flex align-items-center">
-                                                <div class="text-warning">${stars}</div>
-                                                ${deleteBtn} </div>
+                                                <div class="text-warning small me-2">${stars}</div>
+                                                ${deleteBtn}
+                                            </div>
                                         </div>
-                                        <p class="mb-0 mt-1">${this.escapeHtml(r.comentario)}</p>
+                                        <p class="mb-0 text-muted small">${this.escapeHtml(r.comentario)}</p>
                                     </div>
                                 </div>`;
                     }).join('');
