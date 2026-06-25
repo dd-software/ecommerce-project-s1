@@ -27,6 +27,15 @@ const Auth = {
             passToggle.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
         });
 
+        // Mostrar/ocultar contraseña (registro)
+        const regPass = document.getElementById('reg-password');
+        const regToggle = document.getElementById('reg-pass-toggle');
+        regToggle?.addEventListener('click', () => {
+            const show = regPass.type === 'password';
+            regPass.type = show ? 'text' : 'password';
+            regToggle.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+
         // Recordarme: precargar el email guardado
         const savedEmail = localStorage.getItem('qc_remember_email');
         if (savedEmail) {

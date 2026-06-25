@@ -1004,7 +1004,8 @@ main.container { flex: 1; display: flex; flex-direction: column; }
    Login (modal partido: marca + formulario)
    ============================================ */
 #loginModal .modal-dialog { max-width: 940px; }
-#loginModal .modal-content.qc-login { flex-direction: row; overflow: hidden; border: none; border-radius: var(--qc-radius-lg); }
+#loginModal .modal-content.qc-login,
+#registerModal .modal-content.qc-login { flex-direction: row; overflow: hidden; border: none; border-radius: var(--qc-radius-lg); }
 .qc-login-brand {
     flex: 0 0 42%;
     position: relative; overflow: hidden; z-index: 0;
@@ -1052,7 +1053,8 @@ main.container { flex: 1; display: flex; flex-direction: column; }
 #login-submit { height: 48px; font-weight: 600; }
 
 @media (max-width: 575px) {
-    #loginModal .modal-content.qc-login { flex-direction: column; }
+    #loginModal .modal-content.qc-login,
+    #registerModal .modal-content.qc-login { flex-direction: column; }
     .qc-login-brand { flex-basis: auto; padding: 24px; }
     .qc-login-benefits, .qc-login-trust { display: none; }
     .qc-login-welcome { font-size: 22px; }
