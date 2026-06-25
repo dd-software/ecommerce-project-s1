@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+:root {
+    /* UCT Branding Colors */
+    --uct-blue: #0067B1;
+    --uct-blue-dark: #004c85;
+    --uct-yellow: #FDB913;
+    --uct-yellow-dark: #e5a300;
+    
+    /* Retail Colors */
+    --gray-bg: #F4F6F8;
+    --gray-border: #E5E7EB;
+    --text-main: #333333;
+    --text-muted: #6B7280;
+    
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    --shadow-hover: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--gray-bg);
+    color: var(--text-main);
+}
+
+/* =========================================
+   MEGA-NAVBAR RETAIL (Estilo Paris.cl)
+   ========================================= */
+
+.top-banner {
+    background-color: var(--text-main);
+    color: white;
+    font-size: 0.85rem;
+    padding: 6px 0;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.main-header {
+    background-color: #ffffff;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--gray-border);
+}
+
+.brand-logo {
+    height: 45px;
+    object-fit: contain;
+}
+
+/* Search Bar */
+.search-container {
+    position: relative;
+    width: 100%;
+}
+.search-input {
+    border-radius: 50px;
+    padding-left: 20px;
+    padding-right: 50px;
+    height: 48px;
+    background-color: var(--gray-bg);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+.search-input:focus {
+    background-color: #fff;
+    border-color: var(--uct-blue);
+    box-shadow: 0 0 0 0.25rem rgba(0, 103, 177, 0.25);
+    outline: none;
+}
+.search-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--uct-blue);
+    color: white;
+    border-radius: 50px;
+    border: none;
+    height: 38px;
+    width: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+.search-btn:hover {
+    background-color: var(--uct-blue-dark);
+}
+
+/* Nav Icons */
+.nav-icon-link {
+    color: var(--text-main);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+.nav-icon-link i {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+}
+.nav-icon-link:hover {
+    color: var(--uct-blue);
+}
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: var(--uct-yellow);
+    color: var(--text-main);
+    font-size: 0.7rem;
+    font-weight: 800;
+    border-radius: 50%;
+    padding: 0.25em 0.5em;
+}
+
+/* Bottom Category Menu */
+.category-nav {
+    background-color: var(--uct-blue);
+}
+.category-nav .nav-link {
+    color: white !important;
+    font-weight: 600;
+    padding: 12px 20px !important;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+}
+.category-nav .nav-link:hover {
+    background-color: var(--uct-blue-dark);
+}
+
+/* =========================================
+   PRODUCT CARDS (Estilo Retail)
+   ========================================= */
+
+.product-card {
+    border: 1px solid var(--gray-border);
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+    border-color: transparent;
+}
+.product-img-wrapper {
+    position: relative;
+    padding: 20px;
+    text-align: center;
+    background-color: #fff;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+.product-img {
+    max-height: 200px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+.product-card:hover .product-img {
+    transform: scale(1.05);
+}
+.product-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.product-brand {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+.product-title {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-main);
+    margin-bottom: 15px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.product-price {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--uct-blue);
+    margin-top: auto;
+    display: flex;
+    align-items: baseline;
+}
+.product-price small {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-right: 2px;
+}
+
+/* =========================================
+   BUTTONS & UTILITIES
+   ========================================= */
+
+.btn-uct-primary {
+    background-color: var(--uct-blue);
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+.btn-uct-primary:hover {
+    background-color: var(--uct-blue-dark);
+    color: white;
+}
+.btn-uct-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-outline-uct {
+    background-color: transparent;
+    color: var(--uct-blue);
+    font-weight: 600;
+    border: 1px solid var(--uct-blue);
+    border-radius: 50px; /* Paris style buttons are fully rounded */
+    padding: 8px 15px;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+.btn-outline-uct:hover {
+    background-color: #f0f8ff; /* very light blue */
+}
+.btn-outline-uct:active {
+    transform: scale(0.98);
+}
+
+.product-rating {
+    color: #e0e0e0; /* light gray for empty stars */
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+.product-rating .bi-star-fill {
+    color: #e0e0e0;
+}
+.product-rating span {
+    color: var(--text-muted);
+    margin-left: 5px;
+    text-decoration: underline;
+}
+
+.btn-uct-secondary {
+    background-color: var(--uct-yellow);
+    color: #333;
+    font-weight: 700;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    transition: background-color 0.2s, transform 0.1s;
+}
+.btn-uct-secondary:hover {
+    background-color: var(--uct-yellow-dark);
+    color: #111;
+}
+
+.text-uct-blue {
+    color: var(--uct-blue) !important;
+}
+.text-uct-yellow {
+    color: var(--uct-yellow) !important;
+}
+.bg-uct-blue {
+    background-color: var(--uct-blue) !important;
+}
+
+/* Hero Carousel */
+.hero-banner {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid var(--gray-border);
+}
+.form-control:focus {
+    border-color: var(--uct-blue);
+    box-shadow: 0 0 0 0.25rem rgba(0, 103, 177, 0.15);
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo - UCT Ecommerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <header id="main-header"></header>
+    
+    <div class="container mt-4 mb-5">
+        <!-- Hero Banner Carousel -->
+        <div id="heroCarousel" class="carousel slide hero-banner" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2070&auto=format&fit=crop" class="d-block w-100" style="height: 300px; object-fit: cover;" alt="Promo 1">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-3">
+                        <h2 class="fw-bold">Cyber UCT 2026</h2>
+                        <p class="fs-5">Hasta 40% de descuento en tecnología y moda exclusiva.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mb-4 fw-bold" id="products-heading">Todos los Productos</h3>
+        <div class="d-flex flex-wrap gap-2 mb-4" id="category-filter"></div>
+        <div class="row g-4" id="product-list">
+            <div class="col-12 text-center"><div class="spinner-border text-uct-blue" role="status"></div></div>
+        </div>
+    </div>
+
+    <!-- Modal Detalles -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalTitle">Detalle de Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/catalog.js"></script>
+</body>
+</html>
