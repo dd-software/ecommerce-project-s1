@@ -44,15 +44,18 @@ class PagosService
 
         $monto = (int)$pedido['total'];
 
-        // Simular procesamiento con pasarela de pago
-        // En entorno real, esto llamaría a Webpay/Stripe/MercadoPago
-        $transaccionId = 'TX-' . strtoupper(bin2hex(random_bytes(6)));
-        $respuestaPasarela = $this->simularPasarelaPago($tokenTarjeta, $monto);
-
         $db = Database::getInstance();
 
         try {
             $db->beginTransaction();
+
+            if ($metodoPago === 'paypal') {
+                $respuestaPasarela = $this->verificarPagoPaypal($tokenTarjeta, $monto);
+                $transaccionId = $tokenTarjeta; // El tokenTarjeta es el PayPal Order ID
+            } else {
+                $transaccionId = 'TX-' . strtoupper(bin2hex(random_bytes(6)));
+                $respuestaPasarela = $this->simularPasarelaPago($tokenTarjeta, $monto);
+            }
 
             // Registrar el intento de pago
             $pagoId = $this->repository->registrarPago(
@@ -149,6 +152,134 @@ class PagosService
             'codigo'  => 'INSUFFICIENT_FUNDS',
             'mensaje' => 'Fondos insuficientes.',
         ];
+    }
+
+    /**
+     * Verifica un pago con la API de PayPal (o simulación si no hay credenciales)
+     */
+    private function verificarPagoPaypal(string $paypalOrderId, int $montoEsperadoCLP): array
+    {
+        $clientId = $_ENV['PAYPAL_CLIENT_ID'] ?? '';
+        $clientSecret = $_ENV['PAYPAL_SECRET'] ?? '';
+        $mode = $_ENV['PAYPAL_MODE'] ?? 'sandbox';
+        $rate = (float)($_ENV['PAYPAL_EXCHANGE_RATE'] ?? 930.0);
+
+        if (empty($clientId) || empty($clientSecret)) {
+            return [
+                'estado' => 'aprobado',
+                'codigo' => 'APPROVED',
+                'mensaje' => 'Pago verificado con éxito (Simulación PayPal sin credenciales en .env).',
+                'detalles' => [
+                    'id' => $paypalOrderId,
+                    'status' => 'COMPLETED',
+                    'intent' => 'CAPTURE'
+                ]
+            ];
+        }
+
+        try {
+            $baseUrl = $mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+            
+            // 1. Obtener Token OAuth
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $baseUrl . '/v1/oauth2/token');
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_USERPWD, $clientId . ":" . $clientSecret);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+            
+            $result = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($status !== 200) {
+                return [
+                    'estado' => 'rechazado',
+                    'codigo' => 'PAYPAL_AUTH_ERROR',
+                    'mensaje' => 'Error de autenticación con la API de PayPal.'
+                ];
+            }
+
+            $tokenData = json_decode($result, true);
+            $accessToken = $tokenData['access_token'] ?? null;
+
+            if (!$accessToken) {
+                return [
+                    'estado' => 'rechazado',
+                    'codigo' => 'PAYPAL_TOKEN_ERROR',
+                    'mensaje' => 'No se pudo obtener el token de acceso de PayPal.'
+                ];
+            }
+
+            // 2. Obtener Detalles de la Orden
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $baseUrl . '/v2/checkout/orders/' . $paypalOrderId);
+            curl_setopt($ch, CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Authorization: Bearer " . $accessToken,
+                "Content-Type: application/json"
+            ]);
+
+            $result = curl_exec($ch);
+            $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($status !== 200) {
+                return [
+                    'estado' => 'rechazado',
+                    'codigo' => 'PAYPAL_ORDER_ERROR',
+                    'mensaje' => 'Error al consultar la orden en PayPal.'
+                ];
+            }
+
+            $orderData = json_decode($result, true);
+            
+            $paypalStatus = $orderData['status'] ?? '';
+            if ($paypalStatus !== 'APPROVED' && $paypalStatus !== 'COMPLETED') {
+                return [
+                    'estado' => 'rechazado',
+                    'codigo' => 'PAYPAL_PAYMENT_NOT_APPROVED',
+                    'mensaje' => 'La transacción en PayPal no está aprobada. Estado: ' . $paypalStatus
+                ];
+            }
+
+            $paypalAmount = 0.0;
+            if (!empty($orderData['purchase_units'])) {
+                $paypalAmount = (float)($orderData['purchase_units'][0]['amount']['value'] ?? 0.0);
+            }
+
+            $montoEsperadoUSD = ($montoEsperadoCLP / 100.0) / $rate;
+            
+            if (abs($paypalAmount - $montoEsperadoUSD) > 0.50) {
+                return [
+                    'estado' => 'rechazado',
+                    'codigo' => 'PAYPAL_AMOUNT_MISMATCH',
+                    'mensaje' => sprintf(
+                        'El monto pagado en PayPal ($%.2f USD) no coincide con el total esperado del pedido ($%.2f USD).',
+                        $paypalAmount,
+                        $montoEsperadoUSD
+                    )
+                ];
+            }
+
+            return [
+                'estado' => 'aprobado',
+                'codigo' => 'APPROVED',
+                'mensaje' => 'Pago verificado con éxito en PayPal.',
+                'detalles' => $orderData
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'estado' => 'rechazado',
+                'codigo' => 'PAYPAL_EXCEPTION',
+                'mensaje' => 'Excepción al verificar pago con PayPal: ' . $e->getMessage()
+            ];
+        }
     }
 
     /**
