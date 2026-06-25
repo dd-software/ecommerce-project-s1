@@ -34,6 +34,7 @@
 ### Capacidades del sistema
 
 - Exploración de catálogo con categorías jerárquicas y variantes de producto (talla, color, SKU)
+- Ficha técnica con especificaciones por producto y comparador de productos lado a lado
 - Flujo completo de compra: carrito → checkout → pago → confirmación
 - Gestión de pedidos con trazabilidad de estados
 - Administración de inventario con control de stock mínimo
@@ -235,7 +236,7 @@ ecommerce-project-s1-team-1-heavyduty/
 
 ---
 
-## 🚀 Guía de Despliegue
+## Guía de Despliegue
 
 ### Requisitos del Sistema
 
@@ -248,11 +249,11 @@ ecommerce-project-s1-team-1-heavyduty/
 
 ---
 
-### 💻 Despliegue Local (Desarrollo)
+### Despliegue Local (Desarrollo)
 
-> ✅ **Inicio rápido verificado (Linux + MySQL nativo).** Estos son los pasos exactos con los que la app quedó corriendo end-to-end: registro → login → catálogo → carrito → checkout → pago → panel admin. Si solo quieres levantarla, usa esta opción.
+> **Inicio rápido verificado (Linux + MySQL nativo).** Estos son los pasos exactos con los que la app quedó corriendo end-to-end: registro → login → catálogo → carrito → checkout → pago → panel admin. Si solo quieres levantarla, usa esta opción.
 >
-> ℹ️ Nota: el proyecto carga la configuración desde un archivo **`.env`** (ver `.env.example`), **no** desde `config/database.php`. La base de datos se llama **`uct_ecommerce`** y se crea/puebla con **`database/setup.sql`** (encadena esquema + usuarios/cupones + catálogo QuadCore + imágenes). Abajo hay ejemplos para **Linux, Windows y macOS**.
+> **Nota:** el proyecto carga la configuración desde un archivo **`.env`** (ver `.env.example`), **no** desde `config/database.php`. La base de datos se llama **`uct_ecommerce`** y se crea/puebla con **`database/setup.sql`**, que encadena esquema + usuarios/cupones + catálogo QuadCore + imágenes + especificaciones + producto demo. Más abajo hay ejemplos para **Linux, Windows y macOS**.
 
 #### Opción recomendada: MySQL nativo + servidor embebido de PHP
 
@@ -271,13 +272,15 @@ sudo mysql -e "CREATE USER IF NOT EXISTS 'ecommerce_app'@'localhost' IDENTIFIED 
 sudo mysql -e "CREATE USER IF NOT EXISTS 'ecommerce_app'@'127.0.0.1' IDENTIFIED BY 'TU_PASS';"
 sudo mysql -e "GRANT ALL PRIVILEGES ON uct_ecommerce.* TO 'ecommerce_app'@'localhost'; GRANT ALL PRIVILEGES ON uct_ecommerce.* TO 'ecommerce_app'@'127.0.0.1'; FLUSH PRIVILEGES;"
 
-# 2. Cargar TODO de una (esquema + usuarios/cupones + catálogo QuadCore + imágenes).
-#    setup.sql ya hace CREATE DATABASE + CREATE USER (localhost y 127.0.0.1) + los 4 seeds,
+# 2. Cargar TODO de una (esquema + usuarios/cupones + catálogo + imágenes + specs + demo).
+#    setup.sql ya hace CREATE DATABASE + CREATE USER (localhost y 127.0.0.1) + los 6 seeds,
 #    así que en la práctica los pasos 1 y 2 se reducen a:  sudo mysql < database/setup.sql
 sudo mysql uct_ecommerce < database/schema.sql
 sudo mysql uct_ecommerce < database/seed.sql
-sudo mysql uct_ecommerce < database/seed_quadcore.sql   # catálogo real (95 productos, 20 categorías)
-sudo mysql uct_ecommerce < database/seed_imagenes.sql   # imágenes de los productos
+sudo mysql uct_ecommerce < database/seed_quadcore.sql          # catálogo real (194 productos, 20 categorías)
+sudo mysql uct_ecommerce < database/seed_imagenes.sql          # imágenes de los productos
+sudo mysql uct_ecommerce < database/seed_especificaciones.sql # especificaciones técnicas (set demo curado)
+sudo mysql uct_ecommerce < database/seed_producto_demo.sql    # producto demo de pago real
 
 # 3. Configurar entorno
 cp .env.example .env
@@ -290,9 +293,9 @@ php -S localhost:8000 -t public router.php
 #   Abrir http://localhost:8000
 ```
 
-> ⚠️ El servidor embebido de PHP **no lee `.htaccess`**, por eso pasamos `router.php`: replica la regla de Apache (los archivos reales —css/js/imágenes— se sirven directo y todo lo demás va a `public/index.php`). Sin él, las rutas `/api/*` devuelven 404.
+> **Importante:** el servidor embebido de PHP **no lee `.htaccess`**, por eso pasamos `router.php`: replica la regla de Apache (los archivos reales —css/js/imágenes— se sirven directo y todo lo demás va a `public/index.php`). Sin él, las rutas `/api/*` devuelven 404.
 
-#### 🪟 Windows (XAMPP)
+#### Windows (XAMPP)
 
 1. Instalar [XAMPP](https://www.apachefriends.org) (trae PHP + MySQL + phpMyAdmin) y [Git para Windows](https://git-scm.com/download/win).
 2. En el **XAMPP Control Panel**, arrancar **MySQL**.
@@ -305,12 +308,13 @@ php -S localhost:8000 -t public router.php
    ```
    En `.env`, usar el root de XAMPP (**sin contraseña**):
    `DB_HOST=127.0.0.1`, `DB_USER=root`, `DB_PASS=`, `DB_NAME=uct_ecommerce`, y un `JWT_SECRET` de 32+ caracteres.
-4. Crear y poblar la BD (parado en la carpeta del proyecto):
+4. Crear y poblar la BD (desde la carpeta del proyecto). Usar **Git Bash** o **Command Prompt** (no PowerShell: el operador `<` no está soportado y da error):
    ```bash
    mysql -u root < database/setup.sql
    # si "mysql" no se reconoce:  C:\xampp\mysql\bin\mysql.exe -u root < database/setup.sql
    ```
-   > Alternativa gráfica (phpMyAdmin): creá la BD `uct_ecommerce` e importá **en orden** `schema.sql` → `seed.sql` → `seed_quadcore.sql` → `seed_imagenes.sql`. (phpMyAdmin no soporta `SOURCE`, por eso ahí no sirve `setup.sql`.)
+   > Si aparece un error tipo *"Failed to open file 'database/schema.sql'"*, es por los saltos de línea CRLF de Windows en los `SOURCE`. En ese caso, cargá cada archivo por separado (`mysql -u root uct_ecommerce < database\schema.sql`, luego `seed.sql`, `seed_quadcore.sql`, `seed_imagenes.sql`, `seed_especificaciones.sql` y `seed_producto_demo.sql`) o usá la alternativa gráfica de abajo.
+   > Alternativa gráfica (phpMyAdmin): crea la BD `uct_ecommerce` e importa **en orden** `schema.sql` → `seed.sql` → `seed_quadcore.sql` → `seed_imagenes.sql` → `seed_especificaciones.sql` → `seed_producto_demo.sql`. (phpMyAdmin no soporta `SOURCE`, por eso ahí no sirve `setup.sql`.)
 5. Levantar:
    ```bash
    php -S localhost:8000 -t public router.php
@@ -318,7 +322,7 @@ php -S localhost:8000 -t public router.php
    ```
    Abrir **http://localhost:8000**
 
-#### 🍎 macOS (Homebrew)
+#### macOS (Homebrew)
 
 ```bash
 # Requisitos
@@ -331,20 +335,20 @@ cd ecommerce-project-s1
 git checkout team-1-heavyduty
 cp .env.example .env          # editar DB_* y JWT_SECRET
 
-# BD + datos (setup.sql crea BD, usuario y carga los 4 seeds)
+# BD + datos (setup.sql crea BD, usuario y carga los 6 seeds)
 mysql -u root < database/setup.sql
 
 # Servir
 php -S localhost:8000 -t public router.php   # → http://localhost:8000
 ```
 
-> El usuario `ecommerce_app` queda creado con la clave `app_password_here` (definida en `setup.sql` / `.env.example`). Para una clave propia, cambiala en ambos lados. En local también podés usar `root` en el `.env`.
+> El usuario `ecommerce_app` queda creado con la clave `app_password_here` (definida en `setup.sql` / `.env.example`). Para usar una clave propia, cámbiala en ambos lados. En local también puedes usar `root` en el `.env`.
 
-> ⚠️ El servidor embebido de PHP **no** lee `.htaccess`; por eso siempre se sirve con `router.php` (replica el ruteo de Apache). Para producción usá Apache/Nginx con el `.htaccess` incluido.
+> **Importante:** el servidor embebido de PHP **no** lee `.htaccess`; por eso siempre se sirve con `router.php` (replica el ruteo de Apache). Para producción usa Apache/Nginx con el `.htaccess` incluido.
 
 ---
 
-### 🌐 Despliegue en Producción (VPS Linux)
+### Despliegue en Producción (VPS Linux)
 
 #### 1. Requisitos del Servidor
 
@@ -396,11 +400,13 @@ EXIT;
 ```
 
 ```bash
-# Importar esquema + TODOS los datos (catálogo real QuadCore + imágenes)
+# Importar esquema + TODOS los datos (catálogo QuadCore + imágenes + specs + producto demo)
 mysql -u ecommerce_app -p uct_ecommerce < database/schema.sql
 mysql -u ecommerce_app -p uct_ecommerce < database/seed.sql
 mysql -u ecommerce_app -p uct_ecommerce < database/seed_quadcore.sql
 mysql -u ecommerce_app -p uct_ecommerce < database/seed_imagenes.sql
+mysql -u ecommerce_app -p uct_ecommerce < database/seed_especificaciones.sql
+mysql -u ecommerce_app -p uct_ecommerce < database/seed_producto_demo.sql
 ```
 
 #### 4. Desplegar la Aplicación
@@ -481,13 +487,13 @@ sudo certbot --apache -d tudominio.com
 
 #### 8. Verificar el Despliegue
 
-- 🌐 Abrir `https://tudominio.com` — deberías ver la landing page del catálogo
-- 🔐 Probar login con el usuario seed: `juan@email.com` / `Password123!`
-- ⚙️ Acceder al admin: `admin@uct.cl` / `Password123!` → `/admin`
+- Abrir `https://tudominio.com` — deberías ver la landing page del catálogo
+- Probar login con el usuario seed: `juan@email.com` / `Password123!`
+- Acceder al admin: `admin@uct.cl` / `Password123!` → `/admin`
 
 ---
 
-### 🔐 Usuarios de Prueba (Seed Data)
+### Usuarios de Prueba (Seed Data)
 
 | Rol | Email | Contraseña |
 |---|---|---|
