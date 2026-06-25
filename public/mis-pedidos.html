@@ -22,10 +22,15 @@
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
           <li class="nav-item"><a class="nav-link" href="catalogo.html">Catálogo</a></li>
+          <!-- Sin autenticar -->
+          <li class="nav-item d-none" id="auth-links">
+            <a class="nav-link" href="index.html"><i class="bi bi-person"></i> Iniciar Sesión</a>
+          </li>
+          <!-- Autenticado -->
+          <li class="nav-item dropdown d-none" id="user-links">
+            <!-- Renderizado por app.js -->
+          </li>
         </ul>
-        <div class="d-flex align-items-center ms-lg-3" id="auth-container">
-          <!-- Renderizado por app.js -->
-        </div>
       </div>
     </div>
   </nav>
