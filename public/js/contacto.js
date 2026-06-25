@@ -111,7 +111,7 @@ const Contacto = {
             });
         });
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             let todoOk = true;
             form.querySelectorAll('input, select, textarea').forEach((el) => {
@@ -121,9 +121,39 @@ const Contacto = {
                 App.showToast('Revisa los campos marcados en rojo.', 'error');
                 return;
             }
-            App.showToast('¡Gracias! Te responderemos pronto.', 'success');
-            form.reset();
-            form.querySelectorAll('.leo-field').forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
+
+            const btn = form.querySelector('button[type="submit"]');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Enviando…';
+
+            try {
+                const res = await fetch('/api/contacto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre:  document.getElementById('c-nombre').value.trim(),
+                        email:   document.getElementById('c-email').value.trim(),
+                        asunto:  document.getElementById('c-asunto').value,
+                        mensaje: document.getElementById('c-msg').value.trim(),
+                    }),
+                });
+
+                const json = await res.json();
+
+                if (res.ok && json.success) {
+                    App.showToast('¡Mensaje enviado! Revisa tu correo, te enviamos una confirmación.', 'success');
+                    form.reset();
+                    form.querySelectorAll('.leo-field').forEach((f) => f.classList.remove('is-valid', 'is-invalid'));
+                } else {
+                    App.showToast(json.error?.message || 'No se pudo enviar el mensaje. Intenta más tarde.', 'error');
+                }
+            } catch {
+                App.showToast('Error de conexión. Verifica tu internet e intenta de nuevo.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+            }
         });
     }
 };

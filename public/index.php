@@ -24,6 +24,7 @@ use App\Admin\AdminController;
 use App\Integracion\IntegracionController;
 use App\Resenas\ResenasController;
 use App\Favoritos\FavoritosController;
+use App\Contacto\ContactoController;
 
 // Iniciar sesión
 Session::iniciar();
@@ -113,6 +114,9 @@ $router->get('/api/admin/usuarios', [AdminController::class, 'listarUsuarios'], 
 $router->patch('/api/admin/usuarios/{id}/estado', [AdminController::class, 'toggleUsuario'], auth: true, admin: true);
 $router->get('/api/admin/reportes/ventas', [AdminController::class, 'reporteVentas'], auth: true, admin: true);
 $router->get('/api/admin/reportes/productos-mas-vendidos', [AdminController::class, 'productosMasVendidos'], auth: true, admin: true);
+
+// --- Contacto / Atención al cliente ---
+$router->post('/api/contacto', [ContactoController::class, 'enviar']);
 
 // --- Módulo H: Integración ---
 $router->get('/api/health', [IntegracionController::class, 'health']);
