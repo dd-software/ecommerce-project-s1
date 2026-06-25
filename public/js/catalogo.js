@@ -123,7 +123,7 @@ const Catalogo = {
         // Leer búsqueda de URL (acepta 'q' y 'search' del navbar)
         const urlParams = new URLSearchParams(window.location.search);
         const searchQuery = urlParams.get('q') || urlParams.get('search');
-        if (searchQuery && !this.filters.q) {
+        if (searchQuery !== null) {
             this.filters.q = searchQuery;
             params.set('q', searchQuery);
             const searchInput = document.getElementById('search-input');

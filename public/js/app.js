@@ -107,8 +107,20 @@ const App = {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = document.getElementById('search-input').value.trim();
-                if (query) {
-                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?search=' + encodeURIComponent(query);
+                try {
+                    const url = new URL(window.location.href);
+                    if (query) {
+                        url.searchParams.set('search', query);
+                    } else {
+                        url.searchParams.delete('search');
+                    }
+                    url.searchParams.delete('id'); // Limpiar detalle del producto
+                    window.location.href = url.pathname + url.search;
+                } catch (err) {
+                    const cleanPath = window.location.pathname.endsWith('.html') || window.location.pathname.endsWith('.php') 
+                        ? window.location.pathname 
+                        : window.location.pathname.replace(/\/+$/, '') + '/';
+                    window.location.href = cleanPath + (query ? '?search=' + encodeURIComponent(query) : '');
                 }
             });
         }
