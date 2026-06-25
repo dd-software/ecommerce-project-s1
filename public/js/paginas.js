@@ -133,6 +133,116 @@ const Paginas = {
               </div>
             </div>
             `
+        },
+
+        privacidad: {
+            titulo: 'Política de privacidad',
+            html: `
+            <div class="gw-page">
+              <header class="gw-head">
+                <p class="gw-kicker"><i class="bi bi-shield-lock"></i> Legal</p>
+                <h1>Política de privacidad</h1>
+                <p class="lead">Cómo recopilamos, usamos y protegemos tus datos personales, conforme a la Ley N° 19.628 sobre protección de la vida privada.</p>
+              </header>
+              <div class="gw-body"><div class="qc-terms-body">
+                <h6>1. Responsable de los datos</h6>
+                <p>QuadCore SpA, RUT 77.123.456-7, con domicilio en Av. Providencia 1234, Santiago de Chile, es responsable del tratamiento de los datos personales recopilados a través de este sitio.</p>
+                <h6>2. Qué datos recopilamos</h6>
+                <p>Recopilamos los datos que nos entregas al registrarte o comprar: nombre, apellido, correo electrónico, dirección de despacho y datos de contacto. No almacenamos información de tu tarjeta de crédito o débito: el pago se procesa directamente en la plataforma del proveedor de pagos.</p>
+                <h6>3. Para qué los usamos</h6>
+                <p>Usamos tus datos exclusivamente para gestionar tus compras, coordinar el despacho, emitir documentación tributaria, brindar soporte postventa, enviarte el estado de tu pedido y cumplir obligaciones legales derivadas de la relación comercial.</p>
+                <h6>4. Con quién los compartimos</h6>
+                <p>No vendemos ni compartimos tus datos con terceros ajenos a la prestación del servicio, salvo con las empresas de transporte para coordinar la entrega, con el procesador de pagos para validar la transacción, o cuando sea requerido por ley.</p>
+                <h6>5. Tus derechos</h6>
+                <p>Puedes solicitar acceder, rectificar, eliminar u oponerte al tratamiento de tus datos escribiéndonos a <b>privacidad@quadcore.cl</b>. Responderemos tu solicitud dentro de los plazos legales.</p>
+                <h6>6. Seguridad</h6>
+                <p>Adoptamos medidas razonables de seguridad y cifrado para resguardar tu información frente a accesos no autorizados, pérdida o alteración.</p>
+                <p class="text-muted small mb-0">Última actualización: junio de 2026.</p>
+              </div></div>
+            </div>
+            `
+        },
+
+        'compras-devoluciones': {
+            titulo: 'Compras y devoluciones',
+            html: `
+            <div class="gw-page">
+              <header class="gw-head">
+                <p class="gw-kicker"><i class="bi bi-bag-check"></i> Legal</p>
+                <h1>Política de compras y devoluciones</h1>
+                <p class="lead">Cómo se perfecciona tu compra y en qué casos puedes devolver un producto, conforme a la Ley N° 19.496 sobre protección de los derechos del consumidor.</p>
+              </header>
+              <div class="gw-body"><div class="qc-terms-body">
+                <h6>1. Perfeccionamiento de la compra</h6>
+                <p>La compra se entiende perfeccionada una vez que el pago ha sido validado y aceptado por QuadCore. Recibirás un correo de confirmación con el detalle de tu pedido. Los precios están expresados en pesos chilenos (CLP) e incluyen IVA.</p>
+                <h6>2. Derecho a retracto</h6>
+                <p>Tienes <b>10 días corridos</b> desde la recepción del producto para retractarte de la compra, siempre que el producto se encuentre sin uso, en su empaque original y con todos sus accesorios y manuales. No aplica a productos que por su naturaleza no puedan ser devueltos o puedan deteriorarse rápidamente.</p>
+                <h6>3. Productos con falla</h6>
+                <p>Si el producto presenta fallas de fabricación, puedes ejercer la garantía legal dentro de los plazos que establece la ley. En ese caso cubrimos los costos de envío para la revisión. Revisa el detalle en <b>Garantía y devoluciones</b>.</p>
+                <h6>4. Cómo solicitar una devolución</h6>
+                <p>Escríbenos a <b>devoluciones@quadcore.cl</b> con tu número de pedido y el motivo. Te enviaremos las instrucciones y, cuando corresponda, una etiqueta de despacho para que nos devuelvas el producto.</p>
+                <h6>5. Condiciones</h6>
+                <p>El producto debe presentarse en las condiciones descritas. Una vez recibido y revisado, gestionaremos el cambio o el reembolso según corresponda. Consulta los plazos y medios en nuestra <b>Política de reembolso</b>.</p>
+                <p class="text-muted small mb-0">Última actualización: junio de 2026.</p>
+              </div></div>
+            </div>
+            `
+        },
+
+        reembolsos: {
+            titulo: 'Política de reembolso',
+            html: `
+            <div class="gw-page">
+              <header class="gw-head">
+                <p class="gw-kicker"><i class="bi bi-cash-coin"></i> Legal</p>
+                <h1>Política de reembolso</h1>
+                <p class="lead">Cuándo y cómo te devolvemos tu dinero cuando corresponde una devolución o anulación de compra.</p>
+              </header>
+              <div class="gw-body"><div class="qc-terms-body">
+                <h6>1. Cuándo procede un reembolso</h6>
+                <p>Procede un reembolso cuando ejerces tu derecho a retracto dentro del plazo legal, cuando un producto presenta una falla cubierta por garantía y eliges la devolución del dinero, o cuando no podemos completar tu pedido por falta de stock u otra causa atribuible a QuadCore.</p>
+                <h6>2. Medio de reembolso</h6>
+                <p>El reembolso se realiza por el <b>mismo medio de pago</b> utilizado en la compra. Si pagaste con tarjeta, el monto se devuelve a la misma tarjeta; si pagaste por transferencia, a la cuenta bancaria que nos indiques a tu nombre.</p>
+                <h6>3. Plazos</h6>
+                <p>Una vez aprobada la devolución y recibido el producto cuando corresponda, gestionamos el reembolso dentro de los <b>siguientes 10 días hábiles</b>. El tiempo en que se ve reflejado en tu cuenta o tarjeta depende de tu banco o emisor.</p>
+                <h6>4. Monto</h6>
+                <p>El reembolso corresponde al valor pagado por el producto. Cuando la devolución se origina en una falla o en un error de QuadCore, también se reintegran los costos de despacho. En los retractos voluntarios, el costo de envío de devolución puede ser de cargo del cliente.</p>
+                <h6>5. Consultas</h6>
+                <p>Para el estado de tu reembolso escríbenos a <b>devoluciones@quadcore.cl</b> indicando tu número de pedido.</p>
+                <p class="text-muted small mb-0">Última actualización: junio de 2026.</p>
+              </div></div>
+            </div>
+            `
+        },
+
+        terminos: {
+            titulo: 'Términos de uso',
+            html: `
+            <div class="gw-page">
+              <header class="gw-head">
+                <p class="gw-kicker"><i class="bi bi-file-text"></i> Legal</p>
+                <h1>Términos de uso</h1>
+                <p class="lead">Condiciones que regulan el uso de este sitio y las compras realizadas en él.</p>
+              </header>
+              <div class="gw-body"><div class="qc-terms-body">
+                <h6>1. Precios y disponibilidad</h6>
+                <p>Todos los precios están expresados en pesos chilenos (CLP) e incluyen IVA, salvo que se indique lo contrario. La disponibilidad de productos, precios, promociones y especificaciones puede variar sin previo aviso. La compra se perfecciona una vez que el pago ha sido validado y aceptado por QuadCore.</p>
+                <h6>2. Despacho y entrega</h6>
+                <p>Realizamos envíos a todo el territorio nacional mediante empresas de transporte autorizadas. Los plazos de entrega son referenciales y pueden variar según la comuna de destino o periodos de alta demanda. Los costos de envío se informan antes de finalizar la compra.</p>
+                <h6>3. Garantía legal y devoluciones</h6>
+                <p>Todos los productos cuentan con garantía legal conforme a la legislación chilena vigente y con la garantía del fabricante cuando corresponda. Para gestionar cambios o devoluciones revisa nuestras políticas de <b>Compras y devoluciones</b> y <b>Reembolso</b>.</p>
+                <h6>4. Medios de pago y seguridad</h6>
+                <p>Aceptamos pagos mediante plataformas certificadas y seguras. Todas las transacciones usan protocolos de cifrado estándar de la industria. QuadCore no almacena información de tarjetas de crédito o débito.</p>
+                <h6>5. Protección de datos personales</h6>
+                <p>El tratamiento de tus datos se rige por nuestra <b>Política de privacidad</b>. Los datos se utilizan exclusivamente para gestionar compras, despachos, documentación tributaria, soporte postventa y obligaciones legales.</p>
+                <h6>6. Uso del sitio</h6>
+                <p>El usuario se compromete a usar el sitio de forma lícita y a no realizar acciones que afecten su funcionamiento o seguridad. Los contenidos, marcas y diseños del sitio son de propiedad de QuadCore y no pueden reproducirse sin autorización.</p>
+                <h6>7. Aceptación</h6>
+                <p>Al utilizar este sitio y completar una compra, declaras haber leído, comprendido y aceptado estos Términos de uso. QuadCore podrá actualizarlos periódicamente, publicando siempre la versión vigente en el sitio.</p>
+                <p class="text-muted small mb-0">Última actualización: junio de 2026.</p>
+              </div></div>
+            </div>
+            `
         }
     },
 

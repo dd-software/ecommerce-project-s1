@@ -10,7 +10,7 @@ const Router = {
     stubs: {},
 
     // Páginas informativas de Leo (paginas.js) → render en view-generic
-    paginas: ['despacho', 'garantia', 'medios-pago', 'nosotros'],
+    paginas: ['despacho', 'garantia', 'medios-pago', 'nosotros', 'privacidad', 'compras-devoluciones', 'reembolsos', 'terminos'],
 
     init() {
         // Links con data-view -> setean el hash
@@ -78,6 +78,10 @@ const Router = {
             garantia: 'Garantía y devoluciones',
             'medios-pago': 'Medios de pago',
             nosotros: 'Quiénes somos',
+            privacidad: 'Política de privacidad',
+            'compras-devoluciones': 'Compras y devoluciones',
+            reembolsos: 'Política de reembolso',
+            terminos: 'Términos de uso',
             comparar: 'Comparar productos',
         };
         let title = titles[page] || page;
