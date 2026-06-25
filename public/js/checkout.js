@@ -157,7 +157,7 @@ const Checkout = {
 
         if (errorDiv) errorDiv.classList.add('d-none');
         if (btn) btn.classList.add('d-none'); // Ocultar botón normal
-        
+
         const paypalContainer = document.getElementById('paypal-button-container');
         paypalContainer.classList.remove('d-none');
         paypalContainer.innerHTML = ''; // Limpiar si ya había botones
@@ -167,16 +167,23 @@ const Checkout = {
             try {
                 const configResp = await fetch(`${App.apiBase}/pagos/paypal/config`);
                 const configData = await configResp.json();
-                
+
+                // Response::json() envuelve bajo 'data'; soportar ambas formas por compatibilidad
+                const clientId = configData.data?.client_id || configData.client_id;
+
+                if (!clientId || clientId === 'test') {
+                    throw new Error('PayPal no está configurado. Contacte al administrador.');
+                }
+
                 await new Promise((resolve, reject) => {
                     const script = document.createElement('script');
-                    script.src = `https://www.paypal.com/sdk/js?client-id=${configData.client_id}&currency=USD`;
+                    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
                     script.onload = resolve;
                     script.onerror = reject;
                     document.head.appendChild(script);
                 });
             } catch (e) {
-                App.showToast('No se pudo inicializar PayPal', 'error');
+                App.showToast(e.message || 'No se pudo inicializar PayPal', 'error');
                 if (btn) btn.classList.remove('d-none');
                 paypalContainer.classList.add('d-none');
                 return;
@@ -193,13 +200,13 @@ const Checkout = {
                             carrito_id: this.cartId
                         })
                     });
-                    
+
                     const orderData = await resp.json();
-                    
+
                     if (!orderData.success) {
                         throw new Error(orderData.error?.message || 'Error al inicializar el pago');
                     }
-                    
+
                     return orderData.data.paypal_order_id;
                 } catch (e) {
                     App.showToast(e.message, 'error');
@@ -209,25 +216,25 @@ const Checkout = {
             onApprove: async (data, actions) => {
                 try {
                     App.showToast('Procesando pago, no cierres esta ventana...', 'info');
-                    
+
                     const resp = await App.fetchAuth(`${App.apiBase}/pagos/paypal/capture`, {
                         method: 'POST',
                         body: JSON.stringify({
                             paypal_order_id: data.orderID
                         })
                     });
-                    
+
                     const captureData = await resp.json();
-                    
+
                     if (captureData.success) {
                         App.showToast('¡Pago aprobado! Pedido confirmado.', 'success');
                         setTimeout(() => {
                             window.location.href = App.getBasePath() + `/pedido-confirmado.html?pedido_id=${captureData.data.pedido_id}`;
                         }, 2000);
-                        
+
                         const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
                         if (modal) modal.hide();
-                        
+
                         // Vaciar el carrito en el frontend ya que se procesó
                         if (typeof Carrito !== 'undefined') {
                             await Carrito.clearCart();

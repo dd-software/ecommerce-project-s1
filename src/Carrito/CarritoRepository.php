@@ -184,4 +184,17 @@ class CarritoRepository
         $stmt = $this->db->prepare("UPDATE carritos SET activo = 0 WHERE id = :id");
         $stmt->execute([':id' => $carritoId]);
     }
+
+    /**
+     * Reactiva el último carrito desactivado de un usuario (para rollback de PayPal)
+     */
+    public function reactivarCarritoUsuario(int $userId): void
+    {
+        $stmt = $this->db->prepare(
+            "UPDATE carritos SET activo = 1
+             WHERE id_usuario = :uid AND activo = 0
+             ORDER BY updated_at DESC LIMIT 1"
+        );
+        $stmt->execute([':uid' => $userId]);
+    }
 }

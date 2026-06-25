@@ -140,6 +140,22 @@ class Request
     public function getBearerToken(): ?string
     {
         $auth = $this->getHeader('Authorization');
+        
+        if (!$auth) {
+            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                $auth = $_SERVER['HTTP_AUTHORIZATION'];
+            } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+                $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+            } elseif (function_exists('apache_request_headers')) {
+                $headers = apache_request_headers();
+                if (isset($headers['Authorization'])) {
+                    $auth = $headers['Authorization'];
+                } elseif (isset($headers['authorization'])) {
+                    $auth = $headers['authorization'];
+                }
+            }
+        }
+
         if ($auth && str_starts_with($auth, 'Bearer ')) {
             return substr($auth, 7);
         }

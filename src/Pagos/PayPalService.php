@@ -27,24 +27,31 @@ class PayPalService
      */
     public function createOrder(int $carritoId, int $userId): array
     {
-        // BUG A fix: Usar CarritoService (no CheckoutService::obtenerResumenCarrito que no existe)
-        $carritoService = new \App\Carrito\CarritoService(new \App\Carrito\CarritoRepository());
-        $carrito = $carritoService->obtenerCarrito(userId: $userId, sessionId: null);
+        // Obtener items directamente por carritoId (no por userId, que puede devolver carrito vacío
+        // si crearPedido() ya desactivó el carrito activo del usuario en un reintento).
+        $itemsRepo = new \App\Carrito\CarritoRepository();
+        $items = $itemsRepo->obtenerItems($carritoId);
 
-        if (empty($carrito['items'])) {
+        if (empty($items)) {
             throw new \RuntimeException('El carrito está vacío o no existe.');
         }
 
-        // Calcular total real desde los items
-        $totalCLP = 0;
-        foreach ($carrito['items'] as $item) {
-            $totalCLP += (int)$item['precio_unitario'] * (int)$item['cantidad'];
+        // Calcular subtotal real desde los items (en centavos)
+        $subtotalCLP = 0;
+        foreach ($items as $item) {
+            $subtotalCLP += (int)$item['precio_unitario'] * (int)$item['cantidad'];
+        }
+        // Agregar IVA 19% — igual que CheckoutService::crearPedido()
+        $ivaCLP = (int)round($subtotalCLP * 0.19);
+        $totalCLP = $subtotalCLP + $ivaCLP;
+
+        // Conversión a USD (1 USD = 900 CLP)
+        $totalUSD = round($totalCLP / 900, 2);
+        if ($totalUSD < 0.01) {
+            throw new \RuntimeException('El monto mínimo para PayPal es $0.01 USD.');
         }
 
-        // Simulación: conversión a USD (asumiendo 1 USD = 900 CLP)
-        $totalUSD = round($totalCLP / 900, 2);
-
-        // BUG B fix: crearPedido retorna array; argumentos en orden correcto
+        // Crear pedido en estado pendiente (crearPedido gestiona su propia transacción)
         $resultado = $this->checkoutService->crearPedido(
             $userId,
             $carritoId,
@@ -55,27 +62,39 @@ class PayPalService
         );
         $pedidoId = $resultado['id'];
 
-        // 3. Crear orden en PayPal
-        $paypalOrder = $this->payPalClient->createOrder((float)$totalUSD, (string)$pedidoId);
-
-        // BUG C fix: solo el UPDATE de paypal_order_id va en su propia transacción
-        $db = Database::getInstance();
         try {
-            $db->beginTransaction();
-            $stmt = $db->prepare("UPDATE pedidos SET paypal_order_id = ? WHERE id = ?");
-            $stmt->execute([$paypalOrder['id'], $pedidoId]);
-            $db->commit();
+            // Crear orden en PayPal
+            $paypalOrder = $this->payPalClient->createOrder((float)$totalUSD, (string)$pedidoId);
+
+            // Guardar paypal_order_id en el pedido (transacción propia, no anidada)
+            $db = Database::getInstance();
+            $pdo = $db->getConnection();
+            try {
+                $db->beginTransaction();
+                $stmt = $pdo->prepare("UPDATE pedidos SET paypal_order_id = ? WHERE id = ?");
+                $stmt->execute([$paypalOrder['id'], $pedidoId]);
+                $db->commit();
+            } catch (\Exception $e) {
+                if ($db->inTransaction()) {
+                    $db->rollback();
+                }
+                throw $e;
+            }
+
+            return [
+                'paypal_order_id' => $paypalOrder['id'],
+                'pedido_id'       => $pedidoId
+            ];
         } catch (\Exception $e) {
-            if ($db->inTransaction()) {
-                $db->rollback();
+            // Reactivar el carrito del usuario si la creación de orden falló después de crear el pedido
+            try {
+                $carritoRepo = new \App\Carrito\CarritoRepository();
+                $carritoRepo->reactivarCarritoUsuario($userId);
+            } catch (\Exception $ignored) {
+                // No interrumpir el error original
             }
             throw $e;
         }
-
-        return [
-            'paypal_order_id' => $paypalOrder['id'],
-            'pedido_id' => $pedidoId
-        ];
     }
 
     /**
@@ -84,10 +103,11 @@ class PayPalService
     public function captureOrder(string $paypalOrderId, int $userId): array
     {
         $db = Database::getInstance();
+        $pdo = $db->getConnection();
         
         try {
             // 1. Validar que la orden de PayPal pertenece a un pedido
-            $stmt = $db->prepare("SELECT id, estado, total FROM pedidos WHERE paypal_order_id = ? FOR UPDATE");
+            $stmt = $pdo->prepare("SELECT id, estado, total FROM pedidos WHERE paypal_order_id = ? FOR UPDATE");
             $stmt->execute([$paypalOrderId]);
             $pedido = $stmt->fetch();
 
@@ -109,10 +129,13 @@ class PayPalService
                 throw new \RuntimeException('El pago no fue completado en PayPal.');
             }
 
+            // Obtener el detalle completo del pedido para el registro de egreso de stock
+            $pedidoCompleto = $this->checkoutService->obtenerPedido((int)$pedido['id']);
+
             $db->beginTransaction();
 
             // 3. Registrar pago en BD y actualizar pedido
-            $stmt = $db->prepare("UPDATE pedidos SET paypal_capture_id = ?, estado = 'pagado', metodo_pago = 'paypal' WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE pedidos SET paypal_capture_id = ?, estado = 'pagado', metodo_pago = 'paypal' WHERE id = ?");
             $stmt->execute([$captureId, $pedido['id']]);
 
             $this->repository->registrarPago(
@@ -126,6 +149,18 @@ class PayPalService
 
             // 4. Descontar stock (RN)
             $this->checkoutService->descontarStock((int)$pedido['id']);
+
+            // Registrar movimiento de inventario
+            $inventarioService = new \App\Inventario\InventarioService(new \App\Inventario\InventarioRepository());
+            $detalles = $pedidoCompleto['detalle'] ?? [];
+            foreach ($detalles as $detalle) {
+                $inventarioService->registrarEgreso(
+                    productoId: (int)$detalle['id_producto'],
+                    cantidad: (int)$detalle['cantidad'],
+                    pedidoId: (int)$pedido['id'],
+                    motivo: 'Venta - Pedido #' . $pedido['id']
+                );
+            }
 
             // 5. Historial
             $this->checkoutService->actualizarEstado(
@@ -146,6 +181,14 @@ class PayPalService
         } catch (\Exception $e) {
             if ($db->inTransaction()) {
                 $db->rollback();
+            }
+            // Reactivar el carrito del usuario si el capture falló por error técnico,
+            // para que pueda reintentar el pago sin perder sus productos.
+            try {
+                $carritoRepo = new \App\Carrito\CarritoRepository();
+                $carritoRepo->reactivarCarritoUsuario($userId);
+            } catch (\Exception $ignored) {
+                // No interrumpir el error original si la reactivación falla
             }
             throw $e;
         }

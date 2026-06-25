@@ -6,7 +6,7 @@ RewriteEngine On
     Header always set X-Frame-Options "DENY"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://*.paypalobjects.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https: http:; font-src 'self' https://cdn.jsdelivr.net"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://www.paypal.com https://*.paypal.com https://*.paypalobjects.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https: http:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com; frame-src 'self' https://*.paypal.com https://*.paypalobjects.com"
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Authorization, Content-Type, X-Request-ID, X-Session-Id"
@@ -20,6 +20,11 @@ RewriteEngine On
 # Manejo de preflight OPTIONS
 RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^ - [R=200,L]
+
+# CRÍTICO: Pasar el header Authorization a PHP en entornos CGI/FastCGI (XAMPP)
+# Sin esto, Apache elimina Authorization antes de que PHP lo reciba
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 # Permitir acceso directo a archivos y directorios existentes (assets, imágenes)
 RewriteCond %{REQUEST_FILENAME} !-f
