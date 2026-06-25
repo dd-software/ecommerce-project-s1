@@ -26,7 +26,7 @@ const Info = {
                         <h2>¿Listo para cotizar?</h2>
                         <p>Escríbenos con el detalle de lo que necesitas y te respondemos dentro de 24 h hábiles.</p>
                     </div>
-                    <a href="#/contacto" class="btn btn-accent">Solicitar cotización</a>
+                    <a href="#/contacto" class="btn btn-grafito">Solicitar cotización</a>
                 </div>
             </div>`;
     },
@@ -55,7 +55,7 @@ const Info = {
                 </div>
                 <div class="qc-info-cta">
                     <div><h2>Retiro en tienda gratis</h2><p>Disponible apenas tu pedido esté listo. Te avisamos por correo.</p></div>
-                    <a href="#/catalogo" class="btn btn-accent">Ir al catálogo</a>
+                    <a href="#/catalogo" class="btn btn-grafito">Ir al catálogo</a>
                 </div>
             </div>`;
     },
