@@ -1,14 +1,14 @@
 /**
- * cuenta.js - Mis compras (#/pedidos, #/pedido/:id) y Perfil (#/perfil)
+ * cuenta.js - Mis pedidos (#/pedidos, #/pedido/:id) y Perfil (#/perfil)
  * Páginas de la cuenta del usuario. Requieren sesión; renderizan en view-generic.
  */
 
 // Estado de pedido → etiqueta + color + ícono (badge)
 const ESTADOS_PEDIDO = {
-    pendiente:      ['Procesando', 'warning', 'bi-hourglass-split'],
-    pagado:         ['Pagado', 'success', 'bi-check-circle'],
-    en_preparacion: ['En preparación', 'info', 'bi-gear'],
-    enviado:        ['Enviado', 'info', 'bi-truck'],
+    pendiente:      ['Pendiente de pago', 'warning', 'bi-hourglass-split'],
+    pagado:         ['Pago confirmado', 'success', 'bi-check-circle'],
+    en_preparacion: ['Preparando pedido', 'info', 'bi-gear'],
+    enviado:        ['En camino', 'info', 'bi-truck'],
     entregado:      ['Entregado', 'success', 'bi-check2-all'],
     cancelado:      ['Cancelado', 'danger', 'bi-x-circle'],
 };
@@ -25,8 +25,7 @@ function badgeEstado(estado) {
 
 function requireLogin(view, titulo) {
     if (App.token) return false;
-    view.innerHTML = `<div class="empty-state"><i class="bi bi-person-lock"></i>
-        <h5>${titulo}</h5><p class="text-muted">Inicia sesión para continuar.</p></div>`;
+    UI.mostrarVacio(view, { icono: 'bi-person-lock', titulo, descripcion: 'Inicia sesión para continuar.' });
     return true;
 }
 
@@ -36,8 +35,8 @@ const Pedidos = {
 
     async openPage() {
         const view = document.getElementById('view-generic');
-        if (!view || requireLogin(view, 'Mis compras')) return;
-        view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        if (!view || requireLogin(view, 'Mis pedidos')) return;
+        view.innerHTML = UI.loader('Cargando pedidos...');
         try {
             const data = await (await App.fetchAuth(`${App.apiBase}/pedidos`)).json();
             this.pedidos = data.success ? data.data : [];
@@ -49,8 +48,13 @@ const Pedidos = {
     render() {
         const view = document.getElementById('view-generic');
         if (!this.pedidos.length) {
-            view.innerHTML = `<div class="empty-state"><i class="bi bi-bag"></i>
-                <h5>Aún no tienes compras</h5><a href="#/catalogo" class="btn btn-accent btn-sm mt-2">Ir al catálogo</a></div>`;
+            UI.mostrarVacio(view, {
+                icono: 'bi-bag',
+                titulo: 'No tienes pedidos aún',
+                descripcion: 'Cuando realices tu primera compra, aparecerá aquí el historial.',
+                textoBoton: 'Ir al catálogo',
+                enlaceBoton: '#/catalogo'
+            });
             return;
         }
 
@@ -73,8 +77,14 @@ const Pedidos = {
 
         view.innerHTML = `
             <div class="cuenta-page">
-                <h1 class="cart-page-title">Mis Compras <span class="text-muted fs-6">${this.pedidos.length} pedido${this.pedidos.length === 1 ? '' : 's'}</span></h1>
-                <div class="pedido-pills mb-3">${pills}</div>
+                <div class="gw-page">
+                    <header class="gw-head">
+                        <p class="gw-kicker"><i class="bi bi-bag-check"></i> Mi cuenta</p>
+                        <h1>Mis pedidos</h1>
+                        <p class="lead">${this.pedidos.length} pedido${this.pedidos.length === 1 ? '' : 's'} en tu historial.</p>
+                    </header>
+                </div>
+                <div class="pedido-pills mb-3 mt-4">${pills}</div>
                 <div class="cart-table-card">
                     <table class="cart-table pedidos-table">
                         <thead><tr><th>Orden</th><th>Fecha</th><th>Total</th><th>Estado</th><th class="text-end">Acción</th></tr></thead>
@@ -92,7 +102,7 @@ const Pedidos = {
     async openDetail(id) {
         const view = document.getElementById('view-generic');
         if (!view || requireLogin(view, 'Detalle del pedido')) return;
-        view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        view.innerHTML = UI.loader('Cargando detalle...');
         let pedido;
         try {
             const data = await (await App.fetchAuth(`${App.apiBase}/pedidos/${id}`)).json();
@@ -117,7 +127,7 @@ const Pedidos = {
 
         view.innerHTML = `
             <div class="cuenta-page">
-                <a href="#/pedidos" class="cart-keep-shopping mb-2"><i class="bi bi-arrow-left"></i> Volver a mis compras</a>
+                <a href="#/pedidos" class="cart-keep-shopping mb-2"><i class="bi bi-arrow-left"></i> Volver a mis pedidos</a>
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                     <h1 class="cart-page-title mb-0">Pedido ${ordenNumero(pedido.id, pedido.created_at)}</h1>
                     ${badgeEstado(pedido.estado)}
@@ -151,7 +161,7 @@ const Perfil = {
     async openPage() {
         const view = document.getElementById('view-generic');
         if (!view || requireLogin(view, 'Mi perfil')) return;
-        view.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        view.innerHTML = UI.loader('Cargando perfil...');
         let u;
         try {
             const data = await (await App.fetchAuth(`${App.apiBase}/auth/perfil`)).json();
@@ -176,7 +186,7 @@ const Perfil = {
 
                         <hr class="my-3">
                         <h6 class="mb-1">Datos de envío <span class="text-muted fw-normal">(opcional)</span></h6>
-                        <p class="text-muted small mb-3">Si los completás, se autocompletan al momento de pagar.</p>
+                        <p class="text-muted small mb-3">Si los rellenas, se autocompletan al momento de pagar.</p>
                         <label class="form-label">Teléfono</label>
                         <input class="form-control mb-2" id="pf-telefono" value="${v(u.telefono)}" placeholder="+56 2 2123 4567">
                         <label class="form-label">Dirección (calle y número)</label>

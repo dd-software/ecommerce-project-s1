@@ -30,6 +30,9 @@ CREATE TABLE usuarios (
     intentos_fallidos INT UNSIGNED NOT NULL DEFAULT 0,
     bloqueado_hasta  DATETIME      NULL DEFAULT NULL,
     ultimo_login    DATETIME       NULL DEFAULT NULL,
+    -- Recuperación de contraseña: SHA-256 del token enviado por correo + expiración
+    reset_token_hash CHAR(64)      NULL DEFAULT NULL,
+    reset_expira     DATETIME      NULL DEFAULT NULL,
     created_at    DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at    DATETIME         NULL DEFAULT NULL,

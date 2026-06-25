@@ -1,7 +1,7 @@
 /**
  * carrito.js - Carrito de compras
  * Dos vistas sobre el mismo dato:
- *   - Mini-carrito (offcanvas lateral): vistazo rápido, botón "Ver carrito".
+ *   - Mini-carrito (drawer lateral): vistazo rápido, botón "Ir a pagar".
  *   - Página #/carrito: "Mi Carrito" completa (tabla + resumen + recomendados).
  * Los controles (+/−, eliminar) usan clases + data-id, así funcionan en ambas.
  */
@@ -61,45 +61,113 @@ const Carrito = {
         return this.cart?.items?.reduce((n, i) => n + (i.cantidad || 0), 0) || 0;
     },
 
-    // ─────────────────────────── Mini-carrito (offcanvas) ───────────────────────────
+    // ─────────────────────────── Mini-carrito (drawer) ───────────────────────────
     renderOffcanvas() {
         const container = document.getElementById('cart-items');
         const summary = document.getElementById('cart-summary');
         const empty = document.getElementById('cart-empty');
+        const ship = document.getElementById('cart-ship');
         if (!container) return;
 
+        const count = this.totalUnidades;
+        const countEl = document.getElementById('cart-count-drawer');
+        const subEl = document.getElementById('cart-subtitle');
+        if (countEl) countEl.textContent = count;
+
         if (this.isEmpty) {
-            empty?.classList.remove('d-none');
-            container.classList.add('d-none');
+            container.innerHTML = '';
             summary?.classList.add('d-none');
+            ship?.classList.add('d-none');
+            if (countEl) countEl.style.display = 'none';
+            if (subEl) subEl.textContent = 'No tienes productos aún';
+            if (empty) empty.innerHTML = this.emptyMarkup();
             return;
         }
-        empty?.classList.add('d-none');
-        container.classList.remove('d-none');
+
+        if (empty) empty.innerHTML = '';
+        if (countEl) countEl.style.display = '';
         summary?.classList.remove('d-none');
+        if (subEl) subEl.textContent = `${count} producto${count === 1 ? '' : 's'} en tu carrito`;
 
         container.innerHTML = this.cart.items.map(item => `
-            <div class="mini-cart-item d-flex align-items-start gap-2" data-item-id="${item.id}">
-                ${this.thumb(item, 'mini-cart-img')}
-                <div class="flex-grow-1">
-                    <div class="mini-cart-name">${this.escapeHtml(item.nombre)}</div>
-                    <small class="text-muted d-block mb-1">${item.subtotal_formateado || App.formatPrice(item.subtotal)}</small>
-                    <div class="qc-stepper qc-stepper-sm">
-                        <button type="button" class="btn-qty" data-action="minus" data-id="${item.id}">−</button>
-                        <input type="number" class="qty-input" value="${item.cantidad}" min="1" max="${item.stock || 99}" data-id="${item.id}" data-stock="${item.stock || 99}">
-                        <button type="button" class="btn-qty" data-action="plus" data-id="${item.id}">+</button>
+            <div class="ci" data-item-id="${item.id}">
+                <span class="ci-thumb">${this.thumb(item, 'ci-img')}</span>
+                <div class="ci-main">
+                    <button class="ci-remove btn-remove" data-id="${item.id}" aria-label="Quitar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <p class="ci-name">${this.escapeHtml(item.nombre)}</p>
+                    <div class="ci-foot">
+                        <span class="qty">
+                            <button type="button" class="btn-qty" data-action="minus" data-id="${item.id}" aria-label="Restar">−</button>
+                            <input class="qty-input" type="text" inputmode="numeric" value="${item.cantidad}" data-id="${item.id}" data-stock="${item.stock || 99}" readonly aria-label="Cantidad">
+                            <button type="button" class="btn-qty" data-action="plus" data-id="${item.id}" aria-label="Sumar">+</button>
+                        </span>
+                        <span class="ci-price">${item.subtotal_formateado || App.formatPrice(item.subtotal)}</span>
                     </div>
                 </div>
-                <button class="btn btn-sm btn-link text-danger btn-remove p-0" data-id="${item.id}" title="Quitar"><i class="bi bi-x-lg"></i></button>
             </div>`).join('');
+
+        // Barra de envío gratis (umbral $50.000)
+        const subtotal = this.cart.items.reduce((s, i) => s + (i.subtotal || 0), 0);
+        const FREE = 50000;
+        if (ship) {
+            ship.classList.remove('d-none');
+            const truck = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3z" stroke="currentColor" stroke-width="1.6"/><path d="M14 10h4l3 3v2h-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7" cy="17" r="2" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="17" r="2" stroke="currentColor" stroke-width="1.6"/></svg>';
+            if (subtotal >= FREE) {
+                ship.innerHTML = `<div class="t"><span><b>¡Tienes envío gratis!</b></span><span class="ic">${truck}</span></div><div class="bar"><span class="fill" style="width:100%"></span></div>`;
+            } else {
+                const pct = Math.min(100, Math.round(subtotal / FREE * 100));
+                ship.innerHTML = `<div class="t"><span>Te faltan <b>${App.formatPrice(FREE - subtotal)}</b> para envío <b>gratis</b></span><span class="ic">${truck}</span></div><div class="bar"><span class="fill" style="width:${pct}%"></span></div>`;
+            }
+        }
 
         const content = document.getElementById('cart-summary-content');
         if (content) {
+            const envio = subtotal >= FREE
+                ? '<div class="r free"><span>Despacho</span> <b>Gratis</b></div>'
+                : '<div class="r"><span>Despacho</span> <b>Se calcula al pagar</b></div>';
             content.innerHTML = `
-                <div class="d-flex justify-content-between mb-1"><span>Total</span>
-                    <strong class="text-primary">${this.cart.total_formateado}</strong></div>
-                <small class="text-muted">IVA incluido</small>`;
+                <div class="cd-sum">
+                    <div class="r"><span>Subtotal</span> <b>${this.cart.subtotal_formateado || App.formatPrice(subtotal)}</b></div>
+                    ${envio}
+                </div>
+                <div class="cd-total">
+                    <span class="l">Total</span>
+                    <span class="v">${this.cart.total_formateado}<small>IVA incluido</small></span>
+                </div>`;
         }
+    },
+
+    emptyMarkup() {
+        return `
+            <div class="cd-empty">
+                <div class="empty-art">
+                    <span class="ring"></span><span class="ring r2"></span>
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none"><path d="M5 6h15l-1.5 9h-12L4 3H2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="20" r="1.6" fill="currentColor"/><circle cx="17" cy="20" r="1.6" fill="currentColor"/></svg>
+                </div>
+                <h3 class="empty-title">Tu carrito está vacío</h3>
+                <p class="empty-sub">Aún no agregas productos. Explora el catálogo y encuentra lo que necesitas.</p>
+                <a href="#/catalogo" class="btn-empty"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg> Ver catálogo</a>
+                <div class="empty-perks">
+                    <div class="empty-perk"><span class="p-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3z" stroke="currentColor" stroke-width="1.7"/><path d="M14 10h4l3 3v2h-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7" cy="17" r="2" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="17" r="2" stroke="currentColor" stroke-width="1.7"/></svg></span><span><b>Envío gratis</b><span>En compras sobre $50.000</span></span></div>
+                    <div class="empty-perk"><span class="p-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5 3.5 8.5 8 11 4.5-2.5 8-6 8-11V5l-8-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span><b>Garantía oficial</b><span>Respaldo en todos los productos</span></span></div>
+                    <div class="empty-perk"><span class="p-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M3 9.5h18" stroke="currentColor" stroke-width="1.7"/></svg></span><span><b>Pago seguro</b><span>Hasta 12 cuotas con tu tarjeta</span></span></div>
+                </div>
+            </div>`;
+    },
+
+    openDrawer() {
+        this.loadCart();   // datos frescos en cada apertura
+        document.getElementById('cartOverlay')?.classList.add('open');
+        const d = document.getElementById('cartDrawer');
+        if (d) { d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
+        document.body.style.overflow = 'hidden';
+    },
+
+    closeDrawer() {
+        document.getElementById('cartOverlay')?.classList.remove('open');
+        const d = document.getElementById('cartDrawer');
+        if (d) { d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); }
+        document.body.style.overflow = '';
     },
 
     // ─────────────────────────── Página #/carrito ───────────────────────────
@@ -107,7 +175,7 @@ const Carrito = {
     openPage() {
         const view = document.getElementById('view-generic');
         if (!view) return;
-        view.innerHTML = '<div id="cart-page-root"><div class="text-center py-5"><div class="spinner-border text-primary"></div></div></div>';
+        view.innerHTML = `<div id="cart-page-root">${UI.loader('Cargando carrito...')}</div>`;
         this.loadCart();
     },
 
@@ -116,12 +184,13 @@ const Carrito = {
         if (!root) return;
 
         if (this.isEmpty) {
-            root.innerHTML = `
-                <div class="empty-state">
-                    <i class="bi bi-cart-x"></i>
-                    <h5>Tu carrito está vacío</h5>
-                    <a href="#/catalogo" class="btn btn-accent btn-sm mt-2">Ir al catálogo</a>
-                </div>`;
+            UI.mostrarVacio(root, {
+                icono: 'bi-cart-x',
+                titulo: 'Tu carrito está vacío',
+                descripcion: 'Agrega productos para comenzar tu compra.',
+                textoBoton: 'Ir al catálogo',
+                enlaceBoton: '#/catalogo'
+            });
             return;
         }
 
@@ -214,7 +283,7 @@ const Carrito = {
     },
 
     initEventListeners() {
-        // +/− cantidad (delegado, sirve para offcanvas y página)
+        // +/− cantidad (delegado, sirve para drawer y página)
         document.addEventListener('click', async (e) => {
             const btn = e.target.closest('.btn-qty');
             if (!btn) return;
@@ -244,11 +313,27 @@ const Carrito = {
             await this.removeItem(btn.dataset.id);
         });
 
-        // "Ver carrito" del offcanvas → página
-        document.getElementById('btn-checkout-nav')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'))?.hide();
-            location.hash = '#/carrito';
+        // Abrir / cerrar drawer
+        document.getElementById('cart-open')?.addEventListener('click', (e) => { e.preventDefault(); this.openDrawer(); });
+        document.getElementById('cartClose')?.addEventListener('click', () => this.closeDrawer());
+        document.getElementById('cartOverlay')?.addEventListener('click', () => this.closeDrawer());
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeDrawer(); });
+
+        // Navegar desde un enlace del drawer → cerrarlo (la navegación sigue su curso)
+        document.getElementById('cartDrawer')?.addEventListener('click', (e) => {
+            if (e.target.closest('a[href^="#/"]')) this.closeDrawer();
+        });
+
+        // "Ir a pagar" → checkout (con guard de login, igual que la página)
+        document.getElementById('btn-checkout-nav')?.addEventListener('click', () => {
+            if (!App.user) {
+                App.showToast('Inicia sesión para continuar', 'info');
+                this.closeDrawer();
+                new bootstrap.Modal(document.getElementById('loginModal')).show();
+                return;
+            }
+            this.closeDrawer();
+            location.hash = '#/checkout';
         });
 
         // vaciar carrito (delegado: el botón se re-crea)

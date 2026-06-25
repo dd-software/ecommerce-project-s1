@@ -53,6 +53,8 @@ $router = new Router();
 // --- Módulo C: Autenticación ---
 $router->post('/api/auth/registro', [AuthController::class, 'registro']);
 $router->post('/api/auth/login', [AuthController::class, 'login']);
+$router->post('/api/auth/recuperar', [AuthController::class, 'recuperar']);
+$router->post('/api/auth/restablecer', [AuthController::class, 'restablecer']);
 $router->post('/api/auth/logout', [AuthController::class, 'logout'], auth: true);
 $router->get('/api/auth/perfil', [AuthController::class, 'perfil'], auth: true);
 $router->patch('/api/auth/perfil', [AuthController::class, 'actualizarPerfil'], auth: true);
@@ -88,7 +90,8 @@ $router->get('/api/pedidos', [CheckoutController::class, 'misPedidos'], auth: tr
 $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], auth: true);
 
 // --- Módulo E: Pagos ---
-$router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
+$router->post('/api/pagos/iniciar', [PagosController::class, 'iniciar'], auth: true);
+$router->post('/api/pagos/confirmar', [PagosController::class, 'confirmar'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
 

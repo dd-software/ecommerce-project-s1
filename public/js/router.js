@@ -55,105 +55,176 @@ const Router = {
         }).join('');
     },
 
+    /**
+     * Actualiza el título de la página según la vista
+     */
+    setTitle(page, extra = '') {
+        const base = 'QuadCore';
+        const titles = {
+            home: 'El Corazón de la Electrónica',
+            catalogo: 'Catálogo de productos',
+            producto: 'Detalle de producto',
+            carrito: 'Mi carrito',
+            checkout: 'Finalizar compra',
+            confirmacion: '¡Pedido confirmado!',
+            pedidos: 'Mis pedidos',
+            perfil: 'Mi perfil',
+            favoritos: 'Mis favoritos',
+            admin: 'Panel de administración',
+            contacto: 'Contacto',
+            empresas: 'Venta Empresas',
+            tiendas: 'Tiendas',
+            despacho: 'Despacho y cobertura',
+            garantia: 'Garantía y devoluciones',
+            'medios-pago': 'Medios de pago',
+            nosotros: 'Quiénes somos',
+            comparar: 'Comparar productos',
+        };
+        let title = titles[page] || page;
+        if (extra) title = `${extra} · ${title}`;
+        document.title = `${title} · ${base}`;
+    },
+
     render() {
         const { path, params } = this.parse();
         const seg = path.split('/');
 
-        // Detalle de producto: #/producto/:id
+        // Detalle de producto
         if (seg[0] === 'producto' && seg[1]) {
             this.show('view-detalle');
             this.crumbs([['Inicio', '#/'], ['Catálogo', '#/catalogo'], ['Detalle']]);
             Catalogo.loadDetail(seg[1]);
+            this.setTitle('producto', `#${seg[1]}`);
             return;
         }
 
-        // Detalle de pedido: #/pedido/:id
+        // Detalle de pedido
         if (seg[0] === 'pedido' && seg[1]) {
             this.show('view-generic');
-            this.crumbs([['Inicio', '#/'], ['Mis compras', '#/pedidos'], ['Detalle']]);
+            this.crumbs([['Inicio', '#/'], ['Mis Pedidos', '#/pedidos'], ['Detalle']]);
             Pedidos.openDetail(seg[1]);
+            this.setTitle('pedidos', `Orden #${seg[1]}`);
             return;
         }
 
-        // Mis compras / perfil
+        // Mis Pedidos
         if (path === 'pedidos') {
             this.show('view-generic');
-            this.crumbs([['Inicio', '#/'], ['Mis compras']]);
+            this.crumbs([['Inicio', '#/'], ['Mis Pedidos']]);
             Pedidos.openPage();
+            this.setTitle('pedidos');
             return;
         }
+
+        // Perfil
         if (path === 'perfil') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Mi perfil']]);
             Perfil.openPage();
+            this.setTitle('perfil');
             return;
         }
+
+        // Admin
         if (path === 'admin') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Panel admin']]);
             Admin.openPage();
+            this.setTitle('admin');
             return;
         }
 
-        // Páginas institucionales (info-pages.js)
+        // Empresas
         if (path === 'empresas') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Venta Empresas']]);
             Info.empresas();
+            this.setTitle('empresas');
             return;
         }
+
+        // Tiendas
         if (path === 'tiendas') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Tiendas']]);
             Info.tiendas();
+            this.setTitle('tiendas');
             return;
         }
 
-        // Contacto (contacto.js — tarea de Leo)
+        // Contacto
         if (path === 'contacto') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Contacto']]);
             Contacto.render();
+            this.setTitle('contacto');
             return;
         }
 
-        // Páginas informativas del footer (paginas.js — tarea de Leo)
+        // Reset de contraseña (enlace desde el correo)
+        if (path === 'reset') {
+            this.show('view-generic');
+            this.crumbs([['Inicio', '#/'], ['Nueva contraseña']]);
+            Auth.renderReset(params.get('token') || '');
+            this.setTitle('reset');
+            return;
+        }
+
+        // Comparar productos
+        if (path === 'comparar') {
+            this.show('view-generic');
+            this.crumbs([['Inicio', '#/'], ['Comparar']]);
+            Compare.openPage();
+            this.setTitle('comparar');
+            return;
+        }
+
+        // Páginas informativas (despacho, garantia, medios-pago, nosotros)
         if (this.paginas.includes(path)) {
             this.show('view-generic');
-            this.crumbs([['Inicio', '#/'], [path]]);
+            this.crumbs([['Inicio', '#/'], [Paginas.contenido[path]?.titulo || path]]);
             Paginas.render(path);
+            this.setTitle(path);
             return;
         }
 
-        // Carrito (página completa) · checkout · confirmación
+        // Carrito
         if (path === 'carrito') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Carrito']]);
             Carrito.openPage();
+            this.setTitle('carrito');
             return;
         }
+
+        // Checkout
         if (path === 'checkout') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Carrito', '#/carrito'], ['Checkout']]);
             Checkout.openPage();
+            this.setTitle('checkout');
             return;
         }
+
+        // Confirmación
         if (path === 'confirmacion') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Confirmación']]);
             Checkout.openConfirmacion();
+            this.setTitle('confirmacion');
             return;
         }
 
-        // Favoritos: grid de productos guardados (vista real, reutiliza view-generic)
+        // Favoritos
         if (path === 'favoritos') {
             this.show('view-generic');
             this.crumbs([['Inicio', '#/'], ['Mis favoritos']]);
             Catalogo.loadFavoritos();
+            this.setTitle('favoritos');
             return;
         }
 
-        // Stubs en construcción
+        // Stubs (en construcción)
         if (this.stubs[path]) {
             const [title, icon, msg] = this.stubs[path];
             this.show('view-generic');
@@ -165,31 +236,56 @@ const Router = {
                     <p class="text-muted">${msg}</p>
                     <a href="#/catalogo" class="btn btn-outline-uct btn-sm mt-2">Ver catálogo</a>
                 </div>`;
+            this.setTitle(title);
             return;
         }
 
-        // Home: hero + destacados
+        // Home
         if (path === 'home') {
             this.show('view-home');
             this.crumbs([['Inicio']]);
             Catalogo.loadFeatured();
+            this.setTitle('home');
             return;
         }
 
-        // Catálogo: filtros + grid (default para rutas desconocidas)
-        this.show('view-catalogo');
-        const cat = params.get('cat');
-        const q = params.get('q');
-        // Acepta id numérico o slug (ej. "repuestos"); el backend lo resuelve.
-        Catalogo.filters.categoria = cat || null;
-        Catalogo.filters.q = q || null;   // búsqueda del header
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) searchInput.value = q || '';
-        Catalogo.currentPage = 1;
-        Catalogo.loadProducts();
-        Catalogo.loadPriceDistribution();
-        this.crumbs(q
-            ? [['Inicio', '#/'], ['Catálogo', '#/catalogo'], [`Búsqueda: "${q}"`]]
-            : [['Inicio', '#/'], ['Catálogo']]);
+        // Catálogo
+        if (path === 'catalogo') {
+            this.show('view-catalogo');
+            const cat = params.get('cat');
+            const q = params.get('q');
+            Catalogo.filters.categoria = cat || null;
+            Catalogo.filters.q = q || null;
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = q || '';
+            Catalogo.currentPage = 1;
+            Catalogo.loadProducts();
+            Catalogo.loadPriceDistribution();
+            this.crumbs(q
+                ? [['Inicio', '#/'], ['Catálogo', '#/catalogo'], [`Búsqueda: "${q}"`]]
+                : [['Inicio', '#/'], ['Catálogo']]);
+            // Título con filtro si está activo
+            let extra = '';
+            if (cat) {
+                // Buscar nombre de categoría (opcional) – podemos dejarlo como "Categoría"
+                extra = 'Categoría';
+            } else if (q) {
+                extra = `"${q}"`;
+            }
+            this.setTitle('catalogo', extra);
+            return;
+        }
+
+        // 404
+        this.show('view-generic');
+        this.crumbs([['Inicio', '#/'], ['Página no encontrada']]);
+        document.getElementById('view-generic').innerHTML = `
+            <div class="empty-state">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Página no encontrada</h5>
+            <p class="text-muted">La ruta que buscas no existe en nuestro sitio.</p>
+            <a href="#/" class="btn btn-outline-uct btn-sm mt-2">Volver al inicio</a>
+        </div>`;
+        this.setTitle('404');
     }
-};
+}

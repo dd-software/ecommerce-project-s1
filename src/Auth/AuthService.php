@@ -7,6 +7,9 @@ declare(strict_types=1);
  */
 namespace App\Auth;
 
+use App\Integracion\IntegracionService;
+use App\Integracion\IntegracionRepository;
+
 class AuthService
 {
     private AuthRepository $repository;
@@ -79,6 +82,52 @@ class AuthService
         $this->repository->actualizarUltimoLogin($usuario['id']);
 
         return $usuario;
+    }
+
+    /**
+     * Solicita el reseteo de contraseña: genera un token, guarda su hash y envía
+     * el enlace por correo. Silencioso si el email no existe (no revela cuentas).
+     */
+    public function solicitarReset(string $email): void
+    {
+        $usuario = $this->repository->buscarPorEmail($email);
+        if (!$usuario) {
+            return; // sin enumeración de usuarios
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $hash  = hash('sha256', $token);
+        $expira = date('Y-m-d H:i:s', time() + 3600); // 1 hora
+
+        $this->repository->guardarTokenReset((int)$usuario['id'], $hash, $expira);
+
+        $enlace = rtrim(APP_URL, '/') . '/#/reset?token=' . $token;
+        $asunto = 'Recuperá tu contraseña · QuadCore';
+        $cuerpo = "Hola {$usuario['nombre']},\n\n"
+                . "Recibimos una solicitud para restablecer tu contraseña.\n"
+                . "Entrá a este enlace (válido por 1 hora):\n\n"
+                . $enlace . "\n\n"
+                . "Si no fuiste vos, ignorá este correo: tu contraseña no cambia.\n\n"
+                . "Equipo QuadCore";
+
+        $integracion = new IntegracionService(new IntegracionRepository());
+        $integracion->encolarEmail($email, $asunto, $cuerpo, 'reset_password');
+    }
+
+    /**
+     * Restablece la contraseña a partir de un token válido.
+     * @throws \RuntimeException si el token es inválido o expiró
+     */
+    public function restablecerPassword(string $token, string $password): void
+    {
+        $hash = hash('sha256', $token);
+        $usuario = $this->repository->buscarPorTokenReset($hash);
+        if (!$usuario) {
+            throw new \RuntimeException('El enlace de recuperación es inválido o expiró.');
+        }
+
+        $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+        $this->repository->actualizarPassword((int)$usuario['id'], $passwordHash);
     }
 
     /**

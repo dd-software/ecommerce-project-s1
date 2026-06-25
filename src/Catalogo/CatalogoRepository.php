@@ -95,7 +95,9 @@ class CatalogoRepository
         // Consulta paginada
         $sql = "SELECT p.id, p.nombre, p.slug, p.descripcion, p.precio, p.precio_anterior, p.stock,
                        p.imagen_url, p.id_categoria, c.nombre as categoria_nombre, p.marca,
-                       p.created_at
+                       p.created_at,
+                       (SELECT ROUND(AVG(r.calificacion),1) FROM resenas r WHERE r.id_producto = p.id AND r.aprobada = 1) AS rating,
+                       (SELECT COUNT(*) FROM resenas r WHERE r.id_producto = p.id AND r.aprobada = 1) AS rating_total
                 FROM productos p
                 LEFT JOIN categorias c ON p.id_categoria = c.id
                 WHERE {$whereSQL}
@@ -112,6 +114,8 @@ class CatalogoRepository
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = $p['stock'] <= 0; // RN-A02
+            $p['rating_total'] = (int)($p['rating_total'] ?? 0);
+            $p['rating'] = $p['rating_total'] > 0 ? (float)$p['rating'] : 0;
             $this->aplicarOferta($p);
         }
 

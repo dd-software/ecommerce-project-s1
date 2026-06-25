@@ -14,9 +14,7 @@ const Admin = {
         const view = document.getElementById('view-generic');
         if (!view) return;
         if (!App.user || App.user.rol !== 'admin') {
-            view.innerHTML = `<div class="empty-state"><i class="bi bi-shield-lock"></i>
-                <h5>Acceso restringido</h5><p class="text-muted">Esta sección es solo para administradores.</p>
-                <a href="#/" class="btn btn-outline-uct btn-sm mt-2">Volver al inicio</a></div>`;
+            UI.mostrarVacio(view, { icono: 'bi-shield-lock', titulo: 'Acceso restringido', descripcion: 'Esta sección es solo para administradores.', textoBoton: 'Volver al inicio', enlaceBoton: '#/', claseBoton: 'btn-outline-uct' });
             return;
         }
         view.innerHTML = `
@@ -33,7 +31,39 @@ const Admin = {
             </div>`;
         this.currentSection = 'dashboard';
         this.initNavigation();
+        this.initDelegation();
         this.loadDashboard();
+    },
+
+    /**
+     * Listeners delegados para las acciones del admin (CSP: nada de onclick/onchange
+     * inline, que la política de seguridad bloquea). Se engancha una sola vez a nivel
+     * document y cubre también el modal de producto (que vive fuera de #admin-content).
+     */
+    initDelegation() {
+        if (this._delegated) return;
+        this._delegated = true;
+
+        document.addEventListener('click', (e) => {
+            const el = e.target.closest('[data-admin-action]');
+            if (!el) return;
+            e.preventDefault();
+            const a = el.dataset.adminAction;
+            if (a === 'new-product')        this.showProductForm();
+            else if (a === 'edit-product')  this.showProductForm(parseInt(el.dataset.id));
+            else if (a === 'delete-product') this.deleteProduct(parseInt(el.dataset.id));
+            else if (a === 'save-product')  this.saveProduct();
+            else if (a === 'page-productos') this.loadProductos(parseInt(el.dataset.page));
+            else if (a === 'toggle-user')   this.toggleUser(parseInt(el.dataset.id), parseInt(el.dataset.activo));
+            else if (a === 'goto-pedidos')  document.querySelector('.admin-nav-link[data-section="pedidos"]')?.click();
+        });
+
+        document.addEventListener('change', (e) => {
+            const el = e.target.closest('[data-admin-change]');
+            if (!el) return;
+            if (el.dataset.adminChange === 'order-status') this.changeOrderStatus(parseInt(el.dataset.id), el.value);
+            else if (el.dataset.adminChange === 'ventas-periodo') this.refreshVentas(el.value);
+        });
     },
 
     /**
@@ -123,9 +153,9 @@ const Admin = {
                 <h1 class="admin-page-title">Dashboard</h1>
                 <div class="qc-stats-grid">
                     ${stat('Ventas del mes', d.total_ventas_mes?.total_ventas_formateado || '$0', `${d.total_ventas_mes?.total_pedidos || 0} pedidos pagados`, 'bi-graph-up-arrow', 'accent')}
-                    ${stat('Pedidos totales', d.total_pedidos, `${d.pedidos_pendientes || 0} pendiente${d.pedidos_pendientes === 1 ? '' : 's'}`, 'bi-bag-check', '')}
-                    ${stat('Productos', d.total_productos, agotados > 0 ? `${agotados} agotado${agotados === 1 ? '' : 's'}` : 'Catálogo activo', 'bi-box-seam', agotados > 0 ? 'warn' : '')}
-                    ${stat('Usuarios', d.total_usuarios, 'Registrados', 'bi-people', '')}
+                    ${stat('Pedidos totales', d.total_pedidos, `${d.pedidos_pendientes || 0} pendiente${d.pedidos_pendientes === 1 ? '' : 's'}`, 'bi-bag-check', 'warn')}
+                    ${stat('Productos', d.total_productos, agotados > 0 ? `${agotados} agotado${agotados === 1 ? '' : 's'}` : 'Catálogo activo', 'bi-box-seam', 'blue')}
+                    ${stat('Usuarios', d.total_usuarios, 'Registrados', 'bi-people', 'green')}
                 </div>
 
                 <div class="row g-4 mt-1">
@@ -178,7 +208,7 @@ const Admin = {
             let html = `
                 <div class="admin-page-head">
                     <h1 class="admin-page-title mb-0">Gestión de productos</h1>
-                    <button class="btn btn-accent" id="btn-new-product" onclick="Admin.showProductForm()">
+                    <button class="btn-grafito" id="btn-new-product" data-admin-action="new-product">
                         <i class="bi bi-plus-lg"></i> Nuevo producto
                     </button>
                 </div>`;
@@ -203,8 +233,8 @@ const Admin = {
                                     <td>${this.stockBadge(p.stock, p.stock_minimo)}</td>
                                     <td>${this.activoBadge(p.activo)}</td>
                                     <td class="text-end">
-                                        <button class="admin-action" onclick="Admin.showProductForm(${p.id})" title="Editar"><i class="bi bi-pencil"></i></button>
-                                        <button class="admin-action danger" onclick="Admin.deleteProduct(${p.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                        <button class="admin-action" data-admin-action="edit-product" data-id="${p.id}" title="Editar"><i class="bi bi-pencil"></i></button>
+                                        <button class="admin-action danger" data-admin-action="delete-product" data-id="${p.id}" title="Eliminar"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -212,17 +242,29 @@ const Admin = {
                     </table>
                 </div>`;
 
-                // Paginación
+                // Paginación (mismo estilo que el catálogo, por coherencia)
                 if (pag && pag.total_pages > 1) {
-                    html += `<nav><ul class="pagination justify-content-center">`;
+                    html += `<nav class="qc-pagination"><ul class="pagination justify-content-center">`;
+                    html += `<li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" ${page <= 1 ? '' : `data-admin-action="page-productos" data-page="${page - 1}"`}>Anterior</a></li>`;
                     for (let i = 1; i <= pag.total_pages; i++) {
                         html += `<li class="page-item ${i === page ? 'active' : ''}">
-                            <a class="page-link" href="#" onclick="Admin.loadProductos(${i});return false">${i}</a></li>`;
+                            <a class="page-link" href="#" data-admin-action="page-productos" data-page="${i}">${i}</a></li>`;
                     }
+                    html += `<li class="page-item ${page >= pag.total_pages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" ${page >= pag.total_pages ? '' : `data-admin-action="page-productos" data-page="${page + 1}"`}>Siguiente</a></li>`;
                     html += `</ul></nav>`;
+                    html += `<div class="qc-pagination-info">Mostrando página ${page} de ${pag.total_pages} · ${pag.total} productos</div>`;
                 }
             } else {
-                html += '<p class="text-muted">No hay productos registrados.</p>';
+                    UI.mostrarVacio(container, {
+                        icono: 'bi-box-seam',
+                        titulo: 'Sin productos',
+                        descripcion: 'Aún no has agregado productos al catálogo.',
+                        textoBoton: 'Crear producto',
+                        enlaceBoton: '#NuevoProducto', // o usar el botón "Nuevo producto" existente
+                        claseBoton: 'btn-accent'
+                    });
             }
 
             container.innerHTML = html;
@@ -265,14 +307,7 @@ const Admin = {
                                     <td>${badgeEstado(p.estado)}</td>
                                     <td class="text-muted">${(p.created_at || '').slice(0, 10)}</td>
                                     <td class="text-end">
-                                        <select class="form-select form-select-sm admin-status-select" onchange="Admin.changeOrderStatus(${p.id}, this.value)">
-                                            <option value="">—</option>
-                                            <option value="pagado">Pagado</option>
-                                            <option value="en_preparacion">En preparación</option>
-                                            <option value="enviado">Enviado</option>
-                                            <option value="entregado">Entregado</option>
-                                            <option value="cancelado">Cancelado</option>
-                                        </select>
+                                        ${this.estadoSelect(p.id, p.estado)}
                                     </td>
                                 </tr>
                             `).join('')}
@@ -280,7 +315,13 @@ const Admin = {
                     </table>
                 </div>`;
             } else {
-                html += '<p class="text-muted">No hay pedidos registrados.</p>';
+                UI.mostrarVacio(container, {
+                    icono: 'bi-bag',
+                    titulo: 'Sin pedidos',
+                    descripcion: 'Aún no se ha registrado ningún pedido en la tienda.',
+                    textoBoton: 'Ver catálogo',
+                    enlaceBoton: '#/catalogo'
+                });
             }
 
             container.innerHTML = html;
@@ -319,7 +360,7 @@ const Admin = {
                                     <td class="text-muted">${u.ultimo_login ? (u.ultimo_login || '').slice(0, 10) : 'Nunca'}</td>
                                     <td class="text-end">
                                         <button class="admin-action ${u.activo == 1 ? 'danger' : ''}"
-                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})"
+                                                data-admin-action="toggle-user" data-id="${u.id}" data-activo="${u.activo == 1 ? 0 : 1}"
                                                 title="${u.activo == 1 ? 'Deshabilitar' : 'Activar'}">
                                             <i class="bi ${u.activo == 1 ? 'bi-person-slash' : 'bi-person-check'}"></i>
                                         </button>
@@ -330,7 +371,11 @@ const Admin = {
                     </table>
                 </div>`;
             } else {
-                html += '<p class="text-muted">No hay usuarios registrados.</p>';
+                UI.mostrarVacio(container, {
+                    icono: 'bi-people',
+                    titulo: 'Sin usuarios',
+                    descripcion: 'No hay usuarios registrados aún.'
+                });
             }
 
             container.innerHTML = html;
@@ -347,48 +392,87 @@ const Admin = {
         if (!container) return;
 
         try {
-            const [ventasResp, topResp] = await Promise.all([
-                App.fetchAuth(`${App.apiBase}/admin/reportes/ventas?periodo=mes`),
-                App.fetchAuth(`${App.apiBase}/admin/reportes/productos-mas-vendidos`)
-            ]);
-
-            const ventas = await ventasResp.json();
-            const top = await topResp.json();
+            const top = await (await App.fetchAuth(`${App.apiBase}/admin/reportes/productos-mas-vendidos`)).json();
 
             let html = `<h1 class="admin-page-title">Reportes</h1>`;
+
+            // KPIs + gráfico (se llenan según el período elegido)
+            html += `<div class="qc-kpi-strip mb-4" id="kpi-strip"></div>`;
 
             // Productos más vendidos
             html += `<div class="cart-table-card mb-4">
                 <div class="admin-card-head"><h6>Productos más vendidos</h6></div>`;
             if (top.success && top.data && top.data.length > 0) {
+                const clp = n => '$' + new Intl.NumberFormat('es-CL').format(n);
                 html += `<table class="cart-table admin-table">
-                    <thead><tr><th>#</th><th>Producto</th><th>Unidades</th><th class="text-end">Recaudación</th></tr></thead>
+                    <thead><tr><th style="width:56px">#</th><th>Producto</th><th>Unidades</th><th class="text-end">Recaudación</th></tr></thead>
                     <tbody>${top.data.map((p, i) => `
                         <tr>
-                            <td class="text-muted">${i + 1}</td>
+                            <td><span class="admin-rank${i === 0 ? ' top' : ''}">${i + 1}</span></td>
                             <td class="cart-row-name">${this.escapeHtml(p.nombre_producto)}</td>
                             <td class="fw-bold">${p.total_vendido}</td>
-                            <td class="text-primary fw-bold text-end">$${new Intl.NumberFormat('es-CL').format(Math.round(p.total_recaudado))}</td>
+                            <td class="text-primary fw-bold text-end">${clp(Math.round(p.total_recaudado))}</td>
                         </tr>`).join('')}</tbody></table>`;
             } else {
-                html += '<p class="text-muted mb-0">No hay datos de ventas aún.</p>';
+                html += '<p class="text-muted mb-0 px-1 pb-1">Todavía no hay ventas registradas.</p>';
             }
             html += '</div>';
 
-            // Ventas por día
+            // Ventas por día, con selector de período
             html += `<div class="cart-table-card">
-                <div class="admin-card-head"><h6>Ventas últimos 30 días</h6></div>
-                <div id="sales-chart"></div>
+                <div class="admin-card-head">
+                    <h6>Ventas por día</h6>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="qc-chart-legend"><span class="sw"></span>Ingresos diarios</span>
+                        <select id="ventas-periodo" class="form-select form-select-sm admin-status-select" data-admin-change="ventas-periodo">
+                            <option value="semana">Última semana</option>
+                            <option value="mes" selected>Últimos 30 días</option>
+                            <option value="trimestre">Últimos 3 meses</option>
+                            <option value="semestre">Últimos 6 meses</option>
+                            <option value="anio">Último año</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="sales-chart" style="padding:18px 18px 0"></div>
             </div>`;
 
             container.innerHTML = html;
-
-            // Renderizar gráfico si hay datos
-            if (ventas.success && ventas.data && ventas.data.length > 0) {
-                this.renderSalesChart(ventas.data);
-            }
+            await this.refreshVentas('mes');
         } catch (e) {
             container.innerHTML = '<div class="alert alert-danger">Error al cargar reportes.</div>';
+        }
+    },
+
+    /**
+     * Refresca KPIs + gráfico de ventas para el período elegido.
+     */
+    async refreshVentas(periodo) {
+        const kpiBox = document.getElementById('kpi-strip');
+        const chartBox = document.getElementById('sales-chart');
+        if (!kpiBox || !chartBox) return;
+
+        const clp = n => '$' + new Intl.NumberFormat('es-CL').format(n);
+        let ventasArr = [];
+        try {
+            const ventas = await (await App.fetchAuth(`${App.apiBase}/admin/reportes/ventas?periodo=${encodeURIComponent(periodo)}`)).json();
+            ventasArr = (ventas.success && Array.isArray(ventas.data)) ? ventas.data : [];
+        } catch (e) { /* deja vacío */ }
+
+        const totalPeriodo = ventasArr.reduce((s, x) => s + Math.round(x.total_ventas), 0);
+        const totalPedidos = ventasArr.reduce((s, x) => s + (Number(x.total_pedidos) || 0), 0);
+        const ticket = totalPedidos ? Math.round(totalPeriodo / totalPedidos) : 0;
+        const mejor = ventasArr.reduce((b, x) => (Math.round(x.total_ventas) > (b ? Math.round(b.total_ventas) : -1) ? x : b), null);
+        const fechaCorta = f => new Date(f + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+
+        kpiBox.innerHTML = `
+            <div class="qc-kpi"><small>Total período</small><b>${clp(totalPeriodo)}</b></div>
+            <div class="qc-kpi"><small>Ticket promedio</small><b>${clp(ticket)}</b></div>
+            <div class="qc-kpi"><small>Mejor día</small><b>${mejor ? `${fechaCorta(mejor.fecha)} · ${clp(Math.round(mejor.total_ventas))}` : '—'}</b></div>`;
+
+        if (ventasArr.length > 0) {
+            this.renderSalesChart(ventasArr);
+        } else {
+            chartBox.innerHTML = '<p class="text-muted text-center py-5 mb-0">Sin ventas en el período. El gráfico se llena a medida que entran pedidos pagados.</p>';
         }
     },
 
@@ -423,7 +507,7 @@ const Admin = {
             }
         });
         html += '</div>';
-        ctx.outerHTML = html;
+        ctx.innerHTML = html;
     },
 
     /**
@@ -511,7 +595,7 @@ const Admin = {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-accent" id="btn-save-product" onclick="Admin.saveProduct()">
+                        <button type="button" class="btn btn-accent" id="btn-save-product" data-admin-action="save-product">
                             ${product ? 'Guardar Cambios' : 'Crear Producto'}
                         </button>
                     </div>
@@ -585,13 +669,45 @@ const Admin = {
         }
     },
 
+    /** Etiquetas legibles de estado */
+    estadoLabel(s) {
+        return ({ pendiente: 'Pendiente', pagado: 'Pagado', en_preparacion: 'En preparación', enviado: 'Enviado', entregado: 'Entregado', cancelado: 'Cancelado' })[s] || s;
+    },
+
+    /**
+     * Select con solo las transiciones VÁLIDAS desde el estado actual
+     * (mismo flujo que valida el backend). Estados finales: sin cambios.
+     */
+    estadoSelect(id, estadoActual) {
+        const trans = {
+            pendiente:      ['pagado', 'cancelado'],
+            pagado:         ['en_preparacion', 'cancelado'],
+            en_preparacion: ['enviado', 'cancelado'],
+            enviado:        ['entregado'],
+            entregado:      [],
+            cancelado:      [],
+        };
+        const next = trans[estadoActual] || [];
+        // Estado actual como opción seleccionada (deshabilitada): el select siempre
+        // refleja dónde está el pedido, no queda "vacío" al volver a la sección.
+        const actual = `<option value="" selected disabled>${this.estadoLabel(estadoActual)}</option>`;
+        if (next.length === 0) {
+            return `<select class="form-select form-select-sm admin-status-select" disabled>${actual}</select>`;
+        }
+        const opts = next.map(s => `<option value="${s}">→ ${this.estadoLabel(s)}</option>`).join('');
+        return `<select class="form-select form-select-sm admin-status-select" data-admin-change="order-status" data-id="${id}">
+            ${actual}
+            ${opts}
+        </select>`;
+    },
+
     /**
      * Cambia estado de un pedido
      */
     async changeOrderStatus(orderId, newStatus) {
         if (!newStatus) return;
 
-        if (!confirm(`¿Cambiar pedido #${orderId} a estado "${newStatus}"?`)) {
+        if (!confirm(`¿Cambiar el pedido a "${this.estadoLabel(newStatus)}"?`)) {
             // Resetear select
             this.loadPedidos();
             return;

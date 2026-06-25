@@ -43,15 +43,27 @@ cargarEnv(dirname(__DIR__) . '/.env');
 
 // Constantes de la aplicación
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
-define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
+// En producción nunca se muestran errores, aunque el .env diga lo contrario.
+define('APP_DEBUG', APP_ENV !== 'production' && filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
 define('APP_URL', $_ENV['APP_URL'] ?? 'http://localhost');
 define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'clave_secreta_por_defecto_cambiar_en_produccion');
+
+// Seguridad: en producción es OBLIGATORIO un JWT_SECRET propio.
+// El default es público (repo abierto) → sin esto cualquiera podría falsificar tokens de admin.
+if (APP_ENV === 'production'
+    && (JWT_SECRET === '' || JWT_SECRET === 'clave_secreta_por_defecto_cambiar_en_produccion')) {
+    http_response_code(500);
+    exit('Error de configuración: definí un JWT_SECRET propio en .env antes de correr en producción.');
+}
 define('JWT_EXPIRY', (int)($_ENV['JWT_EXPIRY'] ?? 7200));
 define('SMTP_HOST', $_ENV['SMTP_HOST'] ?? 'smtp.example.com');
 define('SMTP_PORT', (int)($_ENV['SMTP_PORT'] ?? 587));
 define('SMTP_USER', $_ENV['SMTP_USER'] ?? '');
 define('SMTP_PASS', $_ENV['SMTP_PASS'] ?? '');
 define('SMTP_FROM', $_ENV['SMTP_FROM'] ?? 'noreply@example.com');
+
+// MercadoPago: Access Token (producción o test). Vacío/placeholder => pago simulado.
+define('MP_ACCESS_TOKEN', $_ENV['MP_ACCESS_TOKEN'] ?? '');
 
 // Configuración de error según entorno
 if (APP_DEBUG) {

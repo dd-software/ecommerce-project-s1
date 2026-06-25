@@ -319,11 +319,13 @@ class AdminRepository
     public function obtenerReporteVentas(string $periodo): array
     {
         $fechaInicio = match ($periodo) {
-            'hoy'     => "CURDATE()",
-            'semana'  => "DATE_SUB(CURDATE(), INTERVAL 7 DAY)",
-            'mes'     => "DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
-            'anio'    => "DATE_SUB(CURDATE(), INTERVAL 365 DAY)",
-            default   => "DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+            'hoy'       => "CURDATE()",
+            'semana'    => "DATE_SUB(CURDATE(), INTERVAL 7 DAY)",
+            'mes'       => "DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+            'trimestre' => "DATE_SUB(CURDATE(), INTERVAL 90 DAY)",
+            'semestre'  => "DATE_SUB(CURDATE(), INTERVAL 180 DAY)",
+            'anio'      => "DATE_SUB(CURDATE(), INTERVAL 365 DAY)",
+            default     => "DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
         };
 
         $stmt = $this->db->prepare(
