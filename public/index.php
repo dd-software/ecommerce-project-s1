@@ -90,8 +90,7 @@ $router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth:
 $router->get('/api/pagos/config', [PagosController::class, 'obtenerConfig'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
-$router->post('/api/pagos/mercado-pago/preferencia', [PagosController::class, 'crearPreferenciaMercadoPago'], auth: true);
-$router->post('/api/pagos/mercado-pago/confirmar', [PagosController::class, 'confirmarPagoMercadoPago'], auth: true);
+
 
 // --- Módulo F: Inventario ---
 $router->get('/api/inventario', [InventarioController::class, 'verificar']);
