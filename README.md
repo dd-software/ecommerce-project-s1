@@ -482,8 +482,8 @@ sudo certbot --apache -d tudominio.com
 #### 8. Verificar el Despliegue
 
 - 🌐 Abrir `https://tudominio.com` — deberías ver la landing page del catálogo
-- 🔐 Probar login con el usuario seed: `cliente@test.com` / `password123`
-- ⚙️ Acceder al admin: `admin@test.com` / `admin123` → `/admin`
+- 🔐 Probar login con el usuario seed: `juan@email.com` / `Password123!`
+- ⚙️ Acceder al admin: `admin@uct.cl` / `Password123!` → `/admin`
 
 ---
 
@@ -491,8 +491,8 @@ sudo certbot --apache -d tudominio.com
 
 | Rol | Email | Contraseña |
 |---|---|---|
-| Administrador | admin@test.com | admin123 |
-| Cliente | cliente@test.com | password123 |
+| Administrador | admin@uct.cl | Password123! |
+| Cliente | juan@email.com | Password123! |
 
 ---
 
