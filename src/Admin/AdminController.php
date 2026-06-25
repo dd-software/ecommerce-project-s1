@@ -33,6 +33,49 @@ class AdminController
     }
 
     /**
+     * POST /api/admin/tipo-cambio
+     * Actualiza el tipo de cambio del dólar (CLP a USD)
+     */
+    public function actualizarTipoCambio(Request $request, Response $response, array $params): void
+    {
+        try {
+            $data = $request->getBody();
+            $request->validateRequired(['valor']);
+            $nuevoValor = (int)$data['valor'];
+
+            if ($nuevoValor <= 0) {
+                throw new \InvalidArgumentException('El valor del dólar debe ser mayor a cero.');
+            }
+
+            // Actualizar en el archivo .env
+            $rutaEnv = dirname(__DIR__, 2) . '/.env';
+            if (file_exists($rutaEnv)) {
+                $contenido = file_get_contents($rutaEnv);
+                if (preg_match('/^PAYPAL_EXCHANGE_RATE\s*=\s*\d+/m', $contenido)) {
+                    $contenido = preg_replace('/^PAYPAL_EXCHANGE_RATE\s*=\s*\d+/m', 'PAYPAL_EXCHANGE_RATE=' . $nuevoValor, $contenido);
+                } else {
+                    $contenido = rtrim($contenido) . "\nPAYPAL_EXCHANGE_RATE=" . $nuevoValor . "\n";
+                }
+                file_put_contents($rutaEnv, $contenido);
+            }
+
+            $_ENV['PAYPAL_EXCHANGE_RATE'] = (string)$nuevoValor;
+            putenv("PAYPAL_EXCHANGE_RATE={$nuevoValor}");
+
+            $response->json([
+                'success' => true,
+                'mensaje' => 'Tipo de cambio actualizado correctamente a $' . $nuevoValor . ' CLP.',
+                'exchange_rate' => $nuevoValor
+            ]);
+
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al actualizar el tipo de cambio.', 500);
+        }
+    }
+
+    /**
      * GET /api/admin/productos
      * Lista todos los productos (admin, incluye inactivos)
      */

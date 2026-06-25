@@ -53,6 +53,35 @@ class PagosController
     }
 
     /**
+     * GET /api/pagos/config
+     * Obtiene la configuración de la pasarela de pagos
+     */
+    public function obtenerConfig(Request $request, Response $response, array $params): void
+    {
+        $user = $request->getAttribute('authenticated_user');
+        if (!$user) {
+            $response->error('TOKEN_INVALID', 'Autenticación requerida.', 401);
+            return;
+        }
+
+        try {
+            $clientId = $_ENV['PAYPAL_CLIENT_ID'] ?? '';
+            $exchangeRate = (int)($_ENV['PAYPAL_EXCHANGE_RATE'] ?? 930);
+
+            if (empty($clientId)) {
+                $clientId = 'sb';
+            }
+
+            $response->json([
+                'paypal_client_id' => $clientId,
+                'exchange_rate' => $exchangeRate
+            ]);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al obtener configuración de pagos.', 500);
+        }
+    }
+
+    /**
      * GET /api/pagos/estado/{pedidoId}
      * Consulta el estado del pago de un pedido
      */

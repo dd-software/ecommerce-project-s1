@@ -87,6 +87,7 @@ $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], 
 
 // --- Módulo E: Pagos ---
 $router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
+$router->get('/api/pagos/config', [PagosController::class, 'obtenerConfig'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
 
@@ -98,6 +99,7 @@ $router->post('/api/inventario/ajustar', [InventarioController::class, 'ajustar'
 
 // --- Módulo G: Administración ---
 $router->get('/api/admin/dashboard', [AdminController::class, 'dashboard'], auth: true, admin: true);
+$router->post('/api/admin/tipo-cambio', [AdminController::class, 'actualizarTipoCambio'], auth: true, admin: true);
 $router->get('/api/admin/productos', [AdminController::class, 'listarProductos'], auth: true, admin: true);
 $router->post('/api/admin/productos', [AdminController::class, 'crearProducto'], auth: true, admin: true);
 $router->get('/api/admin/productos/{id}', [AdminController::class, 'obtenerProducto'], auth: true, admin: true);

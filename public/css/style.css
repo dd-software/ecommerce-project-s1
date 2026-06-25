@@ -503,5 +503,17 @@ body {
     box-shadow: 0 4px 10px rgba(0, 51, 102, 0.1);
 }
 
-
-
+/* Payment Selector & Options */
+.payment-option {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 2px solid #dee2e6 !important;
+}
+.payment-option:hover {
+    border-color: var(--uct-primary-light) !important;
+    background-color: rgba(0, 51, 102, 0.03);
+}
+.payment-option.active {
+    border-color: var(--uct-primary) !important;
+    background-color: rgba(0, 51, 102, 0.05);
+}

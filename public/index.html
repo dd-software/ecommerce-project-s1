@@ -195,8 +195,29 @@
 <button class="btn btn-outline-secondary" type="button" id="btn-apply-coupon">Aplicar</button></div></div>
 <div class="mb-3"><label class="form-label">Notas del pedido</label>
 <textarea class="form-control" id="order-notes" rows="2"></textarea></div>
+
+<div class="mb-4">
+  <label class="form-label fw-bold">Método de Pago</label>
+  <div class="row g-2">
+    <div class="col-6">
+      <div class="payment-option border rounded p-3 text-center active" id="option-webpay" data-method="webpay">
+        <i class="bi bi-credit-card fs-2 d-block mb-1 text-primary"></i>
+        <span class="fw-semibold">Webpay (Simulado)</span>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="payment-option border rounded p-3 text-center" id="option-paypal" data-method="paypal">
+        <i class="bi bi-paypal fs-2 d-block mb-1 text-info"></i>
+        <span class="fw-semibold">PayPal</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="paypal-button-container" class="mb-3 d-none"></div>
+
 <div id="checkout-error" class="alert alert-danger d-none"></div>
-<button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Confirmar Pedido</button>
+<button type="submit" class="btn btn-success w-100 btn-lg" id="btn-place-order" disabled>Seguir con el pago</button>
 </form>
 </div></div></div></div>
 
