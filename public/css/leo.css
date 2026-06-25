@@ -51,18 +51,20 @@
 .leo-field.is-invalid .leo-error { display: block; }
 .leo-field.is-valid .form-control { border-color: var(--qc-green); }
 
-/* Botón enviar (rojo QuadCore) */
+/* Botón enviar */
 .leo-submit {
-    width: 100%; background: var(--qc-red); color: #fff; border: none;
-    border-radius: var(--qc-radius-sm); font-weight: 600; padding: 12px;
+    width: 100%; background: #ef5340; color: #fff; border: none;
+    border-radius: var(--qc-radius-sm); font-weight: 700; padding: 12px;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    transition: background .15s;
+    box-shadow: 0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -12px rgba(239,83,64,.55);
+    transition: transform .16s, box-shadow .16s, filter .16s;
 }
-.leo-submit:hover { background: var(--qc-red-hover); color: #fff; }
+.leo-submit:hover { transform: translateY(-2px); background: #c9402f; color: #fff; box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 18px 30px -14px rgba(239,83,64,.55); }
+.leo-submit:active { transform: translateY(0); filter: brightness(.92); }
 
 /* ---------- Info / Ubicación ---------- */
 .leo-map {
-    height: 150px; border-radius: var(--qc-radius); margin-bottom: 20px; color: #fff;
+    height: 150px; border-radius: var(--qc-radius); margin-bottom: 20px; color: #9e2b20;
     background: linear-gradient(135deg, var(--qc-red), var(--qc-red-dark));
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
 }

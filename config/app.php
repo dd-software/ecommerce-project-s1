@@ -61,6 +61,8 @@ define('SMTP_PORT', (int)($_ENV['SMTP_PORT'] ?? 587));
 define('SMTP_USER', $_ENV['SMTP_USER'] ?? '');
 define('SMTP_PASS', $_ENV['SMTP_PASS'] ?? '');
 define('SMTP_FROM', $_ENV['SMTP_FROM'] ?? 'noreply@example.com');
+// Correo que recibe los mensajes del formulario de contacto. Por defecto cae al usuario SMTP.
+define('CONTACTO_EMAIL', $_ENV['CONTACTO_EMAIL'] ?? (SMTP_USER !== '' ? SMTP_USER : 'contacto@quadcore.cl'));
 
 // MercadoPago: Access Token (producción o test). Vacío/placeholder => pago simulado.
 define('MP_ACCESS_TOKEN', $_ENV['MP_ACCESS_TOKEN'] ?? '');
