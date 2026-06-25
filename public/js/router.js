@@ -79,7 +79,7 @@ const Router = {
             'medios-pago': 'Medios de pago',
             nosotros: 'Quiénes somos',
             privacidad: 'Política de privacidad',
-            'compras-devoluciones': 'Compras y devoluciones',
+            'compras-devoluciones': 'Política de compras y devoluciones',
             reembolsos: 'Política de reembolso',
             terminos: 'Términos de uso',
             comparar: 'Comparar productos',
