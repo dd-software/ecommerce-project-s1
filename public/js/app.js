@@ -4,17 +4,44 @@
  */
 
 const App = {
-    apiBase: window.location.pathname.replace(/\/+$/, '') + '/api',
+    apiBase: new URL('./api/', document.baseURI).href.replace(/\/$/, ''),
     token: null,
     user: null,
     cartCount: 0,
+    placeholders: {
+        img40: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="100%" height="100%" fill="%232a2a2a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="10">N/A</text></svg>',
+        img80: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="100%" height="100%" fill="%232a2a2a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="12">Sin Foto</text></svg>',
+        img100: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100%" height="100%" fill="%232a2a2a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="12">Sin Foto</text></svg>',
+        img300: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" fill="%232a2a2a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="16">Sin Foto</text></svg>',
+        img400: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220"><rect width="100%" height="100%" fill="%232a2a2a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="16">Sin Foto</text></svg>',
+        img600: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect width="100%" height="100%" fill="%232a2a2a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="20">Sin Foto</text></svg>'
+    },
+
+    /**
+     * Obtiene la ruta base del proyecto de forma robusta
+     */
+    getBasePath() {
+        let base = window.location.pathname;
+        if (base.endsWith('.html') || base.endsWith('.php')) {
+            base = base.substring(0, base.lastIndexOf('/'));
+        }
+        return base.replace(/\/+$/, '');
+    },
 
     /**
      * Inicializa la aplicación
      */
     init() {
         this.token = localStorage.getItem('uct_auth_token');
-        this.user = JSON.parse(localStorage.getItem('uct_user') || 'null');
+        const storedUser = localStorage.getItem('uct_user');
+        this.user = storedUser ? JSON.parse(storedUser) : null;
+
+        if (!this.token || !this.user) {
+            this.token = null;
+            this.user = null;
+            localStorage.removeItem('uct_auth_token');
+            localStorage.removeItem('uct_user');
+        }
 
         this.updateNavbar();
         this.initEventListeners();
@@ -65,14 +92,35 @@ const App = {
             });
         }
 
+        // Redirección dinámica al Panel Admin
+        const adminLink = document.getElementById('admin-link');
+        if (adminLink) {
+            adminLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = this.getBasePath() + '/admin.html';
+            });
+        }
+
         // Búsqueda global
         const searchForm = document.getElementById('search-form');
         if (searchForm) {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = document.getElementById('search-input').value.trim();
-                if (query) {
-                    window.location.href = window.location.pathname.replace(/\/+$/, '') + '/?search=' + encodeURIComponent(query);
+                try {
+                    const url = new URL(window.location.href);
+                    if (query) {
+                        url.searchParams.set('search', query);
+                    } else {
+                        url.searchParams.delete('search');
+                    }
+                    url.searchParams.delete('id'); // Limpiar detalle del producto
+                    window.location.href = url.pathname + url.search;
+                } catch (err) {
+                    const cleanPath = window.location.pathname.endsWith('.html') || window.location.pathname.endsWith('.php') 
+                        ? window.location.pathname 
+                        : window.location.pathname.replace(/\/+$/, '') + '/';
+                    window.location.href = cleanPath + (query ? '?search=' + encodeURIComponent(query) : '');
                 }
             });
         }
@@ -132,7 +180,8 @@ const App = {
         localStorage.removeItem('uct_user');
         this.token = null;
         this.user = null;
-        window.location.href = '/';
+        const base = this.getBasePath();
+        window.location.href = base + '/';
     },
 
     /**
@@ -227,9 +276,16 @@ const App = {
      */
     async fetchAuth(url, options = {}) {
         const headers = {
-            'Content-Type': 'application/json',
+            'Accept': 'application/json',
             ...options.headers
         };
+
+        if (options.body !== undefined && options.body !== null) {
+            const headerKeys = Object.keys(headers).map(k => k.toLowerCase());
+            if (!headerKeys.includes('content-type')) {
+                headers['Content-Type'] = 'application/json';
+            }
+        }
 
         if (this.token) {
             headers['Authorization'] = `Bearer ${this.token}`;
@@ -240,7 +296,42 @@ const App = {
             headers['X-Session-Id'] = sessionId;
         }
 
-        return fetch(url, { ...options, headers });
+        const resp = await fetch(url, { ...options, headers });
+
+        if (resp.status === 401) {
+            const text = await resp.text();
+            console.error('401 Unauthorized from', url, text);
+            this.logout();
+            throw new Error('Unauthorized');
+        }
+
+        return resp;
+    },
+
+    /**
+     * Valida que el token y el usuario sigan siendo válidos
+     */
+    async validateAuth() {
+        if (!this.token || !this.user) {
+            return false;
+        }
+
+        try {
+            const resp = await fetch(`${this.apiBase}/auth/perfil`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+
+            if (!resp.ok) {
+                return false;
+            }
+
+            const data = await resp.json();
+            return data.success === true;
+        } catch (e) {
+            return false;
+        }
     }
 };
 

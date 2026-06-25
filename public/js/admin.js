@@ -9,9 +9,16 @@ const Admin = {
     /**
      * Inicializa el panel admin
      */
-    init() {
-        if (!App.user || App.user.rol !== 'admin') {
-            window.location.href = '/login.html?redirect=admin.html';
+    async init() {
+        if (!App.token || !App.user || App.user.rol !== 'admin') {
+            const base = App.getBasePath();
+            window.location.href = base + '/index.html?showLogin=true';
+            return;
+        }
+
+        const valid = await App.validateAuth();
+        if (!valid) {
+            App.logout();
             return;
         }
 
@@ -188,7 +195,7 @@ const Admin = {
                             ${productos.map(p => `
                                 <tr>
                                     <td>${p.id}</td>
-                                    <td><img src="${p.imagen_url || 'https://via.placeholder.com/40'}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src='https://via.placeholder.com/40'"></td>
+                                    <td><img src="${p.imagen_url || App.placeholders.img40}" width="40" height="40" style="object-fit:cover;border-radius:4px" onerror="this.src=App.placeholders.img40"></td>
                                     <td>${this.escapeHtml(p.nombre)}</td>
                                     <td>${this.escapeHtml(p.categoria_nombre || '-')}</td>
                                     <td>${p.precio_formateado || App.formatPrice(p.precio)}</td>
@@ -203,6 +210,9 @@ const Admin = {
                                         </span>
                                     </td>
                                     <td>
+                                        <button class="btn btn-sm btn-outline-secondary btn-action me-1" onclick="Admin.showProductDetail(${p.id})" title="Detalle">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
                                         <button class="btn btn-sm btn-outline-primary btn-action me-1" onclick="Admin.showProductForm(${p.id})" title="Editar">
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -331,9 +341,21 @@ const Admin = {
                                     <td><span class="badge ${u.activo == 1 ? 'bg-success' : 'bg-danger'}">${u.activo == 1 ? 'Activo' : 'Deshabilitado'}</span></td>
                                     <td>${u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-CL') : 'Nunca'}</td>
                                     <td>
-                                        <button class="btn btn-sm ${u.activo == 1 ? 'btn-outline-danger' : 'btn-outline-success'} btn-action"
-                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})">
-                                            ${u.activo == 1 ? 'Deshabilitar' : 'Activar'}
+                                        <button class="btn btn-sm btn-outline-primary btn-action me-1"
+                                                onclick="Admin.showUserForm(${u.id})" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm ${u.activo == 1 ? 'btn-outline-warning' : 'btn-outline-success'} btn-action me-1"
+                                                onclick="Admin.toggleUser(${u.id}, ${u.activo == 1 ? 0 : 1})" 
+                                                title="${u.id == App.user?.id ? 'No puedes deshabilitar tu propia cuenta' : (u.activo == 1 ? 'Deshabilitar' : 'Activar')}"
+                                                ${u.id == App.user?.id ? 'disabled' : ''}>
+                                            <i class="bi ${u.activo == 1 ? 'bi-slash-circle' : 'bi-check-circle'}"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-action"
+                                                onclick="Admin.deleteUser(${u.id})" 
+                                                title="${u.id == App.user?.id ? 'No puedes eliminar tu propia cuenta' : 'Eliminar'}"
+                                                ${u.id == App.user?.id ? 'disabled' : ''}>
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -389,7 +411,7 @@ const Admin = {
             html += '</div></div>';
 
             // Ventas por día
-            html += `<div class="card"><div class="card-header bg-primary text-white">
+            html += `<div class="card report-card-custom"><div class="card-header bg-primary text-white">
                 <i class="bi bi-graph-up me-2"></i>Ventas Últimos 30 Días</div><div class="card-body">
                 <canvas id="sales-chart" height="200"></canvas>
             </div></div>`;
@@ -424,13 +446,15 @@ const Admin = {
                         title="${v.fecha}: $${new Intl.NumberFormat('es-CL').format(values[i])}"></div>`;
         });
         html += '</div>';
-        html += '<div class="d-flex mt-2" style="gap:2px;font-size:0.6rem">';
+        html += '<div class="d-flex mt-2 mb-3" style="gap:2px;font-size:0.6rem;height:30px;overflow:visible;">';
         // Mostrar algunas fechas
         const step = Math.max(1, Math.floor(ventasData.length / 10));
         ventasData.forEach((v, i) => {
             if (i % step === 0 || i === ventasData.length - 1) {
                 const fecha = new Date(v.fecha);
-                html += `<div class="flex-fill text-muted" style="min-width:6px;transform:rotate(-45deg);transform-origin:top left">${fecha.getDate()}/${fecha.getMonth()+1}</div>`;
+                const dia = String(fecha.getDate()).padStart(2, '0');
+                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                html += `<div class="flex-fill text-muted" style="min-width:6px;transform:rotate(-45deg);transform-origin:top left">${dia}/${mes}</div>`;
             } else {
                 html += '<div class="flex-fill" style="min-width:6px"></div>';
             }
@@ -510,9 +534,21 @@ const Admin = {
                                     <input type="number" class="form-control" id="prod-stock-min" value="${product ? (product.stock_minimo || 5) : 5}" min="0">
                                 </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">URL Imagen</label>
-                                <input type="url" class="form-control" id="prod-imagen" value="${product ? (product.imagen_url || '') : ''}">
+                            <div class="row align-items-center">
+                                <div class="col-md-5 mb-3">
+                                    <label class="form-label">URL Imagen</label>
+                                    <input type="url" class="form-control" id="prod-imagen" value="${product ? (product.imagen_url || '') : ''}">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Subir de Computador</label>
+                                    <input type="file" class="form-control" id="prod-imagen-file" accept="image/*">
+                                </div>
+                                <div class="col-md-3 mb-3 text-center">
+                                    <label class="form-label d-block">Vista Previa</label>
+                                    <img id="prod-imagen-preview" src="${product && product.imagen_url ? product.imagen_url : App.placeholders.img100}"
+                                         class="rounded" style="width:80px; height:80px; object-fit:contain; background-color:#ffffff; padding:5px; border-radius:10px; display:inline-block;"
+                                         onerror="this.src=App.placeholders.img100">
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <div class="form-check">
@@ -539,7 +575,125 @@ const Admin = {
         document.body.insertAdjacentHTML('beforeend', modalHtml);
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
+
+        const imgInput = document.getElementById('prod-imagen');
+        if (imgInput) {
+            imgInput.addEventListener('input', (e) => {
+                const preview = document.getElementById('prod-imagen-preview');
+                if (preview) {
+                    preview.src = e.target.value.trim() || App.placeholders.img100;
+                }
+            });
+        }
+
+        const fileInput = document.getElementById('prod-imagen-file');
+        if (fileInput) {
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const formData = new FormData();
+                formData.append('imagen', file);
+
+                const saveBtn = document.getElementById('btn-save-product');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.dataset.originalText = saveBtn.textContent;
+                    saveBtn.textContent = 'Subiendo Imagen...';
+                }
+
+                try {
+                    const resp = await fetch(`${App.apiBase}/admin/productos/upload-imagen`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + App.token
+                        },
+                        body: formData
+                    });
+                    const data = await resp.json();
+                    if (data.success && data.data && data.data.url) {
+                        document.getElementById('prod-imagen').value = data.data.url;
+                        document.getElementById('prod-imagen-preview').src = data.data.url;
+                        App.showToast('Imagen subida con éxito.', 'success');
+                    } else {
+                        App.showToast(data.error?.message || 'Error al subir la imagen.', 'error');
+                        fileInput.value = '';
+                    }
+                } catch (err) {
+                    console.error('Error al subir imagen:', err);
+                    App.showToast('Error de red al subir la imagen.', 'error');
+                    fileInput.value = '';
+                } finally {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = saveBtn.dataset.originalText || (product ? 'Guardar Cambios' : 'Crear Producto');
+                    }
+                }
+            });
+        }
     },
+
+        /**
+     * Muestra detalle de producto en modal
+     */
+    async showProductDetail(id) {
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo/${id}`);
+            const data = await resp.json();
+
+            if (!data.success || !data.data) {
+                App.showToast('No se pudo cargar el detalle del producto', 'error');
+                return;
+            }
+
+            const product = data.data;
+
+            const modalHtml = `
+            <div class="modal fade" id="productDetailModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-uct">
+                            <h5 class="modal-title">${this.escapeHtml(product.nombre)}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <img src="${product.imagen_url || App.placeholders.img300}"
+                                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
+                                         onerror="this.src=App.placeholders.img300">
+                                </div>
+                                <div class="col-md-8">
+                                    <p><strong>Categoría:</strong> ${this.escapeHtml(product.categoria_nombre || '-')}</p>
+                                    <p><strong>Precio:</strong> ${product.precio_formateado || App.formatPrice(product.precio)}</p>
+                                    <p><strong>Stock:</strong> ${product.stock}</p>
+                                    <p><strong>Stock mínimo:</strong> ${product.stock_minimo || 'N/A'}</p>
+                                    <p><strong>Activo:</strong> ${product.activo == 1 ? 'Sí' : 'No'}</p>
+                                    <hr>
+                                    <p><strong>Descripción:</strong></p>
+                                    <p>${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            const oldModal = document.getElementById('productDetailModal');
+            if (oldModal) oldModal.remove();
+
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = new bootstrap.Modal(document.getElementById('productDetailModal'));
+            modal.show();
+        } catch (e) {
+            App.showToast('Error al cargar el detalle', 'error');
+        }
+    },
+
+
 
     /**
      * Guarda producto (crear/actualizar)
@@ -629,10 +783,12 @@ const Admin = {
         }
     },
 
-    /**
-     * Activa/desactiva usuario
-     */
     async toggleUser(userId, activo) {
+        if (App.user && parseInt(App.user.id) === parseInt(userId) && activo === 0) {
+            App.showToast('No puedes deshabilitar tu propia cuenta.', 'error');
+            return;
+        }
+
         try {
             const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${userId}/estado`, {
                 method: 'PATCH',
@@ -645,6 +801,169 @@ const Admin = {
             }
         } catch (e) {
             App.showToast('Error', 'error');
+        }
+    },
+
+    async showUserForm(id) {
+        let user = null;
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${id}`);
+            const data = await resp.json();
+            if (data.success) {
+                user = data.data;
+            } else {
+                App.showToast(data.error?.message || 'Error al obtener usuario', 'error');
+                return;
+            }
+        } catch (e) {
+            App.showToast('Error al cargar datos del usuario', 'error');
+            return;
+        }
+
+        const modalHtml = `
+        <div class="modal fade" id="userModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header modal-header-uct">
+                        <h5 class="modal-title">Editar Perfil de Usuario</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="user-form">
+                            <input type="hidden" id="edit-user-id" value="${user.id}">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="edit-user-nombre" value="${this.escapeHtml(user.nombre)}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Apellido *</label>
+                                <input type="text" class="form-control" id="edit-user-apellido" value="${this.escapeHtml(user.apellido)}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="edit-user-email" value="${this.escapeHtml(user.email)}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rol *</label>
+                                <select class="form-select" id="edit-user-rol" required>
+                                    <option value="cliente" ${user.rol === 'cliente' ? 'selected' : ''}>Cliente</option>
+                                    <option value="admin" ${user.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+                                    <option value="vendedor" ${user.rol === 'vendedor' ? 'selected' : ''}>Vendedor</option>
+                                    <option value="supervisor" ${user.rol === 'supervisor' ? 'selected' : ''}>Supervisor</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nueva Contraseña (dejar en blanco para conservar)</label>
+                                <input type="password" class="form-control" id="edit-user-password" placeholder="Mínimo 6 caracteres">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-accent" id="btn-save-user" onclick="Admin.saveUser()">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        const oldModal = document.getElementById('userModal');
+        if (oldModal) oldModal.remove();
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modal = new bootstrap.Modal(document.getElementById('userModal'));
+        modal.show();
+    },
+
+    async saveUser() {
+        const id = document.getElementById('edit-user-id').value;
+        const nombre = document.getElementById('edit-user-nombre').value.trim();
+        const apellido = document.getElementById('edit-user-apellido').value.trim();
+        const email = document.getElementById('edit-user-email').value.trim();
+        const rol = document.getElementById('edit-user-rol').value;
+        const password = document.getElementById('edit-user-password').value;
+
+        if (!nombre || !apellido || !email || !rol) {
+            App.showToast('Los campos con asterisco (*) son obligatorios.', 'warning');
+            return;
+        }
+
+        if (password && password.length < 6) {
+            App.showToast('La nueva contraseña debe tener al menos 6 caracteres.', 'warning');
+            return;
+        }
+
+        const btn = document.getElementById('btn-save-user');
+        btn.disabled = true;
+
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ nombre, apellido, email, rol, password })
+            });
+
+            const data = await resp.json();
+
+            if (data.success) {
+                App.showToast('Usuario actualizado correctamente', 'success');
+                const modalEl = document.getElementById('userModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                // Si actualizamos nuestra propia cuenta, actualizamos los datos locales y recargamos
+                if (App.user && parseInt(id) === parseInt(App.user.id)) {
+                    App.user.nombre = nombre + ' ' + apellido;
+                    App.user.email = email;
+                    App.user.rol = rol;
+                    localStorage.setItem('uct_user', JSON.stringify(App.user));
+                    
+                    if (rol !== 'admin') {
+                        App.logout();
+                    } else {
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                    return;
+                }
+
+                this.loadUsuarios();
+            } else {
+                App.showToast(data.error?.message || 'Error al guardar', 'error');
+            }
+        } catch (e) {
+            App.showToast('Error de conexión', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    },
+
+    async deleteUser(userId) {
+        // Prevent deleting oneself on frontend too
+        if (App.user && parseInt(App.user.id) === parseInt(userId)) {
+            App.showToast('No puedes eliminarte a ti mismo.', 'error');
+            return;
+        }
+
+        const confirmText = prompt("Para eliminar este usuario permanentemente, debes ingresar la palabra 'Eliminar':");
+        if (confirmText !== 'Eliminar') {
+            App.showToast('Eliminación cancelada o palabra de confirmación incorrecta', 'info');
+            return;
+        }
+
+        try {
+            const resp = await App.fetchAuth(`${App.apiBase}/admin/usuarios/${userId}`, {
+                method: 'DELETE'
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                App.showToast('Usuario eliminado correctamente', 'success');
+                this.loadUsuarios();
+            } else {
+                App.showToast(data.error?.message || 'Error al eliminar', 'error');
+            }
+        } catch (e) {
+            App.showToast('Error de conexión', 'error');
         }
     },
 

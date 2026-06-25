@@ -20,7 +20,26 @@ class Request
     public function __construct()
     {
         $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-        $this->uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        
+        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+        $basePath = str_replace('\\', '/', dirname($scriptName));
+        if ($basePath === '/' || $basePath === '\\') {
+            $basePath = '';
+        }
+        
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        if ($basePath !== '') {
+            if (str_starts_with($path, $basePath)) {
+                $path = substr($path, strlen($basePath));
+            } else {
+                $projectBase = preg_replace('/\/public$/', '', $basePath);
+                if ($projectBase !== '' && str_starts_with($path, $projectBase)) {
+                    $path = substr($path, strlen($projectBase));
+                }
+            }
+        }
+        
+        $this->uri = '/' . ltrim($path, '/');
         $this->queryParams = $_GET;
         $this->headers = $this->parseHeaders();
 
@@ -46,10 +65,26 @@ class Request
                 $headers[$headerName] = $value;
             }
         }
-        // Headers especiales
+
+        // Headers especiales que algunos servidores pasan de forma distinta
         if (isset($_SERVER['CONTENT_TYPE'])) {
             $headers['CONTENT-TYPE'] = $_SERVER['CONTENT_TYPE'];
         }
+        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $headers['AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        if (isset($_SERVER['Authorization'])) {
+            $headers['AUTHORIZATION'] = $_SERVER['Authorization'];
+        }
+
+        if (function_exists('apache_request_headers')) {
+            $apacheHeaders = apache_request_headers();
+            foreach ($apacheHeaders as $name => $value) {
+                $normalized = strtoupper(str_replace('_', '-', $name));
+                $headers[$normalized] = $value;
+            }
+        }
+
         return $headers;
     }
 

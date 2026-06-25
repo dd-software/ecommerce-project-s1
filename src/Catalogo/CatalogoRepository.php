@@ -29,8 +29,9 @@ class CatalogoRepository
         $params = [];
 
         if (isset($filtros['categoria_id'])) {
-            $where[] = "p.id_categoria = :categoria_id";
+            $where[] = "(p.id_categoria = :categoria_id OR p.id_categoria IN (SELECT id FROM categorias WHERE id_padre = :categoria_id_parent))";
             $params[':categoria_id'] = $filtros['categoria_id'];
+            $params[':categoria_id_parent'] = $filtros['categoria_id'];
         }
 
         if (isset($filtros['busqueda'])) {
@@ -90,7 +91,7 @@ class CatalogoRepository
 
         // Formatear precios para el frontend
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format((float)$p['precio'] / 100, 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = $p['stock'] <= 0; // RN-A02
@@ -117,7 +118,7 @@ class CatalogoRepository
         $producto = $stmt->fetch();
 
         if ($producto) {
-            $producto['precio_formateado'] = '$' . number_format($producto['precio'] / 100, 0, ',', '.');
+            $producto['precio_formateado'] = '$' . number_format((float)$producto['precio'] / 100, 0, ',', '.');
             $producto['precio'] = (int)$producto['precio'];
             $producto['stock'] = (int)$producto['stock'];
             $producto['sin_stock'] = (int)$producto['stock'] <= 0;
@@ -176,12 +177,78 @@ class CatalogoRepository
         $productos = $stmt->fetchAll();
 
         foreach ($productos as &$p) {
-            $p['precio_formateado'] = '$' . number_format($p['precio'] / 100, 0, ',', '.');
+            $p['precio_formateado'] = '$' . number_format((float)$p['precio'] / 100, 0, ',', '.');
             $p['precio'] = (int)$p['precio'];
             $p['stock'] = (int)$p['stock'];
             $p['sin_stock'] = (int)$p['stock'] <= 0;
         }
 
         return $productos;
+    }
+
+    /**
+     * Obtiene las reseñas de un producto con paginación
+     */
+    public function listarResenasProducto(int $productoId, int $pagina, int $porPagina): array
+    {
+        // Contar el total de reseñas
+        $countSql = "SELECT COUNT(*) as total FROM resenas WHERE id_producto = :id";
+        $stmtCount = $this->db->prepare($countSql);
+        $stmtCount->execute([':id' => $productoId]);
+        $total = (int)$stmtCount->fetch()['total'];
+
+        // Calcular paginación
+        $offset = ($pagina - 1) * $porPagina;
+
+        // Traer reseñas con el nombre del usuario 
+        $sql = "SELECT r.id, r.calificacion, r.comentario, r.created_at, 
+                       u.nombre, u.apellido
+                FROM resenas r
+                INNER JOIN usuarios u ON r.id_usuario = u.id
+                WHERE r.id_producto = :id
+                ORDER BY r.created_at DESC
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id', $productoId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $resenas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'resenas' => $resenas,
+            'total'   => $total
+        ];
+    }
+
+    /**
+     * Guarda una nueva reseña en la base de datos
+     */
+    public function crearResena(array $data): array
+    {
+        $sql = "INSERT INTO resenas (id_producto, id_usuario, calificacion, comentario)
+                VALUES (:id_producto, :id_usuario, :calificacion, :comentario)";
+                
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':id_producto', $data['id_producto'], PDO::PARAM_INT);
+        $stmt->bindValue(':id_usuario', $data['id_usuario'], PDO::PARAM_INT);
+        $stmt->bindValue(':calificacion', $data['calificacion'], PDO::PARAM_INT);
+        $stmt->bindValue(':comentario', $data['comentario'], PDO::PARAM_STR);
+        $stmt->execute();
+
+        // Obtener el ID de la reseña recién creada
+        $idResena = (int)$this->db->lastInsertId();
+
+        // Devolver la reseña completa con el nombre del usuario para que el Frontend la muestre al instante
+        $fetchSql = "SELECT r.*, u.nombre, u.apellido 
+                     FROM resenas r 
+                     JOIN usuarios u ON r.id_usuario = u.id 
+                     WHERE r.id = :id";
+        $fetchStmt = $this->db->prepare($fetchSql);
+        $fetchStmt->execute([':id' => $idResena]);
+        
+        return $fetchStmt->fetch(PDO::FETCH_ASSOC);
     }
 }

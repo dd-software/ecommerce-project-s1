@@ -1,9 +1,19 @@
-# Redirigir todo al public/ excepto archivos existentes
+Options -Indexes
+DirectoryIndex public/index.html
 RewriteEngine On
 
-# Permitir acceso directo a archivos reales en la raíz
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
+# Pasar Authorization a PHP para que JWT pueda leerse
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
-RewriteRule ^$ public/ [L]
-RewriteRule (.*) public/$1 [L]
+
+# No reescribir rutas que ya están dentro de public/
+RewriteRule ^public/ - [L]
+
+# Si la URL es exactamente la raíz, servir public/index.html
+RewriteRule ^$ public/index.html [L]
+
+# Si el archivo o directorio no existen en la raíz, internamente servir desde public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/$1 [L]

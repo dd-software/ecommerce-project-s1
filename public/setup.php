@@ -40,8 +40,8 @@ foreach ($modules as $mod) {
 
 // Database
 try {
-    require_once __DIR__ . '/config/app.php';
-    require_once __DIR__ . '/src/Core/Autoloader.php';
+    require_once __DIR__ . '/../config/app.php';
+    require_once __DIR__ . '/../src/Core/Autoloader.php';
     $db = \App\Core\Database::getInstance();
     $db->getConnection()->query('SELECT 1');
     $checks[] = ['name' => 'Conexión BD', 'pass' => true, 'info' => '✓'];

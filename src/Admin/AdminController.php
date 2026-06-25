@@ -33,6 +33,49 @@ class AdminController
     }
 
     /**
+     * POST /api/admin/tipo-cambio
+     * Actualiza el tipo de cambio del dólar (CLP a USD)
+     */
+    public function actualizarTipoCambio(Request $request, Response $response, array $params): void
+    {
+        try {
+            $data = $request->getBody();
+            $request->validateRequired(['valor']);
+            $nuevoValor = (int)$data['valor'];
+
+            if ($nuevoValor <= 0) {
+                throw new \InvalidArgumentException('El valor del dólar debe ser mayor a cero.');
+            }
+
+            // Actualizar en el archivo .env
+            $rutaEnv = dirname(__DIR__, 2) . '/.env';
+            if (file_exists($rutaEnv)) {
+                $contenido = file_get_contents($rutaEnv);
+                if (preg_match('/^PAYPAL_EXCHANGE_RATE\s*=\s*\d+/m', $contenido)) {
+                    $contenido = preg_replace('/^PAYPAL_EXCHANGE_RATE\s*=\s*\d+/m', 'PAYPAL_EXCHANGE_RATE=' . $nuevoValor, $contenido);
+                } else {
+                    $contenido = rtrim($contenido) . "\nPAYPAL_EXCHANGE_RATE=" . $nuevoValor . "\n";
+                }
+                file_put_contents($rutaEnv, $contenido);
+            }
+
+            $_ENV['PAYPAL_EXCHANGE_RATE'] = (string)$nuevoValor;
+            putenv("PAYPAL_EXCHANGE_RATE={$nuevoValor}");
+
+            $response->json([
+                'success' => true,
+                'mensaje' => 'Tipo de cambio actualizado correctamente a $' . $nuevoValor . ' CLP.',
+                'exchange_rate' => $nuevoValor
+            ]);
+
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al actualizar el tipo de cambio.', 500);
+        }
+    }
+
+    /**
      * GET /api/admin/productos
      * Lista todos los productos (admin, incluye inactivos)
      */
@@ -47,6 +90,16 @@ class AdminController
             $response->paginated($resultado['productos'], $resultado['total'], $pagina, $porPagina);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al listar productos.', 500);
+        }
+    }
+
+    public function obtenerProducto(Request $request, Response $response, array $params): void
+    {
+        try {
+            $producto = $this->service->obtenerProductoPorId((int)$params['id']);
+            $response->json($producto);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al obtener producto.', 500);
         }
     }
 
@@ -188,16 +241,19 @@ class AdminController
         }
     }
 
-    /**
-     * PATCH /api/admin/usuarios/{id}/estado
-     * Activa/desactiva un usuario
-     */
     public function toggleUsuario(Request $request, Response $response, array $params): void
     {
         try {
             $id = (int)$params['id'];
             $data = $request->getBody();
             $activo = isset($data['activo']) ? (int)$data['activo'] : null;
+
+            // Evitar que el administrador se deshabilite a sí mismo
+            $currentUser = $request->getAttribute('authenticated_user');
+            if ($currentUser && (int)$currentUser['id'] === $id && $activo === 0) {
+                $response->error('BAD_REQUEST', 'No puedes deshabilitar tu propia cuenta.', 400);
+                return;
+            }
 
             $this->service->cambiarEstadoUsuario($id, $activo);
             $response->json(['mensaje' => 'Estado de usuario actualizado.']);
@@ -217,6 +273,166 @@ class AdminController
             $response->json($reporte);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al obtener reporte.', 500);
+        }
+    }
+
+    /**
+     * GET /api/admin/usuarios/{id}
+     */
+    public function obtenerUsuario(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $usuario = $this->service->obtenerUsuario($id);
+            $response->json($usuario);
+        } catch (\RuntimeException $e) {
+            $response->error('NOT_FOUND', $e->getMessage(), 404);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al obtener detalles del usuario.', 500);
+        }
+    }
+
+    /**
+     * PUT /api/admin/usuarios/{id}
+     */
+    public function actualizarUsuario(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $data = $request->getBody();
+            $this->service->actualizarUsuario($id, $data);
+            $response->json(['mensaje' => 'Usuario actualizado correctamente.']);
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 400);
+        } catch (\RuntimeException $e) {
+            $response->error('NOT_FOUND', $e->getMessage(), 404);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al actualizar usuario.', 500);
+        }
+    }
+
+    /**
+     * DELETE /api/admin/usuarios/{id}
+     */
+    public function eliminarUsuario(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+
+            // Evitar que el administrador se elimine a sí mismo
+            $currentUser = $request->getAttribute('authenticated_user');
+            if ($currentUser && (int)$currentUser['id'] === $id) {
+                $response->error('BAD_REQUEST', 'No puedes eliminarte a ti mismo.', 400);
+                return;
+            }
+
+            $this->service->eliminarUsuario($id);
+            $response->json(['mensaje' => 'Usuario eliminado correctamente.']);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al eliminar usuario.', 500);
+        }
+    }
+
+    /**
+     * POST /api/admin/productos/upload-imagen
+     * Sube una imagen desde el computador
+     */
+    public function subirImagen(Request $request, Response $response, array $params): void
+    {
+        try {
+            if (!isset($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
+                $response->error('VALIDATION_ERROR', 'No se ha proporcionado un archivo válido o hubo un error al subirlo.', 400);
+                return;
+            }
+
+            $file = $_FILES['imagen'];
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/pjpeg', 'image/x-png'];
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+            if (!in_array($file['type'], $allowedTypes) && !in_array($ext, $allowedExts)) {
+                $response->error('VALIDATION_ERROR', 'Formato de imagen no permitido. Solo se aceptan JPEG, PNG, GIF y WEBP.', 400);
+                return;
+            }
+
+            // Validar tamaño máximo (4MB)
+            if ($file['size'] > 4 * 1024 * 1024) {
+                $response->error('VALIDATION_ERROR', 'El tamaño máximo de imagen es 4MB.', 400);
+                return;
+            }
+
+            // Crear directorio de destino si no existe
+            $destDir = dirname(__DIR__, 2) . '/public/uploads';
+            if (!file_exists($destDir)) {
+                if (!mkdir($destDir, 0755, true)) {
+                    throw new \Exception('No se pudo crear la carpeta public/uploads. Verifica permisos de escritura.');
+                }
+            }
+
+            // Generar un nombre único para la imagen
+            if (empty($ext)) {
+                $ext = 'png';
+            }
+            $fileName = uniqid('prod_', true) . '.' . $ext;
+            $destPath = $destDir . '/' . $fileName;
+
+            if (move_uploaded_file($file['tmp_name'], $destPath)) {
+                // Generar URL pública dinámica basándose en el host de la petición actual
+                // Esto previene bloqueos de Content Security Policy (CSP) si el usuario accede por 127.0.0.1 en lugar de localhost
+                $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+                $basePath = str_replace('\\', '/', dirname($scriptName));
+                if ($basePath === '/' || $basePath === '\\') {
+                    $basePath = '';
+                }
+                
+                if (str_ends_with($basePath, '/public')) {
+                    $publicUrl = $scheme . '://' . $host . $basePath . '/uploads/' . $fileName;
+                } else {
+                    $publicUrl = $scheme . '://' . $host . $basePath . '/public/uploads/' . $fileName;
+                }
+
+                $response->json([
+                    'success' => true,
+                    'url' => $publicUrl,
+                    'filename' => $fileName
+                ]);
+            } else {
+                throw new \Exception('No se pudo mover el archivo temporal al destino ' . $destPath);
+            }
+
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error interno al subir la imagen: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    /**
+     * GET /api/admin/resenas
+     * Lista todas las reseñas
+     */
+    public function listarResenas(Request $request, Response $response, array $params): void
+    {
+        try {
+            $resultado = $this->service->listarResenasAdmin(); 
+            $response->json($resultado);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al listar reseñas.', 500);
+        }
+    }
+
+    /**
+     * DELETE /api/admin/resenas/{id}
+     * Elimina una reseña
+     */
+    public function eliminarResena(Request $request, Response $response, array $params): void
+    {
+        try {
+            $id = (int)$params['id'];
+            $this->service->eliminarResena($id);
+            $response->json(['mensaje' => 'Reseña eliminada correctamente.']);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al eliminar reseña.', 500);
         }
     }
 }

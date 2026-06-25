@@ -15,11 +15,32 @@ const Catalogo = {
         // Cargar categorías
         await this.loadCategories();
 
-        // Cargar productos iniciales
-        await this.loadProducts();
+        // Verificar si hay un ID de producto o una búsqueda activa/filtro en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        const hasSearch = urlParams.has('search') || urlParams.has('q') || urlParams.has('categoria');
+
+        if (productId) {
+            // Mostrar solo el detalle del producto
+            document.getElementById('product-detail')?.classList.remove('d-none');
+            document.getElementById('catalog-search-view')?.classList.add('d-none');
+            document.getElementById('catalog-home-view')?.classList.add('d-none');
+            await this.loadDetail(productId);
+        } else if (hasSearch) {
+            // Mostrar la vista de búsqueda/filtros
+            document.getElementById('catalog-search-view')?.classList.remove('d-none');
+            document.getElementById('catalog-home-view')?.classList.add('d-none');
+            await this.loadProducts();
+        } else {
+            // Mostrar la vista de secciones
+            document.getElementById('catalog-search-view')?.classList.add('d-none');
+            document.getElementById('catalog-home-view')?.classList.remove('d-none');
+            await this.loadHomeSections();
+        }
 
         // Event listeners de filtros
         this.initFilters();
+        this.initHomeEvents();
     },
 
     /**
@@ -99,10 +120,10 @@ const Catalogo = {
         params.set('pagina', this.currentPage);
         params.set('por_pagina', 12);
 
-        // Leer búsqueda de URL
+        // Leer búsqueda de URL (acepta 'q' y 'search' del navbar)
         const urlParams = new URLSearchParams(window.location.search);
-        const searchQuery = urlParams.get('q');
-        if (searchQuery && !this.filters.q) {
+        const searchQuery = urlParams.get('q') || urlParams.get('search');
+        if (searchQuery !== null) {
             this.filters.q = searchQuery;
             params.set('q', searchQuery);
             const searchInput = document.getElementById('search-input');
@@ -116,6 +137,8 @@ const Catalogo = {
             if (data.success) {
                 this.renderProducts(data.data);
                 this.renderPagination(data.meta?.pagination);
+            } else {
+                container.innerHTML = `<div class="col-12 text-center py-5 text-danger">${this.escapeHtml(data.error?.message || 'Error al cargar productos.')}</div>`;
             }
         } catch (e) {
             container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';
@@ -142,6 +165,7 @@ const Catalogo = {
         }
 
         container.innerHTML = products.map(p => this.productCard(p)).join('');
+        this.applyImageFallbacks(container);
     },
 
     /**
@@ -159,12 +183,12 @@ const Catalogo = {
             : `<button class="btn btn-accent btn-sm w-100 add-to-cart-btn" data-id="${p.id}" data-name="${this.escapeHtml(p.nombre)}">Agregar al Carrito</button>`;
 
         return `
-            <div class="col-md-4 col-lg-3 mb-4">
+            <div class="col-md-6 col-lg-3 mb-4">
                 <div class="product-card position-relative">
                     ${stockBadge}
-                    <img src="${p.imagen_url || 'https://via.placeholder.com/400x220?text=Sin+Imagen'}"
-                         class="card-img-top" alt="${this.escapeHtml(p.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/400x220?text=Sin+Imagen'">
+                    <img src="${p.imagen_url || App.placeholders.img400}"
+                         class="card-img-top product-image" alt="${this.escapeHtml(p.nombre)}"
+                         onerror="this.src=App.placeholders.img400">
                     <div class="card-body">
                         <span class="card-category">${this.escapeHtml(p.categoria_nombre || '')}</span>
                         <h5 class="card-title">${this.escapeHtml(p.nombre)}</h5>
@@ -175,7 +199,7 @@ const Catalogo = {
                         <div class="mt-2">
                             ${addButton}
                         </div>
-                        <a href="/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
+                        <a href="?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
                     </div>
                 </div>
             </div>`;
@@ -299,6 +323,9 @@ const Catalogo = {
                         App.cartCount = data.data.items ? data.data.items.length : 0;
                         App.updateCartBadge();
                         App.showToast(`${nombre} agregado al carrito`, 'success');
+                        if (typeof Carrito !== 'undefined') {
+                            Carrito.loadCart();
+                        }
                     } else {
                         App.showToast(data.error?.message || 'Error al agregar', 'error');
                     }
@@ -342,44 +369,8 @@ const Catalogo = {
         }
     },
 
-    /**
-     * Renderiza detalle de producto
-     */
-    renderDetail(product) {
-        const container = document.getElementById('product-detail');
-        if (!container) return;
-
-        const addButton = product.sin_stock
-            ? '<button class="btn btn-secondary btn-lg" disabled>Sin Stock</button>'
-            : `<button class="btn btn-accent btn-lg" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
-
-        container.innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <img src="${product.imagen_url || 'https://via.placeholder.com/600x400?text=Sin+Imagen'}"
-                         class="img-fluid rounded" alt="${this.escapeHtml(product.nombre)}"
-                         onerror="this.src='https://via.placeholder.com/600x400?text=Sin+Imagen'">
-                </div>
-                <div class="col-md-6">
-                    <span class="badge bg-secondary mb-2">${this.escapeHtml(product.categoria_nombre || '')}</span>
-                    <h2>${this.escapeHtml(product.nombre)}</h2>
-                    <h3 class="text-primary mb-3">${product.precio_formateado}</h3>
-                    <p class="lead">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
-                    <div class="mb-3">
-                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} fs-6">
-                            ${product.sin_stock ? 'Sin Stock' : 'Stock: ' + product.stock + ' unidades'}
-                        </span>
-                    </div>
-                    <div class="d-flex gap-2 align-items-center">
-                        <input type="number" id="qty-detail" class="form-control" style="width:80px" value="1" min="1" max="${product.stock}">
-                        ${addButton}
-                    </div>
-                    <hr class="my-4">
-                    <p class="text-muted small">SKU: PROD-${product.id} | ${product.sin_stock ? '⚠️ Producto agotado' : '✅ Disponible'}</p>
-                </div>
-            </div>`;
-
         // Botón agregar del detalle
+    initDetailEvents(product) {
         const btnDetail = document.getElementById('btn-add-detail');
         if (btnDetail) {
             btnDetail.addEventListener('click', async () => {
@@ -402,6 +393,9 @@ const Catalogo = {
                         App.cartCount = data.data.items ? data.data.items.length : 0;
                         App.updateCartBadge();
                         App.showToast(`${product.nombre} (x${qty}) agregado al carrito`, 'success');
+                        if (typeof Carrito !== 'undefined') {
+                            Carrito.loadCart();
+                        }
                     } else {
                         App.showToast(data.error?.message || 'Error', 'error');
                     }
@@ -412,6 +406,334 @@ const Catalogo = {
                 btnDetail.disabled = false;
                 btnDetail.textContent = 'Agregar al Carrito';
             });
+        }
+    },
+
+    /**
+     * Aplica fallback a imágenes rotas
+     */
+    applyImageFallbacks(container) {
+        const fallback = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22400%22%20height%3D%22220%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Crect%20width%3D%22400%22%20height%3D%22220%22%20fill%3D%22%23f0f0f0%22/%3E%3Ctext%20x%3D%2220%22%20y%3D%22120%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2220%22%20fill%3D%22%23757575%22%3ESin%20Imagen%3C/text%3E%3C/svg%3E';
+        container.querySelectorAll('img.product-image').forEach(img => {
+            img.addEventListener('error', () => {
+                if (img.src !== fallback) {
+                    img.src = fallback;
+                }
+            });
+        });
+    },
+
+    /**
+     * Carga los productos para las secciones principales de la home
+     */
+    async loadHomeSections() {
+        await Promise.all([
+            this.loadSectionProducts(1, 'tech-section-container', 4),
+            this.loadSectionProducts(8, 'sports-section-container', 4),
+            this.loadSectionProducts(5, 'fashion-section-container', 4),
+            this.loadSectionProducts(10, 'books-section-container', 4)
+        ]);
+    },
+
+    /**
+     * Carga productos de una sección específica
+     */
+    async loadSectionProducts(catId, containerId, limit = 4) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+
+        try {
+            const resp = await fetch(`${App.apiBase}/catalogo?categoria=${catId}&por_pagina=${limit}`);
+            const data = await resp.json();
+
+            if (data.success && data.data && data.data.length > 0) {
+                container.innerHTML = data.data.map(p => this.productCard(p)).join('');
+                this.applyImageFallbacks(container);
+            } else {
+                container.innerHTML = '<div class="col-12 text-center py-4 text-muted">No hay productos en esta categoría.</div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="col-12 text-center py-4 text-danger">Error al cargar productos.</div>';
+        }
+    },
+
+    /**
+     * Configura eventos de navegación y vista de la home categorizada
+     */
+    initHomeEvents() {
+        // Clic en píldoras o ver todo
+        document.querySelectorAll('.view-category-btn-home').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const catId = link.dataset.cat;
+                if (!catId) return;
+
+                this.filters.categoria = catId;
+                this.currentPage = 1;
+
+                // Cambiar visualización
+                document.getElementById('catalog-home-view')?.classList.add('d-none');
+                document.getElementById('catalog-search-view')?.classList.remove('d-none');
+
+                // Título descriptivo
+                let catName = link.textContent.trim();
+                // Limpiar emoticonos o textos adicionales
+                if (link.classList.contains('view-category-btn-home') && link.closest('section')) {
+                    catName = link.closest('section').querySelector('h3').textContent.trim();
+                }
+
+                const titleEl = document.getElementById('search-results-title');
+                if (titleEl) titleEl.textContent = 'Productos en ' + catName;
+
+                this.loadProducts();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+
+        // Clic en volver al inicio
+        const btnClear = document.getElementById('btn-clear-search-filters');
+        if (btnClear) {
+            btnClear.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.filters = {};
+                this.currentPage = 1;
+
+                // Limpiar barra de búsqueda global
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) searchInput.value = '';
+
+                // Limpiar URL query params
+                window.history.pushState({}, '', window.location.pathname);
+
+                // Alternar visualización
+                document.getElementById('catalog-search-view')?.classList.add('d-none');
+                document.getElementById('catalog-home-view')?.classList.remove('d-none');
+
+                this.loadHomeSections();
+            });
+        }
+    },
+
+    /**
+     * Renderiza detalle de producto consolidado
+     */
+    renderDetail(product) {
+        const container = document.getElementById('product-detail');
+        if (!container) return;
+
+        const addButton = product.sin_stock
+            ? '<button class="btn btn-secondary btn-lg" disabled>Sin Stock</button>'
+            : `<button class="btn btn-accent btn-lg px-4" id="btn-add-detail" data-id="${product.id}">Agregar al Carrito</button>`;
+
+        // Aquí unimos el diseño completo con la sección de reseñas
+        container.innerHTML = `
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="./" class="btn btn-outline-secondary btn-sm mb-3">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="product-detail-img-frame">
+                        <img src="${product.imagen_url || 'https://via.placeholder.com/600x400'}" 
+                             alt="${this.escapeHtml(product.nombre)}"
+                             onerror="this.src='https://via.placeholder.com/600x400'">
+                    </div>
+                </div>
+                <div class="col-md-6 text-white d-flex flex-column justify-content-center">
+                    <div class="mb-3">
+                        <span class="badge bg-secondary product-detail-badge">${this.escapeHtml(product.categoria_nombre || '')}</span>
+                    </div>
+                    <h2 class="product-detail-title text-white">${this.escapeHtml(product.nombre)}</h2>
+                    <h3 class="product-detail-price mb-3">${product.precio_formateado}</h3>
+                    <p class="lead text-light mb-4">${this.escapeHtml(product.descripcion || 'Sin descripción')}</p>
+                    
+                    <div class="mb-4">
+                        <span class="badge ${product.sin_stock ? 'bg-danger' : 'bg-success'} product-detail-badge fs-6">
+                            <i class="bi ${product.sin_stock ? 'bi-x-circle-fill' : 'bi-check-circle-fill'} me-1"></i>
+                            ${product.sin_stock ? 'Sin Stock' : 'Stock: ' + product.stock + ' unidades'}
+                        </span>
+                    </div>
+
+                    <div class="d-flex gap-3 align-items-center mb-4 flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <label for="qty-detail" class="me-2 text-muted small fw-bold text-uppercase">Cant:</label>
+                            <input type="number" id="qty-detail" class="form-control qty-input-detail" value="1" min="1" max="${product.stock}">
+                        </div>
+                        ${addButton}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-5 pt-4 border-top text-white" id="reviews-section">
+                <div class="col-lg-8 mx-auto">
+                    <h3 class="fw-bold mb-4 text-white"><i class="bi bi-chat-square-text text-primary me-2"></i>Reseñas</h3>
+                    
+                    <form id="form-review" data-product-id="${product.id}" class="mb-4 p-3 bg-dark-card rounded border border-secondary border-opacity-10">
+                        <div class="mb-3">
+                            <label class="text-light mb-1 fw-semibold small">Calificación:</label>
+                            <select id="review-cal" class="form-select w-auto">
+                                <option value="5">5 Estrellas</option>
+                                <option value="4">4 Estrellas</option>
+                                <option value="3">3 Estrellas</option>
+                                <option value="2">2 Estrellas</option>
+                                <option value="1">1 Estrella</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-light mb-1 fw-semibold small">Comentario:</label>
+                            <textarea id="review-comment" class="form-control" placeholder="Escribe tu reseña aquí..." rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-4">Publicar Reseña</button>
+                    </form>
+
+                    <div id="reviews-container"></div>
+                </div>
+            </div>`;
+
+        // Inicializar lógica
+        this.loadReviews(product.id, 1);
+        this.initReviewEvents();
+        this.initDetailEvents(product);
+    },
+
+    async loadReviews(productId, page = 1) {
+        // Usamos un pequeño delay para asegurar que el DOM terminó de renderizar
+        setTimeout(async () => {
+            const container = document.getElementById('reviews-container');
+            
+            if (!container) return;
+
+            try {
+                const resp = await fetch(`${App.apiBase}/catalogo/${productId}/resenas?pagina=${page}&t=${Date.now()}`);
+                const data = await resp.json();
+
+                const lista = data.resenas || data.data || [];
+
+                if (lista.length > 0) {
+                    container.innerHTML = lista.map(r => {
+                        const stars = Array(5).fill(0).map((_, i) => 
+                            i < r.calificacion ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-warning"></i>'
+                        ).join('');
+                        const isAdmin = this.isAdmin(); 
+                        const deleteBtn = isAdmin ? `<button onclick="Catalogo.deleteResena(${r.id})" class="btn btn-sm btn-outline-danger ms-2 border-0" title="Eliminar"><i class="bi bi-trash"></i></button>` : '';
+                        
+                        return `
+                            <div class="card mb-3 shadow-sm border border-secondary border-opacity-10">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong>${this.escapeHtml(r.nombre)}</strong>
+                                            <div class="d-flex align-items-center">
+                                                <div class="text-warning small me-2">${stars}</div>
+                                                ${deleteBtn}
+                                            </div>
+                                        </div>
+                                        <p class="mb-0 text-muted small">${this.escapeHtml(r.comentario)}</p>
+                                    </div>
+                                </div>`;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p class="text-muted">Aún no hay reseñas.</p>';
+                }
+            } catch (e) {
+                console.error("Error cargando reseñas:", e);
+                container.innerHTML = '<p class="text-danger">Error al cargar reseñas.</p>';
+            }
+        }, 100);
+    },
+
+   initReviewEvents() {
+        const form = document.getElementById('form-review');
+        if (!form) return;
+
+        const token = localStorage.getItem('uct_auth_token');
+        
+        if (!token) {
+            form.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = true);
+            if (!document.getElementById('login-warning-msg')) {
+                const msg = document.createElement('p');
+                msg.id = 'login-warning-msg';
+                msg.className = 'text-muted small mt-2';
+                msg.innerHTML = '<i class="bi bi-info-circle"></i> Debes <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">iniciar sesión</a> para comentar.';
+                form.appendChild(msg);
+            }
+            return;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cal = document.getElementById('review-cal').value;
+            const com = document.getElementById('review-comment').value;
+            
+            try {
+                const resp = await fetch(`${App.apiBase}/catalogo/resenas`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ id_producto: form.dataset.productId, calificacion: cal, comentario: com })
+                });
+                
+                if (resp.ok) {
+                    alert('¡Gracias por tu reseña!');
+                    form.reset();
+                    this.loadReviews(form.dataset.productId);
+                } else {
+                    alert('Ya hay una reseña ingresada');
+                }
+            } catch (err) { 
+                console.error(err);
+                alert('Error de conexión.'); 
+            }
+        });
+    },
+
+    isAdmin() {
+    const token = localStorage.getItem('uct_auth_token');
+    if (!token) return false;
+    
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const payload = JSON.parse(jsonPayload);
+        
+        return payload.rol === 'admin' || payload.role === 'admin' || payload.is_admin === true;
+    } catch (e) {
+        return false;
+    }
+},
+
+    async deleteResena(id) {
+        if (!confirm('¿Estás seguro de eliminar esta reseña?')) return;
+
+        const token = localStorage.getItem('uct_auth_token');
+        try {
+            const resp = await fetch(`${App.apiBase}/admin/resenas/${id}`, {
+                method: 'DELETE',
+                headers: { 
+                    'Authorization': `Bearer ${token}` 
+                }
+            });
+            
+            if (resp.ok) {
+                alert('Reseña eliminada');
+                const productId = document.getElementById('form-review').dataset.productId;
+                this.loadReviews(productId);
+            } else {
+                alert('Error al eliminar');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error de conexión');
         }
     }
 };

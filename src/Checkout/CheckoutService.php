@@ -23,8 +23,8 @@ class CheckoutService
     public function __construct(CheckoutRepository $repository)
     {
         $this->repository = $repository;
-        $this->carritoService = new CarritoService(new CarritoRepository());
         $this->catalogoService = new CatalogoService(new CatalogoRepository());
+        $this->carritoService = new CarritoService(new CarritoRepository(), $this->catalogoService);
     }
 
     /**

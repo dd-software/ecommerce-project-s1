@@ -1,4 +1,5 @@
 Options -MultiViews -Indexes
+DirectoryIndex index.html
 RewriteEngine On
 
 <IfModule headers_module>
@@ -6,11 +7,18 @@ RewriteEngine On
     Header always set X-Frame-Options "DENY"
     Header always set X-XSS-Protection "1; mode=block"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data:; font-src 'self' https://cdn.jsdelivr.net"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://www.paypal.com https://www.paypalobjects.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src * data: blob:; font-src 'self' https://cdn.jsdelivr.net; frame-src 'self' https://www.paypal.com https://www.sandbox.paypal.com; connect-src 'self' https://*.paypal.com https://cdn.jsdelivr.net"
     Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Authorization, Content-Type, X-Request-ID"
     Header always set Access-Control-Max-Age "86400"
+    
+    # Evitar el caché de archivos HTML para prevenir redirecciones obsoletas guardadas en caché
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
 </IfModule>
 
 <IfModule !headers_module>
@@ -20,6 +28,10 @@ RewriteEngine On
 # Manejo de preflight OPTIONS
 RewriteCond %{REQUEST_METHOD} OPTIONS
 RewriteRule ^ - [R=200,L]
+
+# Pasar Authorization a PHP para que JWT pueda leerse
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 
 # Permitir acceso directo a archivos y directorios existentes (assets, imágenes)
 RewriteCond %{REQUEST_FILENAME} !-f

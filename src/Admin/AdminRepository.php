@@ -20,6 +20,19 @@ class AdminRepository
     }
 
     // ========== Dashboard ==========
+    public function obtenerProductoPorId(int $id): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT p.*, c.nombre as categoria_nombre
+            FROM productos p
+            LEFT JOIN categorias c ON p.id_categoria = c.id
+            WHERE p.id = :id AND p.deleted_at IS NULL"
+        );
+        $stmt->execute([':id' => $id]);
+        $producto = $stmt->fetch() ?: [];
+        $producto['precio_formateado'] = '$' . number_format($producto['precio'] / 100, 0, ',', '.');
+        return $producto;
+    }
 
     public function contarProductos(): int
     {
@@ -314,6 +327,53 @@ class AdminRepository
         $stmt->execute([':activo' => $activo ?? 1, ':id' => $id]);
     }
 
+    public function obtenerUsuarioPorId(int $id): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT id, nombre, apellido, email, rol, activo 
+             FROM usuarios WHERE id = :id AND deleted_at IS NULL"
+        );
+        $stmt->execute([':id' => $id]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
+
+    public function existeEmail(string $email, int $excluirId): bool
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(*) as total 
+             FROM usuarios 
+             WHERE email = :email AND id != :id AND deleted_at IS NULL"
+        );
+        $stmt->execute([':email' => strtolower(trim($email)), ':id' => $excluirId]);
+        return (int)$stmt->fetch()['total'] > 0;
+    }
+
+    public function actualizarUsuario(int $id, array $data): void
+    {
+        $sets = [];
+        $params = [':id' => $id];
+
+        foreach ($data as $campo => $valor) {
+            $sets[] = "{$campo} = :{$campo}";
+            $params[":{$campo}"] = $valor;
+        }
+
+        if (empty($sets)) {
+            return;
+        }
+
+        $sql = "UPDATE usuarios SET " . implode(', ', $sets) . " WHERE id = :id AND deleted_at IS NULL";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+    }
+
+    public function eliminarUsuario(int $id): void
+    {
+        $stmt = $this->db->prepare("UPDATE usuarios SET deleted_at = NOW() WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+    }
+
     // ========== Reportes ==========
 
     public function obtenerReporteVentas(string $periodo): array
@@ -362,5 +422,12 @@ class AdminRepository
         $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+    
+    public function eliminarResena(int $id): void
+    {
+        $db = $this->db;
+        $stmt = $db->prepare("DELETE FROM resenas WHERE id = ?");
+        $stmt->execute([$id]);
     }
 }

@@ -44,6 +44,17 @@ if (APP_ENV === 'development') {
 // Crear router y registrar rutas
 $router = new Router();
 
+// Servir la página de inicio (index.html) si se accede a la raíz
+$router->get('/', function($request, $response) {
+    $htmlPath = __DIR__ . '/index.html';
+    if (file_exists($htmlPath)) {
+        header('Content-Type: text/html; charset=utf-8');
+        readfile($htmlPath);
+    } else {
+        $response->error('NOT_FOUND', 'Página no encontrada.', 404);
+    }
+});
+
 // ============================================
 // Rutas de API
 // ============================================
@@ -60,6 +71,9 @@ $router->get('/api/catalogo', [CatalogoController::class, 'listar']);
 $router->get('/api/catalogo/categorias', [CatalogoController::class, 'categorias']);
 $router->get('/api/catalogo/destacados', [CatalogoController::class, 'destacados']);
 $router->get('/api/catalogo/{id}', [CatalogoController::class, 'detalle']);
+$router->get('/api/catalogo/{id}/resenas', [CatalogoController::class, 'listarResenas']);
+$router->post('/api/catalogo/resenas', [CatalogoController::class, 'crearResena'], auth: true);
+$router->post('/api/catalogo/resenas/reportar', [CatalogoController::class, 'reportarResena'], auth: true);
 
 // --- Módulo B: Carrito ---
 $router->get('/api/carrito', [CarritoController::class, 'ver']); // auth opcional
@@ -76,8 +90,10 @@ $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], 
 
 // --- Módulo E: Pagos ---
 $router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
+$router->get('/api/pagos/config', [PagosController::class, 'obtenerConfig'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
+
 
 // --- Módulo F: Inventario ---
 $router->get('/api/inventario', [InventarioController::class, 'verificar']);
@@ -87,16 +103,24 @@ $router->post('/api/inventario/ajustar', [InventarioController::class, 'ajustar'
 
 // --- Módulo G: Administración ---
 $router->get('/api/admin/dashboard', [AdminController::class, 'dashboard'], auth: true, admin: true);
+$router->post('/api/admin/tipo-cambio', [AdminController::class, 'actualizarTipoCambio'], auth: true, admin: true);
+$router->post('/api/admin/productos/upload-imagen', [AdminController::class, 'subirImagen'], auth: true, admin: true);
 $router->get('/api/admin/productos', [AdminController::class, 'listarProductos'], auth: true, admin: true);
 $router->post('/api/admin/productos', [AdminController::class, 'crearProducto'], auth: true, admin: true);
+$router->get('/api/admin/productos/{id}', [AdminController::class, 'obtenerProducto'], auth: true, admin: true);
 $router->put('/api/admin/productos/{id}', [AdminController::class, 'actualizarProducto'], auth: true, admin: true);
 $router->delete('/api/admin/productos/{id}', [AdminController::class, 'eliminarProducto'], auth: true, admin: true);
 $router->get('/api/admin/pedidos', [AdminController::class, 'listarPedidos'], auth: true, admin: true);
 $router->patch('/api/admin/pedidos/{id}/estado', [AdminController::class, 'cambiarEstadoPedido'], auth: true, admin: true);
 $router->get('/api/admin/usuarios', [AdminController::class, 'listarUsuarios'], auth: true, admin: true);
+$router->get('/api/admin/usuarios/{id}', [AdminController::class, 'obtenerUsuario'], auth: true, admin: true);
+$router->put('/api/admin/usuarios/{id}', [AdminController::class, 'actualizarUsuario'], auth: true, admin: true);
 $router->patch('/api/admin/usuarios/{id}/estado', [AdminController::class, 'toggleUsuario'], auth: true, admin: true);
+$router->delete('/api/admin/usuarios/{id}', [AdminController::class, 'eliminarUsuario'], auth: true, admin: true);
 $router->get('/api/admin/reportes/ventas', [AdminController::class, 'reporteVentas'], auth: true, admin: true);
 $router->get('/api/admin/reportes/productos-mas-vendidos', [AdminController::class, 'productosMasVendidos'], auth: true, admin: true);
+$router->get('/api/admin/resenas', [AdminController::class, 'listarResenas'], auth: true, admin: true);
+$router->delete('/api/admin/resenas/{id}', [AdminController::class, 'eliminarResena'], auth: true, admin: true);
 
 // --- Módulo H: Integración ---
 $router->get('/api/health', [IntegracionController::class, 'health']);

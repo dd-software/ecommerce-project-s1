@@ -53,7 +53,7 @@ class CatalogoController
             );
 
         } catch (\Exception $e) {
-            $response->error('SERVER_ERROR', 'Error al obtener productos: ' . $e->getMessage(), 500);
+            $response->error('SERVER_ERROR', 'Error al obtener producto.', 500);
         }
     }
 
@@ -75,7 +75,11 @@ class CatalogoController
             $response->json($producto);
 
         } catch (\Exception $e) {
-            $response->error('SERVER_ERROR', 'Error al obtener producto.', 500);
+            // CAMBIA ESTO TEMPORALMENTE:
+            // $response->error('SERVER_ERROR', 'Error al obtener producto.', 500);
+            
+            // POR ESTO:
+            $response->error('SERVER_ERROR', $e->getMessage(), 500); 
         }
     }
 
@@ -104,6 +108,51 @@ class CatalogoController
             $response->json($productos);
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al obtener destacados.', 500);
+        }
+    }
+    /**
+     * GET /api/catalogo/{id}/resenas
+     * Lista las reseñas activas de un producto específico
+     */
+    public function listarResenas(Request $request, Response $response, array $params): void
+    {
+        try {
+            $idProducto = (int)$params['id'];
+            $pagina = max(1, (int)($request->getQuery('pagina', 1)));
+            $porPagina = min(50, max(1, (int)($request->getQuery('por_pagina', 10))));
+
+            $resultado = $this->service->listarResenasProducto($idProducto, $pagina, $porPagina);
+            
+            $response->paginated($resultado['resenas'], $resultado['total'], $pagina, $porPagina);
+
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * POST /api/catalogo/resenas
+     * Crea una nueva reseña (Requiere autenticación)
+     */
+    public function crearResena(Request $request, Response $response, array $params): void
+    {
+        // Rescatamos al usuario logueado gracias al middleware JWT
+        $user = $request->getAttribute('authenticated_user');
+
+        try {
+            $data = $request->getBody();
+            $request->validateRequired(['id_producto', 'calificacion', 'comentario']);
+
+            // Inyectamos el ID del usuario directamente desde el token por seguridad
+            $data['id_usuario'] = (int)$user['id'];
+            
+            $resena = $this->service->crearResena($data);
+            $response->json($resena, 201);
+
+        } catch (\InvalidArgumentException $e) {
+            $response->error('VALIDATION_ERROR', $e->getMessage(), 422);
+        } catch (\Exception $e) {
+            $response->error('SERVER_ERROR', 'Error al crear la reseña.', 500);
         }
     }
 }

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 /**
  * CarritoController - Maneja el carrito de compras
+ * REFACTORIZADO: Inyecta CatalogoService al Service
  */
 namespace App\Carrito;
 
+use App\Catalogo\CatalogoService;
+use App\Catalogo\CatalogoRepository;
 use App\Core\{Request, Response};
 
 class CarritoController
@@ -15,7 +18,13 @@ class CarritoController
 
     public function __construct()
     {
-        $this->service = new CarritoService(new CarritoRepository());
+        // ✅ CAMBIO: Crear CatalogoService aquí y pasarlo al Service
+        $catalogoService = new CatalogoService(new CatalogoRepository());
+        
+        $this->service = new CarritoService(
+            new CarritoRepository(),
+            $catalogoService  // ← INYECTADO
+        );
     }
 
     /**
@@ -25,11 +34,10 @@ class CarritoController
     public function ver(Request $request, Response $response, array $params): void
     {
         try {
-            $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
-
+            ['userId' => $userId, 'sessionId' => $sessionId] = $this->obtenerContextoUsuario($request);
+            
             $carrito = $this->service->obtenerCarrito(
-                userId: $user ? (int)$user['id'] : null,
+                userId: $userId,
                 sessionId: $sessionId
             );
 
@@ -57,22 +65,17 @@ class CarritoController
                 return;
             }
 
-            $user = $request->getAttribute('authenticated_user');
-            $sessionId = $data['session_id'] ?? ($request->getHeader('X-Session-Id') ?? null);
+            ['userId' => $userId, 'sessionId' => $sessionId] = $this->obtenerContextoUsuario($request, $data);
 
             $this->service->agregarItem(
                 productoId: $productoId,
                 cantidad: $cantidad,
-                userId: $user ? (int)$user['id'] : null,
+                userId: $userId,
                 sessionId: $sessionId
             );
 
             // Retornar carrito actualizado
-            $carrito = $this->service->obtenerCarrito(
-                userId: $user ? (int)$user['id'] : null,
-                sessionId: $sessionId
-            );
-
+            $carrito = $this->obtenerCarritoConContexto($userId, $sessionId);
             $response->json($carrito, 201);
 
         } catch (\InvalidArgumentException $e) {
@@ -106,20 +109,14 @@ class CarritoController
                 return;
             }
 
-            $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
-
             if ($cantidad === 0) {
                 $this->service->eliminarItem($itemId);
             } else {
                 $this->service->actualizarCantidad($itemId, $cantidad);
             }
 
-            $carrito = $this->service->obtenerCarrito(
-                userId: $user ? (int)$user['id'] : null,
-                sessionId: $sessionId
-            );
-
+            ['userId' => $userId, 'sessionId' => $sessionId] = $this->obtenerContextoUsuario($request);
+            $carrito = $this->obtenerCarritoConContexto($userId, $sessionId);
             $response->json($carrito);
 
         } catch (\InvalidArgumentException $e) {
@@ -141,14 +138,8 @@ class CarritoController
             $itemId = (int)$params['id'];
             $this->service->eliminarItem($itemId);
 
-            $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
-
-            $carrito = $this->service->obtenerCarrito(
-                userId: $user ? (int)$user['id'] : null,
-                sessionId: $sessionId
-            );
-
+            ['userId' => $userId, 'sessionId' => $sessionId] = $this->obtenerContextoUsuario($request);
+            $carrito = $this->obtenerCarritoConContexto($userId, $sessionId);
             $response->json($carrito);
 
         } catch (\Exception $e) {
@@ -163,11 +154,10 @@ class CarritoController
     public function vaciar(Request $request, Response $response, array $params): void
     {
         try {
-            $user = $request->getAttribute('authenticated_user');
-            $sessionId = $request->getHeader('X-Session-Id') ?? null;
+            ['userId' => $userId, 'sessionId' => $sessionId] = $this->obtenerContextoUsuario($request);
 
             $this->service->vaciarCarrito(
-                userId: $user ? (int)$user['id'] : null,
+                userId: $userId,
                 sessionId: $sessionId
             );
 
@@ -204,5 +194,39 @@ class CarritoController
         } catch (\Exception $e) {
             $response->error('SERVER_ERROR', 'Error al sincronizar carrito.', 500);
         }
+    }
+
+    /**
+     * MÉTODO PRIVADO: Extrae contexto de usuario/session de Request
+    
+     * @param Request $request
+     * @param array $data Datos opcionales del body (para agregar, contiene session_id)
+     * @return array ['userId' => ?int, 'sessionId' => ?string]
+     */
+    private function obtenerContextoUsuario(Request $request, array $data = []): array
+    {
+        $user = $request->getAttribute('authenticated_user');
+        $userId = $user ? (int)$user['id'] : null;
+        
+        // Intenta obtener sessionId de: body → headers → null
+        $sessionId = $data['session_id'] 
+            ?? $request->getHeader('X-Session-Id')
+            ?? null;
+
+        return ['userId' => $userId, 'sessionId' => $sessionId];
+    }
+
+    /**
+     * MÉTODO PRIVADO: Obtiene carrito usando contexto extraído
+     * @param ?int $userId         
+     * @param ?string $sessionId
+     * @return array Carrito con items y totales
+     */
+    private function obtenerCarritoConContexto(?int $userId, ?string $sessionId): array
+    {
+        return $this->service->obtenerCarrito(
+            userId: $userId,
+            sessionId: $sessionId
+        );
     }
 }

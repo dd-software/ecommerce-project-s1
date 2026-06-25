@@ -1,433 +1,641 @@
-/* ============================================
-   Design System - UCT Ecommerce
-   Paleta institucional UCT
-   Primario: #003366
-   Secundario/Acento: #F2A900
-   Fondo Claro: #F8F9FA
-   Texto Oscuro: #212529
-   ============================================ */
+/* ==========================================================================
+   Design System - UCT Ecommerce DARK CYBER-PUNK (PREMIUM REFACTOR)
+   ========================================================================== */
 
 :root {
-    --uct-primary: #003366;
-    --uct-primary-hover: #002244;
-    --uct-primary-light: #1a4877;
-    --uct-accent: #F2A900;
-    --uct-accent-hover: #d49500;
-    --uct-bg-light: #F8F9FA;
-    --uct-text-dark: #212529;
-    --uct-text-muted: #6c757d;
-    --uct-success: #198754;
-    --uct-danger: #DC3545;
-    --uct-warning: #FFC107;
-    --uct-info: #0DCAF0;
+    --uct-bg-main: #0a0b0e;         /* Negro profundo azulado */
+    --uct-bg-card: #141722;         /* Gris azulado oscuro visible para las tarjetas */
+    --uct-bg-surface: #1e2235;      /* Superficie más clara para elementos internos y modales */
+    
+    --uct-primary: #ff2a4b;         /* Rojo Neón de alta visibilidad */
+    --uct-primary-hover: #ff4f6a;
+    --uct-primary-light: #ff758c;
+    
+    --uct-text-main: #ffffff;       /* Blanco puro absoluto */
+    --uct-text-muted: #cbd5e1;      /* Gris claro/blanco roto optimizado para lectura densa */
+    --uct-text-dim: #94a3b8;        /* Gris medio para categorías secundarias */
+    
+    --uct-success: #10b981;
+    --uct-warning: #f59e0b;
+    --uct-danger: #ef4444;
+
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 42, 75, 0.15);
 }
 
-/* === General === */
+/* === Reset, Base & Suavizado de Fuentes (Calidad de Estudio) === */
+* {
+    box-sizing: border-box !important;
+    margin: 0;
+    padding: 0;
+    /* Suavizado avanzado obligatorio para fuentes claras sobre fondos oscuros */
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+}
+
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--uct-bg-light);
-    color: var(--uct-text-dark);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    background-color: var(--uct-bg-main) !important;
+    color: var(--uct-text-main) !important;
+    line-height: 1.65 !important; /* Más separación vertical entre líneas */
+    letter-spacing: 0.025em !important; /* Espacio extra para eliminar fatiga visual */
+    font-size: 16px !important; /* Base incrementada */
 }
 
-/* === Navbar === */
-.navbar-uct {
-    background-color: var(--uct-primary);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+/* === Títulos de la Sección (Agrandados y Estilizados) === */
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+    color: var(--uct-text-main) !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 700 !important;
 }
 
-.navbar-uct .navbar-brand {
-    color: white !important;
-    font-weight: 700;
-    font-size: 1.4rem;
+.section-title, h3, [class*="title"] {
+    font-size: 1.85rem !important; /* Más grande e imponente */
+    font-weight: 800 !important;
+    color: var(--uct-text-main) !important;
+    border-bottom: 2px solid var(--uct-primary) !important;
+    padding-bottom: 0.75rem !important;
+    margin-bottom: 2rem !important;
 }
 
-.navbar-uct .nav-link {
-    color: rgba(255,255,255,0.85) !important;
-    transition: color 0.2s;
+a[href*="todo"], .btn-link, .text-primary {
+    color: var(--uct-primary-light) !important;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important; /* Enlace de ver todo más visible */
+    text-decoration: none !important;
+}
+a[href*="todo"]:hover {
+    color: var(--uct-text-main) !important;
+    text-shadow: 0 0 8px var(--uct-primary) !important;
 }
 
-.navbar-uct .nav-link:hover {
-    color: white !important;
+/* === Tarjetas de Producto (Product Cards Modernizadas) === */
+.product-card, .card {
+    background-color: var(--uct-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    box-shadow: var(--shadow-md) !important;
 }
 
-.navbar-uct .badge-cart {
-    background-color: var(--uct-accent);
-    color: var(--uct-text-dark);
-    font-size: 0.7rem;
-    position: relative;
-    top: -8px;
-    left: -5px;
-}
-
-/* === Botones === */
-.btn-primary-uct {
-    background-color: var(--uct-primary);
-    border-color: var(--uct-primary);
-    color: white;
-}
-
-.btn-primary-uct:hover {
-    background-color: var(--uct-primary-hover);
-    border-color: var(--uct-primary-hover);
-    color: white;
-}
-
-.btn-accent {
-    background-color: var(--uct-accent);
-    border-color: var(--uct-accent);
-    color: var(--uct-text-dark);
-    font-weight: 600;
-}
-
-.btn-accent:hover {
-    background-color: var(--uct-accent-hover);
-    border-color: var(--uct-accent-hover);
-    color: var(--uct-text-dark);
-}
-
-.btn-outline-uct {
-    color: var(--uct-primary);
-    border-color: var(--uct-primary);
-}
-
-.btn-outline-uct:hover {
-    background-color: var(--uct-primary);
-    color: white;
-}
-
-/* === Cards de Producto === */
 .product-card {
-    border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-    background: white;
-    height: 100%;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 !important;
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transform: translateY(-6px) !important;
+    border-color: var(--uct-primary) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
-.product-card .card-img-top {
-    height: 220px;
-    object-fit: cover;
-    background-color: #f0f0f0;
+/* Contenedor de Imagen */
+.product-card .card-img-top, 
+.product-card [class*="img"] {
+    height: 240px !important; /* Un poco más de aire a la imagen */
+    object-fit: cover !important;
+    background-color: #f1f5f9 !important; /* Fondo claro limpio para los PNGs transparentes */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
+/* Caja elegante de reemplazo cuando no hay imagen */
+.product-card div[style*="background"], 
+.product-card .no-image {
+    background: linear-gradient(135deg, #1e2235 0%, #141722 100%) !important;
+    color: var(--uct-text-dim) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    font-size: 0.95rem !important;
+}
+
+/* Cuerpo interno de la tarjeta */
 .product-card .card-body {
-    display: flex;
-    flex-direction: column;
+    padding: 1.5rem !important; /* Más espacio interno */
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+    background: transparent !important;
 }
 
-.product-card .card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--uct-text-dark);
-    margin-bottom: 0.5rem;
+/* Texto de la Categoría (Etiqueta superior) */
+.product-card .card-category, 
+.product-card [class*="category"] {
+    font-size: 0.8rem !important; /* Agrandado */
+    color: var(--uct-primary-light) !important;
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important; 
+    margin-bottom: 0.5rem !important;
 }
 
-.product-card .card-category {
-    font-size: 0.8rem;
+/* Título del Producto */
+.product-card .card-title, 
+.product-card h5 {
+    font-size: 1.25rem !important; /* ¡Agrandado notablemente! */
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+    color: var(--uct-text-main) !important;
+    margin-bottom: 0.75rem !important;
+}
+
+/* Texto de Descripción (Arreglado el problema de lectura de la captura) */
+.product-card .card-description,
+.product-card p,
+.product-card [class*="description"] {
+    font-size: 0.95rem !important; /* Agrandado para óptima lectura */
+    font-weight: 400 !important;
+    line-height: 1.6 !important;
+    color: var(--uct-text-muted) !important; /* Gris de alto contraste */
+    text-transform: none !important;          
+    font-variant: normal !important;
+    margin-bottom: 1.5rem !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+/* Precio del Producto */
+.product-card .card-price,
+.product-card [class*="price"] {
+    font-size: 1.6rem !important; /* Precio destacado */
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin-top: auto !important;
+    margin-bottom: 1.25rem !important;
+    display: block !important;
+}
+
+/* Botones de acción principal */
+.product-card .btn, .product-card button {
+    width: 100% !important;
+    background: var(--uct-primary) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    padding: 0.75rem 1rem !important; /* Botones con más cuerpo */
+    border-radius: 8px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(255, 42, 75, 0.25) !important;
+}
+
+.product-card .btn:hover {
+    background: var(--uct-primary-hover) !important;
+    box-shadow: 0 6px 18px rgba(255, 42, 75, 0.45) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Botón Ver Detalle / Enlaces secundarios */
+.product-card .btn-link,
+.product-card a:not(.btn) {
+    color: var(--uct-text-dim) !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    margin-top: 0.4rem !important;
+}
+.product-card .btn-link:hover {
+    color: var(--uct-primary-light) !important;
+}
+
+
+/* === Category Pills Superior === */
+#home-category-pills .category-pill,
+#home-category-pills .btn-outline-primary {
+    background: var(--uct-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: var(--uct-text-main) !important;
+    padding: 0.6rem 1.4rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    border-radius: 50px !important;
+}
+#home-category-pills .btn-outline-primary:hover,
+#home-category-pills .btn-outline-primary.active {
+    background: var(--uct-primary) !important;
+    border-color: var(--uct-primary) !important;
+    box-shadow: 0 0 12px rgba(255, 42, 75, 0.3) !important;
+}
+
+/* === REFACTOR CRÍTICO: PANEL DE ADMINISTRACIÓN (image_0565a1.png) === */
+
+/* Título Principal de Paneles */
+h1, .panel-title, h2:contains("Panel") {
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 2rem !important;
+}
+
+/* Menú Lateral Izquierdo (Sidebar) */
+.sidebar, [class*="sidebar"], .nav-flex-column {
+    background-color: var(--uct-bg-card) !important;
+    padding: 1.5rem !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.sidebar a, .nav-flex-column a, [class*="sidebar"] a {
+    color: var(--uct-text-muted) !important;
+    font-size: 1.05rem !important; /* Más grandes los enlaces del menú */
+    font-weight: 600 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px;
+}
+
+.sidebar a:hover, .nav-flex-column a:hover, .sidebar a.active {
+    color: #ffffff !important;
+    background-color: var(--uct-bg-surface) !important;
+    border-left: 3px solid var(--uct-primary) !important;
+}
+
+/* Contadores / Tarjetas de Métricas Superiores (Ej: 20 Productos, $0 Ventas) */
+.metric-card, [class*="card-stats"], .dashboard-stat-card {
+    background-color: var(--uct-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 1.5rem !important;
+    border-radius: 12px !important;
+}
+
+/* El número gigante de la métrica (ej: 20, $0) */
+.metric-card .number, [class*="stat-number"], .display-4 {
+    font-size: 2.2rem !important; /* Gigante y legible */
+    font-weight: 800 !important;
+    color: #ffffff !important;
+}
+
+/* El texto de abajo de la métrica (ej: Productos, Ventas Hoy) */
+.metric-card .label, [class*="stat-label"] {
+    font-size: 0.95rem !important;
+    color: var(--uct-text-dim) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+}
+
+/* Alertas de Stock Bloques (Contenedor azul/blanco de la captura) */
+.alert-card, [class*="card-alert"], .card:has(.alert) {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+/* Forzar la fila interna de la alerta (Donde sale el cable USB-C) */
+.list-group-item, [class*="alert-item"] {
+    background-color: var(--uct-bg-surface) !important;
+    color: #ffffff !important;
+    font-size: 1.05rem !important; /* Nombre del producto agotado más grande */
+    font-weight: 600 !important;
+    padding: 1rem 1.25rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Badge de Stock crítico dentro del admin */
+.badge-danger, .badge[class*="red"], [class*="Stock: 3"] {
+    background-color: var(--uct-danger) !important;
+    color: #ffffff !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    padding: 0.4rem 0.8rem !important;
+    border-radius: 6px !important;
+}
+
+/* === MODALES (Asegurando estabilidad de formularios oscuros) === */
+.modal-content, div.modal-content {
+    background-color: var(--uct-bg-surface) !important;
+    border: 1px solid rgba(255, 42, 75, 0.35) !important;
+    border-radius: 14px !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+.modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.modal-header .btn-close {
+    filter: invert(1) grayscale(1) brightness(2) !important;
+    opacity: 0.9 !important;
+}
+.modal-body input, .modal-body select, input.form-control {
+    background-color: var(--uct-bg-main) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    padding: 0.8rem 1rem !important;
+    border-radius: 8px !important;
+}
+.modal-body input:focus, input.form-control:focus {
+    border-color: var(--uct-primary) !important;
+    box-shadow: 0 0 10px rgba(255, 42, 75, 0.3) !important;
+}
+.modal-body .btn-primary {
+    background: var(--uct-primary) !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    padding: 0.8rem !important;
+    border-radius: 8px !important;
+}
+.modal-body a, .modal-content a {
+    color: var(--uct-primary-light) !important;
+    font-weight: 700 !important;
+}
+
+/* ==========================================================================
+   Refactoring & Corrections for Cyberpunk Aesthetic
+   ========================================================================== */
+
+/* 1. Mapeo de Bootstrap Primario (Azul) a Rojo Neón y Neutral Cyberpunk */
+.bg-primary {
+    background-color: var(--uct-primary) !important;
+}
+.btn-primary {
+    background-color: var(--uct-primary) !important;
+    border-color: var(--uct-primary) !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--uct-primary-hover) !important;
+    border-color: var(--uct-primary-hover) !important;
+}
+.btn-outline-primary {
+    color: var(--uct-primary-light) !important;
+    border-color: var(--uct-primary) !important;
+}
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+    background-color: var(--uct-primary) !important;
+    color: #ffffff !important;
+    border-color: var(--uct-primary) !important;
+}
+.btn-accent {
+    background-color: var(--uct-primary) !important;
+    border-color: var(--uct-primary) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    box-shadow: 0 4px 12px rgba(255, 42, 75, 0.25) !important;
+    transition: all 0.2s ease !important;
+}
+.btn-accent:hover, .btn-accent:focus, .btn-accent:active {
+    background-color: var(--uct-primary-hover) !important;
+    border-color: var(--uct-primary-hover) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(255, 42, 75, 0.45) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Detalle de producto styling helpers */
+.product-detail-price {
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    color: var(--uct-primary-light) !important;
+    letter-spacing: -0.02em !important;
+}
+.product-detail-title {
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.75rem !important;
+}
+.product-detail-badge {
+    text-transform: uppercase !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    font-size: 0.75rem !important;
+    padding: 0.5em 1em !important;
+    border-radius: 4px !important;
+}
+.qty-input-detail {
+    text-align: center !important;
+    font-weight: 700 !important;
+    width: 80px !important;
+    height: 48px !important;
+}
+.page-item.active .page-link {
+    background-color: var(--uct-primary) !important;
+    border-color: var(--uct-primary) !important;
+}
+.badge.bg-primary {
+    background-color: var(--uct-primary) !important;
+}
+.progress-bar {
+    background-color: var(--uct-primary) !important;
+}
+.text-primary {
+    color: var(--uct-primary-light) !important;
+}
+.bg-info, .badge.bg-info {
+    background-color: var(--uct-bg-surface) !important;
+    color: var(--uct-text-muted) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 2. Contraste de Textos en Modo Oscuro (Corrección de invisibilidad) */
+.text-dark {
+    color: var(--uct-text-main) !important;
+}
+.text-muted, .text-secondary {
+    color: var(--uct-text-muted) !important;
+}
+.orders-list-container .card-body p, 
+.orders-list-container .card-body span,
+.offcanvas-body p,
+.offcanvas-body span,
+#order-detail-content p,
+#order-detail-content span {
     color: var(--uct-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.product-card .card-price {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--uct-primary);
-    margin-top: auto;
+/* 3. Ajuste Cuadrado para Imágenes de Detalle de Producto */
+.product-detail-img-frame {
+    width: 100% !important;
+    max-width: 500px !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
+    background-color: #ffffff !important;
+    padding: 2rem !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin: 0 auto 1.5rem auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-.product-card .stock-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 0.75rem;
+.product-detail-img-frame:hover {
+    border-color: var(--uct-primary) !important;
+    box-shadow: 0 8px 30px rgba(255, 42, 75, 0.25) !important;
 }
 
-/* === Sin Stock === */
-.sin-stock-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.product-detail-img-frame img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    border-radius: 0 !important;
+    border: none !important;
 }
 
-.sin-stock-overlay span {
-    background: var(--uct-danger);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-weight: bold;
+
+/* 4. Estilos de Tablas Oscuras */
+.table, .table-admin {
+    background-color: var(--uct-bg-card) !important;
+    color: var(--uct-text-main) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.table th, .table td {
+    background-color: var(--uct-bg-card) !important;
+    color: var(--uct-text-main) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+.table-hover tbody tr:hover {
+    background-color: var(--uct-bg-surface) !important;
+    color: #ffffff !important;
 }
 
-/* === Hero === */
-.hero-section {
-    background: linear-gradient(135deg, var(--uct-primary) 0%, var(--uct-primary-light) 100%);
-    color: white;
-    padding: 4rem 0;
-    margin-bottom: 2rem;
+/* 5. Carrito Lateral (Offcanvas) en Modo Oscuro */
+.offcanvas, .offcanvas-header, .offcanvas-body {
+    background-color: var(--uct-bg-card) !important;
+    color: var(--uct-text-main) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
-
-.hero-section h1 {
-    font-weight: 800;
-    font-size: 2.5rem;
+.offcanvas .btn-close {
+    filter: invert(1) grayscale(1) brightness(2) !important;
+    opacity: 0.9 !important;
 }
-
-.hero-section .lead {
-    color: rgba(255,255,255,0.9);
-}
-
-/* === Carrito === */
 .cart-item {
-    border-bottom: 1px solid #eee;
-    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: transparent !important;
 }
 
-.cart-item:last-child {
-    border-bottom: none;
+/* 6. Form Controls Generales en Modo Oscuro */
+input.form-control, 
+textarea.form-control, 
+select.form-select, 
+select.form-control,
+.modal-body input, 
+.modal-body select, 
+.modal-body textarea {
+    background-color: var(--uct-bg-main) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    border-radius: 8px !important;
+}
+input.form-control:focus, 
+textarea.form-control:focus, 
+select.form-select:focus, 
+select.form-control:focus {
+    border-color: var(--uct-primary) !important;
+    box-shadow: 0 0 10px rgba(255, 42, 75, 0.3) !important;
 }
 
-.cart-item-img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 8px;
+/* 7. Hover Animado exclusivo para Tarjetas de Catálogo e Historial de Pedidos */
+.product-card:hover, .orders-list-container .card:hover {
+    transform: translateY(-6px) !important;
+    border-color: var(--uct-primary) !important;
+    box-shadow: var(--shadow-lg) !important;
 }
 
-.cart-summary {
-    background: white;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+/* 8. Estilo de Report Card (Contorno rojo y dentro gris) */
+.report-card-custom {
+    border: 1px solid var(--uct-primary) !important;
+    background-color: var(--uct-bg-surface) !important;
+    box-shadow: 0 0 15px rgba(255, 42, 75, 0.15) !important;
+}
+.report-card-custom .card-header {
+    background-color: var(--uct-bg-card) !important;
+    border-bottom: 1px solid var(--uct-primary) !important;
+    color: var(--uct-text-main) !important;
 }
 
-/* === Admin Dashboard === */
-.admin-sidebar {
-    background: var(--uct-primary);
-    min-height: calc(100vh - 56px);
-    padding-top: 1rem;
+/* 9. Imagen de Detalle de Producto en Panel Admin (Estilo SoloTodo) */
+#productDetailModal img {
+    aspect-ratio: 1 / 1 !important;
+    object-fit: contain !important;
+    background-color: #ffffff !important;
+    padding: 1.5rem !important;
+    width: 100% !important;
+    border-radius: 16px !important;
+    border: none !important;
+    display: block !important;
 }
 
-.admin-sidebar .nav-link {
-    color: rgba(255,255,255,0.75);
-    padding: 0.75rem 1rem;
-    border-radius: 0;
-    transition: all 0.2s;
+/* 10. Ocultar flechas del input de cantidad en el carrito */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+.qty-input[type=number] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
 }
 
-.admin-sidebar .nav-link:hover,
-.admin-sidebar .nav-link.active {
-    color: white;
-    background: rgba(255,255,255,0.1);
+/* 11. Botones del Sistema y Checkout */
+.btn-success {
+    background-color: var(--uct-success) !important;
+    border-color: var(--uct-success) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+    transition: all 0.2s ease !important;
+}
+.btn-success:hover, .btn-success:focus, .btn-success:active {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+.btn-outline-secondary {
+    color: var(--uct-text-muted) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: transparent !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+.btn-outline-secondary:hover, .btn-outline-secondary:focus, .btn-outline-secondary:active {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
-.admin-sidebar .nav-link i {
-    width: 20px;
-    text-align: center;
-    margin-right: 0.5rem;
+/* 12. Opciones de Método de Pago (Checkout) */
+.payment-option {
+    background-color: var(--uct-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    padding: 1.25rem !important;
+    transition: all 0.2s ease-in-out !important;
 }
-
-.stat-card {
-    background: white;
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    border-left: 4px solid var(--uct-primary);
+.payment-option:hover {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: var(--uct-bg-surface) !important;
+    transform: translateY(-2px) !important;
 }
-
-.stat-card.accent { border-left-color: var(--uct-accent); }
-.stat-card.success { border-left-color: var(--uct-success); }
-.stat-card.danger { border-left-color: var(--uct-danger); }
-
-.stat-card .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--uct-primary);
+.payment-option.active {
+    background-color: rgba(255, 42, 75, 0.08) !important;
+    border-color: var(--uct-primary) !important;
+    box-shadow: 0 0 15px rgba(255, 42, 75, 0.2) !important;
 }
-
-.stat-card .stat-label {
-    font-size: 0.85rem;
-    color: var(--uct-text-muted);
-    text-transform: uppercase;
+.payment-option.active i {
+    color: var(--uct-primary-light) !important;
 }
-
-/* === Toast Notifications === */
-.toast-container {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1060;
-}
-
-/* === Footer === */
-.footer {
-    background-color: var(--uct-primary);
-    color: rgba(255,255,255,0.8);
-    padding: 2rem 0 1rem;
-    margin-top: auto;
-}
-
-.footer a {
-    color: var(--uct-accent);
-    text-decoration: none;
-}
-
-.footer a:hover {
-    color: white;
-}
-
-/* === Modal === */
-.modal-header-uct {
-    background-color: var(--uct-primary);
-    color: white;
-}
-
-/* === Checkout === */
-.checkout-steps {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-
-.checkout-step {
-    text-align: center;
-    flex: 1;
-    max-width: 200px;
-}
-
-.checkout-step .step-number {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #dee2e6;
-    color: var(--uct-text-muted);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.checkout-step.active .step-number {
-    background: var(--uct-primary);
-    color: white;
-}
-
-.checkout-step.completed .step-number {
-    background: var(--uct-success);
-    color: white;
-}
-
-/* === Responsive === */
-@media (max-width: 768px) {
-    .hero-section {
-        padding: 2rem 0;
-    }
-
-    .hero-section h1 {
-        font-size: 1.8rem;
-    }
-
-    .product-card .card-img-top {
-        height: 160px;
-    }
-
-    .admin-sidebar {
-        min-height: auto;
-    }
-}
-
-/* === Empty State === */
-.empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-}
-
-.empty-state i {
-    font-size: 4rem;
-    color: var(--uct-text-muted);
-    margin-bottom: 1rem;
-}
-
-.empty-state h5 {
-    color: var(--uct-text-muted);
-}
-
-/* === Loading Spinner === */
-.spinner-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-/* === Search bar === */
-.search-bar {
-    position: relative;
-}
-
-.search-bar input {
-    border-radius: 2rem;
-    padding-left: 2.5rem;
-    border: 2px solid #dee2e6;
-    transition: border-color 0.2s;
-}
-
-.search-bar input:focus {
-    border-color: var(--uct-primary);
-    box-shadow: 0 0 0 0.2rem rgba(0,51,102,0.15);
-}
-
-.search-bar .search-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--uct-text-muted);
-}
-
-/* === Tabla admin === */
-.table-admin th {
-    background-color: var(--uct-primary);
-    color: white;
-    font-weight: 500;
-}
-
-.table-admin .btn-action {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-}
-
-/* === Estado badges en pedidos === */
-.badge-estado {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 0.25rem;
-}
-
-.badge-estado.pendiente { background: #ffeaa7; color: #856404; }
-.badge-estado.pagado { background: #81ecec; color: #006064; }
-.badge-estado.en_preparacion { background: #a29bfe; color: #3c1a9e; }
-.badge-estado.enviado { background: #74b9ff; color: #003d6b; }
-.badge-estado.entregado { background: #55efc4; color: #006b3c; }
-.badge-estado.cancelado { background: #fab1a0; color: #8b0000; }
+.payment-option.active span {
+    color: #ffffff !important;
+}

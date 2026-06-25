@@ -71,7 +71,7 @@ class CarritoRepository
     {
         $stmt = $this->db->prepare(
             "SELECT ic.id, ic.id_carrito, ic.id_producto, ic.cantidad, ic.precio_unitario,
-                    p.nombre, p.imagen_url, p.stock, p.slug, p.id_categoria
+                     p.nombre, p.imagen_url, p.stock, p.slug, p.id_categoria
              FROM items_carrito ic
              INNER JOIN productos p ON ic.id_producto = p.id AND p.activo = 1 AND p.deleted_at IS NULL
              WHERE ic.id_carrito = :carrito_id"
@@ -168,7 +168,7 @@ class CarritoRepository
     }
 
     /**
-     * Desactiva un carrito (cuando se hace merge)
+     * Desactiva un carrito
      */
     public function desactivarCarrito(int $carritoId): void
     {
@@ -177,11 +177,10 @@ class CarritoRepository
     }
 
     /**
-     * Desactiva el carrito cuando se convierte en pedido
+     * Desactiva un carrito para checkout (compatible con Checkout de otros equipos)
      */
     public function desactivarParaCheckout(int $carritoId): void
     {
-        $stmt = $this->db->prepare("UPDATE carritos SET activo = 0 WHERE id = :id");
-        $stmt->execute([':id' => $carritoId]);
+        $this->desactivarCarrito($carritoId);
     }
 }
