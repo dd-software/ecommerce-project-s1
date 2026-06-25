@@ -27,45 +27,55 @@ class PayPalService
      */
     public function createOrder(int $carritoId, int $userId): array
     {
-        // 1. Obtener carrito y calcular total real
-        $carrito = $this->checkoutService->obtenerResumenCarrito($carritoId);
-        if (!$carrito || empty($carrito['items'])) {
+        // BUG A fix: Usar CarritoService (no CheckoutService::obtenerResumenCarrito que no existe)
+        $carritoService = new \App\Carrito\CarritoService(new \App\Carrito\CarritoRepository());
+        $carrito = $carritoService->obtenerCarrito(userId: $userId, sessionId: null);
+
+        if (empty($carrito['items'])) {
             throw new \RuntimeException('El carrito está vacío o no existe.');
         }
 
-        $totalCLP = $carrito['total'];
-        
+        // Calcular total real desde los items
+        $totalCLP = 0;
+        foreach ($carrito['items'] as $item) {
+            $totalCLP += (int)$item['precio_unitario'] * (int)$item['cantidad'];
+        }
+
         // Simulación: conversión a USD (asumiendo 1 USD = 900 CLP)
         $totalUSD = round($totalCLP / 900, 2);
 
-        // 2. Crear pedido en estado pendiente si no existe, o reusar
-        // Para simplificar, creamos el pedido con antelación o enviamos un reference ID temporal
+        // BUG B fix: crearPedido retorna array; argumentos en orden correcto
+        $resultado = $this->checkoutService->crearPedido(
+            $userId,
+            $carritoId,
+            'Pendiente PayPal',
+            '',
+            '',
+            null
+        );
+        $pedidoId = $resultado['id'];
+
+        // 3. Crear orden en PayPal
+        $paypalOrder = $this->payPalClient->createOrder((float)$totalUSD, (string)$pedidoId);
+
+        // BUG C fix: solo el UPDATE de paypal_order_id va en su propia transacción
         $db = Database::getInstance();
-        $db->beginTransaction();
         try {
-            $pedidoId = $this->checkoutService->crearPedido(
-                $carritoId,
-                $userId,
-                ['direccion_envio' => 'Pendiente', 'telefono' => '', 'notas' => '']
-            );
-
-            // 3. Crear orden en PayPal
-            $paypalOrder = $this->payPalClient->createOrder((float)$totalUSD, (string)$pedidoId);
-
-            // 4. Actualizar pedido con el paypal_order_id
+            $db->beginTransaction();
             $stmt = $db->prepare("UPDATE pedidos SET paypal_order_id = ? WHERE id = ?");
             $stmt->execute([$paypalOrder['id'], $pedidoId]);
-
             $db->commit();
-
-            return [
-                'paypal_order_id' => $paypalOrder['id'],
-                'pedido_id' => $pedidoId
-            ];
         } catch (\Exception $e) {
-            $db->rollback();
+            if ($db->inTransaction()) {
+                $db->rollback();
+            }
             throw $e;
         }
+
+        return [
+            'paypal_order_id' => $paypalOrder['id'],
+            'pedido_id' => $pedidoId
+        ];
     }
 
     /**

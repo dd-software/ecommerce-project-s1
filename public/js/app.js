@@ -5,11 +5,16 @@
 
 const App = {
     getBasePath() {
-        let path = window.location.pathname;
-        if (path.endsWith('/')) {
-            return path.slice(0, -1);
+        const scripts = document.getElementsByTagName('script');
+        for (let i = 0; i < scripts.length; i++) {
+            if (scripts[i].src.includes('/js/app.js')) {
+                try {
+                    const url = new URL(scripts[i].src);
+                    return url.pathname.replace(/\/public\/js\/app\.js$/, '').replace(/\/js\/app\.js$/, '');
+                } catch(e) {}
+            }
         }
-        return path.substring(0, path.lastIndexOf('/'));
+        return '';
     },
 
     get apiBase() {
@@ -43,9 +48,10 @@ const App = {
         const userName = document.getElementById('user-name');
         const cartCount = document.getElementById('cart-count');
 
-        if (this.user) {
+        if (this.user && Object.keys(this.user).length > 0) {
             if (authLinks) authLinks.classList.add('d-none');
             if (userLinks) {
+                userLinks.classList.remove('d-none');
                 const basePath = this.getBasePath();
                 const adminHtml = (this.user.rol === 'admin') ? `<li><a class="dropdown-item" href="${basePath}/backend/views/dashboard.php"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>` : '';
                 userLinks.innerHTML = `

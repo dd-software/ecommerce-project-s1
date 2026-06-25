@@ -86,6 +86,7 @@ $router->get('/api/pedidos/{id}', [CheckoutController::class, 'detallePedido'], 
 $router->post('/api/pagos/procesar', [PagosController::class, 'procesar'], auth: true);
 $router->get('/api/pagos/estado/{pedidoId}', [PagosController::class, 'estado'], auth: true);
 $router->post('/api/pagos/webhook', [PagosController::class, 'webhook']);
+$router->get('/api/pagos/paypal/config', [PagosController::class, 'getPayPalConfig']);
 $router->post('/api/pagos/paypal/create', [PagosController::class, 'createPayPalOrder'], auth: true);
 $router->post('/api/pagos/paypal/capture', [PagosController::class, 'capturePayPalOrder'], auth: true);
 

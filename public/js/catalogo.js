@@ -116,9 +116,11 @@ const Catalogo = {
             if (data.success) {
                 this.renderProducts(data.data);
                 this.renderPagination(data.meta?.pagination);
+            } else {
+                container.innerHTML = `<div class="col-12 text-center py-5 text-danger">Error del servidor: ${data.error?.message || 'Error desconocido'}</div>`;
             }
         } catch (e) {
-            container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos.</div>';
+            container.innerHTML = '<div class="col-12 text-center py-5 text-danger">Error al cargar productos. Error de conexión.</div>';
         }
     },
 
@@ -175,7 +177,7 @@ const Catalogo = {
                         <div class="mt-2">
                             ${addButton}
                         </div>
-                        <a href="/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
+                        <a href="${App.getBasePath()}/producto.html?id=${p.id}" class="btn btn-outline-uct btn-sm w-100 mt-1">Ver Detalle</a>
                     </div>
                 </div>
             </div>`;

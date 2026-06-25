@@ -108,6 +108,17 @@ class PagosController
         }
     }
     /**
+     * GET /api/pagos/paypal/config
+     */
+    public function getPayPalConfig(Request $request, Response $response, array $params): void
+    {
+        $response->json([
+            'success' => true,
+            'client_id' => defined('PAYPAL_CLIENT_ID') && PAYPAL_CLIENT_ID !== '' ? PAYPAL_CLIENT_ID : 'test'
+        ]);
+    }
+
+    /**
      * POST /api/pagos/paypal/create
      */
     public function createPayPalOrder(Request $request, Response $response, array $params): void

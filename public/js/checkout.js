@@ -39,7 +39,7 @@ const Checkout = {
             } else {
                 container.innerHTML = `
                     <div class="alert alert-warning">
-                        Tu carrito está vacío. <a href="/catalogo.html">Ir al catálogo</a>
+                        Tu carrito está vacío. <a href="${App.getBasePath()}/index.html">Ir al catálogo</a>
                     </div>`;
                 const btn = document.getElementById('btn-place-order');
                 if (btn) btn.disabled = true;
@@ -165,7 +165,7 @@ const Checkout = {
         // Cargar script de PayPal dinámicamente si no existe
         if (!window.paypal) {
             try {
-                const configResp = await fetch(App.apiBase.replace('/api', '') + '/backend/payments/paypal-config.php');
+                const configResp = await fetch(`${App.apiBase}/pagos/paypal/config`);
                 const configData = await configResp.json();
                 
                 await new Promise((resolve, reject) => {

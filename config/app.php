@@ -44,7 +44,16 @@ cargarEnv(dirname(__DIR__) . '/.env');
 // Constantes de la aplicación
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'development');
 define('APP_DEBUG', filter_var($_ENV['APP_DEBUG'] ?? true, FILTER_VALIDATE_BOOLEAN));
-define('APP_URL', rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/'));
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+$baseUrlAuto = '';
+if (preg_match('#^(.*?)(/public/|/backend/|/index\.php)#', $scriptName, $matches)) {
+    $baseUrlAuto = rtrim($matches[1], '/');
+}
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || ($_SERVER['SERVER_PORT'] ?? 80) == 443) ? "https://" : "http://";
+$defaultAppUrl = $protocol . $host . $baseUrlAuto;
+
+define('APP_URL', rtrim($_ENV['APP_URL'] ?? $defaultAppUrl, '/'));
 define('BASE_URL', rtrim(parse_url(APP_URL, PHP_URL_PATH) ?? '', '/'));
 define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'clave_secreta_por_defecto_cambiar_en_produccion');
 define('JWT_EXPIRY', (int)($_ENV['JWT_EXPIRY'] ?? 7200));
