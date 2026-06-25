@@ -605,8 +605,17 @@ a:hover { color: var(--qc-red-hover); }
 .qc-stepper input { width: 52px; border: none; text-align: center; -moz-appearance: textfield; }
 .qc-stepper input::-webkit-outer-spin-button, .qc-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .qc-detail-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-.qc-detail-actions .btn-accent { background: var(--qc-red); border-color: var(--qc-red); color: #fff; font-weight: 600; padding: 12px; }
-.qc-detail-actions .btn-accent:hover { background: var(--qc-red-hover); border-color: var(--qc-red-hover); }
+/* Botones del detalle en grafito tinta, igual que las cards (--c-1/--c-2 = #2a2320/#1b1614) */
+.qc-detail-actions .btn-accent {
+    background: linear-gradient(180deg, #2a2320, #1b1614); border: none; color: #fff;
+    font-weight: 700; padding: 12px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.22) inset, 0 12px 24px -12px rgba(27,22,20,.55);
+}
+.qc-detail-actions .btn-accent:hover { filter: brightness(1.1); }
+.qc-detail-actions .btn-outline-uct { color: #1b1614; border: 2px solid #2a2320; background: #fff; font-weight: 600; }
+.qc-detail-actions .btn-outline-uct:hover { background: #1b1614; border-color: #1b1614; color: #fff; }
+.qc-detail-actions .qc-compare-toggle.active { background: #1b1614; border-color: #1b1614; color: #fff; }
+.qc-detail-actions .qc-compare-toggle.active:hover { background: #2a2320; border-color: #2a2320; color: #fff; }
 .qc-similares-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 22px; color: var(--qc-black); margin-bottom: 16px; }
 
 /* ── Rango de precio: histograma + sliders dobles ── */
