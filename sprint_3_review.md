@@ -18,6 +18,15 @@ Este documento resume las funcionalidades, mejoras de diseño y características
 ### 💳 Integración de Pago con PayPal
 *   Se implementó la opción de pago por **PayPal** en la pasarela de compra (checkout). El sistema permite al cliente seleccionar PayPal y renderiza dinámicamente los botones de pago oficiales de la plataforma para completar transacciones de forma segura.
 
+### ⭐ Reseñas con Calificación en Estrellas
+*   Se implementó el sistema de valoraciones en la plataforma. Los usuarios pueden calificar los productos del catálogo mediante una escala de 1 a 5 estrellas y dejar comentarios sobre su experiencia de compra.
+
+### 🔍 Vista de Detalle de Producto Reorganizada
+*   Se reestructuró y ordenó la vista de detalle de cada producto. Al hacer clic en un artículo se despliega una presentación limpia con:
+    *   Carrusel de imágenes en alta resolución.
+    *   Descripción del producto y disponibilidad de stock actual.
+    *   Historial de valoraciones y comentarios de otros clientes ordenados cronológicamente.
+
 ### 📋 Historial de "Mis Pedidos" con Detalle
 *   Se creó una sección dedicada para clientes autenticados donde pueden ver la lista completa de sus compras pasadas.
 *   **Vista Detallada**: Al hacer clic en un pedido, se abre un desglose que muestra:
