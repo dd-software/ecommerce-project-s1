@@ -33,7 +33,9 @@
             <i class="bi bi-person-circle"></i> <span id="user-name">Usuario</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" id="orders-link" data-bs-toggle="modal" data-bs-target="#ordersModal"><i class="bi bi-clock-history"></i> Mis Pedidos</a></li>
             <li><a class="dropdown-item d-none" href="#" id="admin-link"><i class="bi bi-speedometer2"></i> Panel Admin</a></li>
+            <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="#" id="btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
           </ul>
         </li>
@@ -221,6 +223,33 @@
 </form>
 </div></div></div></div>
 
+<!-- Modal Mis Pedidos -->
+<div class="modal fade" id="ordersModal" tabindex="-1">
+<div class="modal-dialog modal-lg"><div class="modal-content">
+<div class="modal-header">
+  <h5 class="modal-title"><i class="bi bi-clock-history me-2 text-primary"></i>Mis Pedidos</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+  <!-- Vista 1: Listado de pedidos -->
+  <div id="orders-list-view">
+    <div id="orders-list-container">
+      <!-- Se rellena con JS -->
+    </div>
+  </div>
+  
+  <!-- Vista 2: Detalle de un pedido (oculta por defecto) -->
+  <div id="order-detail-view" class="d-none">
+    <button class="btn btn-outline-secondary btn-sm mb-3" id="btn-back-to-orders">
+      <i class="bi bi-arrow-left me-1"></i> Volver a mis pedidos
+    </button>
+    <div id="order-detail-content">
+      <!-- Se rellena con JS -->
+    </div>
+  </div>
+</div>
+</div></div></div>
+
 <!-- Toast -->
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
 
@@ -230,12 +259,14 @@
 <script src="js/catalogo.js?v=3"></script>
 <script src="js/carrito.js?v=3"></script>
 <script src="js/checkout.js?v=3"></script>
+<script src="js/pedidos.js?v=3"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
     Catalogo.init();
     Carrito.init();
     Checkout.init();
+    Pedidos.init();
     
     // Auto-open login modal if requested
     const urlParams = new URLSearchParams(window.location.search);
